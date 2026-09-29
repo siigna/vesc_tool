@@ -287,6 +287,17 @@ void Commands::processPacket(QByteArray data)
             }
         }
 
+        if (vb.size() >= 11) {
+            if (mask & (uint32_t(1) << 22)) {
+                values.pas_cadence = vb.vbPopFrontDouble16(1e1);
+                values.pas_torque = vb.vbPopFrontDouble16(1e1);
+                values.pas_rider_power = vb.vbPopFrontDouble16(1e0);
+                values.pas_assist_power = vb.vbPopFrontDouble16(1e0);
+                values.pas_output = vb.vbPopFrontDouble16(1e3);
+                values.pas_flags = vb.vbPopFrontUint8();
+            }
+        }
+
         emit valuesReceived(values, mask);
     } break;
 

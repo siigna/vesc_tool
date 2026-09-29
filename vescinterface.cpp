@@ -523,6 +523,13 @@ VescInterface::VescInterface(QObject *parent) : QObject(parent)
             os << vVel << ";";
             os << hAcc << ";";
             os << vAcc << ";";
+
+            os << v.pas_cadence << ";";
+            os << v.pas_torque << ";";
+            os << v.pas_rider_power << ";";
+            os << v.pas_assist_power << ";";
+            os << v.pas_output << ";";
+            os << v.pas_flags << ";";
             os << "\n";
             os.flush();
 
@@ -1827,6 +1834,13 @@ bool VescInterface::openRtLogFile(QString outDirectory)
         os << "gnss_vVel" << ";";
         os << "gnss_hAcc" << ";";
         os << "gnss_vAcc" << ";";
+
+        os << "pas_cadence" << ";";
+        os << "pas_torque_nm" << ";";
+        os << "pas_rider_watts" << ";";
+        os << "pas_assist_watts" << ";";
+        os << "pas_output_rel" << ";";
+        os << "pas_flags" << ";";
         os << "\n";
         os.flush();
     }
@@ -1991,6 +2005,17 @@ bool VescInterface::loadRtLogFile(QByteArray data)
                 d.vVel = tokens.at(52).toDouble();
                 d.hAcc = tokens.at(53).toDouble();
                 d.vAcc = tokens.at(54).toDouble();
+            }
+
+            // PAS. Appended after the existing columns, so a log written before
+            // these existed simply does not have them.
+            if (tokens.size() >= 61) {
+                d.values.pas_cadence = tokens.at(55).toDouble();
+                d.values.pas_torque = tokens.at(56).toDouble();
+                d.values.pas_rider_power = tokens.at(57).toDouble();
+                d.values.pas_assist_power = tokens.at(58).toDouble();
+                d.values.pas_output = tokens.at(59).toDouble();
+                d.values.pas_flags = tokens.at(60).toInt();
             }
 
             mRtLogData.append(d);

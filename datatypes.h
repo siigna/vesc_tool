@@ -188,6 +188,12 @@ struct MC_VALUES {
     Q_PROPERTY(double vq MEMBER vq)
     Q_PROPERTY(bool has_timeout MEMBER has_timeout)
     Q_PROPERTY(bool kill_sw_active MEMBER kill_sw_active)
+    Q_PROPERTY(double pas_cadence MEMBER pas_cadence)
+    Q_PROPERTY(double pas_torque MEMBER pas_torque)
+    Q_PROPERTY(double pas_rider_power MEMBER pas_rider_power)
+    Q_PROPERTY(double pas_assist_power MEMBER pas_assist_power)
+    Q_PROPERTY(double pas_output MEMBER pas_output)
+    Q_PROPERTY(int pas_flags MEMBER pas_flags)
 
 public:
     MC_VALUES() {
@@ -216,6 +222,12 @@ public:
         vq = 0.0;
         has_timeout = false;
         kill_sw_active = false;
+        pas_cadence = 0.0;
+        pas_torque = 0.0;
+        pas_rider_power = 0.0;
+        pas_assist_power = 0.0;
+        pas_output = 0.0;
+        pas_flags = 0;
     }
 
     bool operator==(const MC_VALUES &other) const {
@@ -254,6 +266,12 @@ public:
     double vq;
     bool has_timeout;
     bool kill_sw_active;
+    double pas_cadence;
+    double pas_torque;
+    double pas_rider_power;
+    double pas_assist_power;
+    double pas_output;
+    int pas_flags;
 };
 
 Q_DECLARE_METATYPE(MC_VALUES)
