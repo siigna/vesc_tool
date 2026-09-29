@@ -2172,6 +2172,8 @@ p, li { white-space: pre-wrap; }
             <enumNames>Off</enumNames>
             <enumNames>Cadence</enumNames>
             <enumNames>Constant Torque</enumNames>
+            <enumNames>Constant Torque, Cadence Timeout</enumNames>
+            <enumNames>Proportional Power</enumNames>
         </app_pas_conf.ctrl_type>
         <app_pas_conf.sensor_type>
             <longName>Sensor Type</longName>
@@ -2462,6 +2464,37 @@ p, li { white-space: pre-wrap; }
             <stepDouble>0.5</stepDouble>
             <suffix> Nm</suffix>
         </app_pas_conf.torque_deadband_nm>
+        <app_pas_conf.assist_gain>
+            <longName>PAS Assist Gain</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Motor watts per rider watt, for the Proportional Power control type. A gain of 1 means the motor contributes about as much power as the rider. The result is still subject to PAS Max Current and to the motor current limits.</description>
+            <cDefine>APPCONF_PAS_ASSIST_GAIN</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>1</valDouble>
+            <maxDouble>10</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.1</stepDouble>
+            <suffix> W/W</suffix>
+        </app_pas_conf.assist_gain>
+        <app_pas_conf.torque_avg_pulses>
+            <longName>PAS Torque Averaging</longName>
+            <type>2</type>
+            <transmittable>1</transmittable>
+            <description>Number of pedal pulses to average crank torque over, or 0 to use the instantaneous reading. Crank torque varies strongly within a pedal stroke, so averaging over whole pulse intervals smooths it without changing character with cadence. Set this to the magnet count for exactly one crank revolution. Longer windows are smoother and less responsive.</description>
+            <cDefine>APPCONF_PAS_TORQUE_AVG_PULSES</cDefine>
+            <vTx>3</vTx>
+            <valInt>0</valInt>
+            <maxInt>128</maxInt>
+            <minInt>0</minInt>
+            <stepInt>1</stepInt>
+            <suffix> pulses</suffix>
+        </app_pas_conf.torque_avg_pulses>
         <imu_conf.type>
             <longName>IMU Type</longName>
             <type>4</type>
@@ -3041,6 +3074,8 @@ p, li { white-space: pre-wrap; }
         <ser>app_pas_conf.torque_nm_per_v</ser>
         <ser>app_pas_conf.torque_max_nm</ser>
         <ser>app_pas_conf.torque_deadband_nm</ser>
+        <ser>app_pas_conf.assist_gain</ser>
+        <ser>app_pas_conf.torque_avg_pulses</ser>
         <ser>imu_conf.type</ser>
         <ser>imu_conf.mode</ser>
         <ser>imu_conf.filter</ser>
@@ -3301,6 +3336,13 @@ p, li { white-space: pre-wrap; }
                     <param>app_pas_conf.torque_nm_per_v</param>
                     <param>app_pas_conf.torque_max_nm</param>
                     <param>app_pas_conf.torque_deadband_nm</param>
+                    <param>app_pas_conf.torque_avg_pulses</param>
+                </subgroupParams>
+            </subgroup>
+            <subgroup>
+                <subgroupName>Assist</subgroupName>
+                <subgroupParams>
+                    <param>app_pas_conf.assist_gain</param>
                 </subgroupParams>
             </subgroup>
         </group>
