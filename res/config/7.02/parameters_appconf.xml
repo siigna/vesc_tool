@@ -2250,12 +2250,7 @@ p, li { white-space: pre-wrap; }
             <longName>Sensor Magnets</longName>
             <type>2</type>
             <transmittable>1</transmittable>
-            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;How many magnets the PAS sensor assembly has. 24 magnets would provide 24 pulses per pedal revolution.&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;12 and 24 magnet setups are typical.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <description>Pulses per crank revolution. Obvious for a simple cadence sensor, where it is the number of magnets, but a torque sensing bottom bracket is not open to inspection. To determine it, watch the pedal RPM with the pas_status terminal command while turning the cranks slowly, or count the pulses over one revolution. A Thun gives 8, a TDCM 12, and a Grin ERider73 18. A higher count is better: pedalling is detected sooner and the stop threshold can be shorter.</description>
             <cDefine>APPCONF_PAS_MAGNETS</cDefine>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
@@ -2396,7 +2391,7 @@ p, li { white-space: pre-wrap; }
             <longName>PAS Torque Zero Voltage</longName>
             <type>1</type>
             <transmittable>1</transmittable>
-            <description>The voltage the torque sensor outputs with no force on the cranks. The pas_torque terminal command reports the measured voltage, which is the practical way to determine this.</description>
+            <description>The voltage the torque sensor outputs with no force on the cranks. Run "pas_torque zero" with no force on the pedals to measure it; that averages for about a second and prints the value to enter here. Worth re-checking occasionally, as the offset drifts.&#10;&#10;A unipolar sensor rests near the bottom of its range, for example 1.5 V on a Grin ERider73. A bipolar sensor rests mid range, 2.5 V on a Thun, and needs PAS Torque Bipolar set as well.</description>
             <cDefine>APPCONF_PAS_TORQUE_ZERO_V</cDefine>
             <editorDecimalsDouble>3</editorDecimalsDouble>
             <editorScale>1</editorScale>
@@ -2414,7 +2409,7 @@ p, li { white-space: pre-wrap; }
             <longName>PAS Torque Scale</longName>
             <type>1</type>
             <transmittable>1</transmittable>
-            <description>Crank torque per volt above the zero voltage, from the torque sensor datasheet.</description>
+            <description>Crank torque per volt above the zero voltage, from the torque sensor datasheet. A Grin ERider73 is 70 Nm/V and a Thun about 100 Nm/V.&#10;&#10;A chain tension sensor such as a TDCM measures the backwards force on the crank rather than the crank torque itself, so its scale depends on the chainring size. 30 to 80 Nm/V is the usual range, 50 a reasonable first guess. To measure it: note the voltage with pas_torque, apply the rear brake, hang a known weight on the forward pedal, note the voltage again, then Nm/V = weight_lb * 4.44 * crank_length_m / voltage_change. For example 50 lb on a 175 mm crank moving the reading from 2.45 V to 3.10 V gives 50 * 4.44 * 0.175 / 0.65 = 60 Nm/V.&#10;&#10;Note that a Cycle Analyst reads torque against a 5 V reference while this reads against the ADC reference, 3.3 V on many boards. A sensor that swings above that clips, so a divider may be needed and the same Nm/V will no longer apply once one is fitted.</description>
             <cDefine>APPCONF_PAS_TORQUE_NM_PER_V</cDefine>
             <editorDecimalsDouble>2</editorDecimalsDouble>
             <editorScale>1</editorScale>
@@ -2468,7 +2463,7 @@ p, li { white-space: pre-wrap; }
             <longName>PAS Assist Gain</longName>
             <type>1</type>
             <transmittable>1</transmittable>
-            <description>Motor watts per rider watt, for the Proportional Power control type. A gain of 1 means the motor contributes about as much power as the rider. Grin suggest 2 to 4 times the rider power suits most people on a Cycle Analyst. The result is still subject to PAS Max Current, to the power cap and to the motor current limits.</description>
+            <description>Motor watts per rider watt, for the Proportional Power control type. A gain of 1 means the motor contributes about as much power as the rider. Grin suggest 2 to 4 times the rider power suits most people on a Cycle Analyst. The result is still subject to PAS Max Current, to the power cap and to the motor current limits.&#10;&#10;Note that the power request is open loop: it is converted to a current and then bounded by the current limits, rather than being regulated against measured power as a Cycle Analyst does. So it cannot overshoot or oscillate, but the delivered power will sit below the request wherever the motor cannot take the current.</description>
             <cDefine>APPCONF_PAS_ASSIST_GAIN</cDefine>
             <editorDecimalsDouble>2</editorDecimalsDouble>
             <editorScale>1</editorScale>
