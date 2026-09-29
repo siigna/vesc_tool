@@ -2712,6 +2712,103 @@ p, li { white-space: pre-wrap; }
             <stepDouble>0.5</stepDouble>
             <suffix> km/h</suffix>
         </app_pas_conf.throttle_no_pedal_kmh>
+        <app_pas_conf.walk_source>
+            <longName>PAS Walk Assist Source</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>Where the walk assist trigger comes from. Script means a LispBM script calls app-pas-walk-set, which is how a display button is normally wired, and the request expires after half a second unless it keeps being refreshed. ADC reads a switch on the channel below.&#10;&#10;Walk assist replaces the normal PAS output rather than adding to it, bypasses the output ramp so that releasing it stops the motor at once, uses its own speed limit rather than the assist speed taper, and is overridden by the brake input.</description>
+            <cDefine>APPCONF_PAS_WALK_SOURCE</cDefine>
+            <valInt>0</valInt>
+            <enumNames>None</enumNames>
+            <enumNames>Script</enumNames>
+            <enumNames>ADC</enumNames>
+        </app_pas_conf.walk_source>
+        <app_pas_conf.walk_adc_ch>
+            <longName>PAS Walk Assist ADC Channel</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>The ADC channel the walk assist switch is on. A channel the hardware does not provide is rejected, which the pas_status terminal command reports. Note that the torque sensor and the brake input may already be using the spare channels.</description>
+            <cDefine>APPCONF_PAS_WALK_ADC_CH</cDefine>
+            <valInt>2</valInt>
+            <enumNames>ADC 1</enumNames>
+            <enumNames>ADC 2</enumNames>
+            <enumNames>ADC 3</enumNames>
+            <enumNames>ADC 4</enumNames>
+            <enumNames>ADC 5</enumNames>
+            <enumNames>ADC 6</enumNames>
+            <enumNames>ADC 7</enumNames>
+            <enumNames>ADC 8</enumNames>
+        </app_pas_conf.walk_adc_ch>
+        <app_pas_conf.walk_threshold_v>
+            <longName>PAS Walk Assist Threshold</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Walk assist counts as requested at or above this voltage.</description>
+            <cDefine>APPCONF_PAS_WALK_THRESHOLD_V</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>1.65</valDouble>
+            <maxDouble>3.3</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.05</stepDouble>
+            <suffix> V</suffix>
+        </app_pas_conf.walk_threshold_v>
+        <app_pas_conf.walk_invert>
+            <longName>PAS Walk Assist Inverted</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>Treat a reading below the threshold as the request, for a switch that pulls the input low.</description>
+            <cDefine>APPCONF_PAS_WALK_INVERT</cDefine>
+            <valInt>0</valInt>
+        </app_pas_conf.walk_invert>
+        <app_pas_conf.walk_max_kmh>
+            <longName>PAS Walk Assist Speed Limit</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Walk assist fades out approaching this road speed. There is no closed loop on speed, so this is where assist stops rather than a speed it will hold. Walking pace is around 6 km/h, which is also the figure written into pedelec walk assist rules.</description>
+            <cDefine>APPCONF_PAS_WALK_MAX_KMH</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>6</valDouble>
+            <maxDouble>20</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> km/h</suffix>
+        </app_pas_conf.walk_max_kmh>
+        <app_pas_conf.walk_current>
+            <longName>PAS Walk Assist Current</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Motor current for walk assist, as a fraction of the motor current limit. Walking a vehicle needs very little, so start low: this drives with nobody aboard and the cranks stopped.</description>
+            <cDefine>APPCONF_PAS_WALK_CURRENT</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>1</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1000</vTxDoubleScale>
+            <valDouble>0.05</valDouble>
+            <maxDouble>0.5</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.01</stepDouble>
+            <suffix> </suffix>
+        </app_pas_conf.walk_current>
+        <app_pas_conf.walk_require_pedal>
+            <longName>PAS Walk Requires Pedalling</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>Only apply walk assist while the cranks are turning. Off by default, since walking the vehicle alongside is the point of walk assist and the pedals are not being turned then. Turn it on if a button that drives the vehicle on its own is not wanted.</description>
+            <cDefine>APPCONF_PAS_WALK_REQUIRE_PEDAL</cDefine>
+            <valInt>0</valInt>
+        </app_pas_conf.walk_require_pedal>
         <imu_conf.type>
             <longName>IMU Type</longName>
             <type>4</type>
@@ -3308,6 +3405,13 @@ p, li { white-space: pre-wrap; }
         <ser>app_pas_conf.assist_start_w</ser>
         <ser>app_pas_conf.throttle_mode</ser>
         <ser>app_pas_conf.throttle_no_pedal_kmh</ser>
+        <ser>app_pas_conf.walk_source</ser>
+        <ser>app_pas_conf.walk_adc_ch</ser>
+        <ser>app_pas_conf.walk_threshold_v</ser>
+        <ser>app_pas_conf.walk_invert</ser>
+        <ser>app_pas_conf.walk_max_kmh</ser>
+        <ser>app_pas_conf.walk_current</ser>
+        <ser>app_pas_conf.walk_require_pedal</ser>
         <ser>imu_conf.type</ser>
         <ser>imu_conf.mode</ser>
         <ser>imu_conf.filter</ser>
@@ -3598,6 +3702,14 @@ p, li { white-space: pre-wrap; }
                     <param>app_pas_conf.brake_adc_ch</param>
                     <param>app_pas_conf.brake_threshold_v</param>
                     <param>app_pas_conf.brake_invert</param>
+                    <param>::sep::Walk Assist</param>
+                    <param>app_pas_conf.walk_source</param>
+                    <param>app_pas_conf.walk_adc_ch</param>
+                    <param>app_pas_conf.walk_threshold_v</param>
+                    <param>app_pas_conf.walk_invert</param>
+                    <param>app_pas_conf.walk_max_kmh</param>
+                    <param>app_pas_conf.walk_current</param>
+                    <param>app_pas_conf.walk_require_pedal</param>
                 </subgroupParams>
             </subgroup>
         </group>
