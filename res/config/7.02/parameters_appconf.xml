@@ -2809,6 +2809,34 @@ p, li { white-space: pre-wrap; }
             <cDefine>APPCONF_PAS_WALK_REQUIRE_PEDAL</cDefine>
             <valInt>0</valInt>
         </app_pas_conf.walk_require_pedal>
+        <app_pas_conf.power_ctrl_mode>
+            <longName>PAS Power Control</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>How a Proportional Power request becomes a current. Open loop divides the request by the input voltage and lets the current limits bound it: it cannot overshoot or oscillate, but the delivered power sits below the request wherever the motor cannot take the current, and nothing corrects for that. Closed loop keeps that as a feedforward term and trims it against measured input power, which is what a Cycle Analyst does with its power PID.&#10;&#10;The loop is only closed when PAS is the only thing driving. In the combined ADC and PAS app the measured input power includes whatever the throttle is asking for, which is not attributable to the PAS request, so it runs open loop there and the pas_status terminal command says so.</description>
+            <cDefine>APPCONF_PAS_POWER_CTRL_MODE</cDefine>
+            <valInt>0</valInt>
+            <enumNames>Open Loop</enumNames>
+            <enumNames>Closed Loop</enumNames>
+        </app_pas_conf.power_ctrl_mode>
+        <app_pas_conf.power_gain>
+            <longName>PAS Power Gain</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>How much of a full scale error the closed loop trim closes per second, so 2 closes a full scale error in half a second. Because the open loop estimate is kept as a feedforward term, this gain only has to correct the residual rather than produce the whole output, so it can be small and the sluggish startup a Cycle Analyst gets from too low a power gain does not arise. Raise it if the delivered power settles below the request, lower it if the assist surges or hunts.</description>
+            <cDefine>APPCONF_PAS_POWER_GAIN</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>2</valDouble>
+            <maxDouble>20</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.25</stepDouble>
+            <suffix> /s</suffix>
+        </app_pas_conf.power_gain>
         <imu_conf.type>
             <longName>IMU Type</longName>
             <type>4</type>
@@ -3412,6 +3440,8 @@ p, li { white-space: pre-wrap; }
         <ser>app_pas_conf.walk_max_kmh</ser>
         <ser>app_pas_conf.walk_current</ser>
         <ser>app_pas_conf.walk_require_pedal</ser>
+        <ser>app_pas_conf.power_ctrl_mode</ser>
+        <ser>app_pas_conf.power_gain</ser>
         <ser>imu_conf.type</ser>
         <ser>imu_conf.mode</ser>
         <ser>imu_conf.filter</ser>
@@ -3685,6 +3715,8 @@ p, li { white-space: pre-wrap; }
                     <param>app_pas_conf.assist_gain</param>
                     <param>app_pas_conf.cadence_floor_rpm</param>
                     <param>app_pas_conf.assist_start_w</param>
+                    <param>app_pas_conf.power_ctrl_mode</param>
+                    <param>app_pas_conf.power_gain</param>
                     <param>::sep::Throttle</param>
                     <param>app_pas_conf.throttle_mode</param>
                     <param>app_pas_conf.throttle_no_pedal_kmh</param>
