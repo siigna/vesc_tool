@@ -2495,6 +2495,120 @@ p, li { white-space: pre-wrap; }
             <stepInt>1</stepInt>
             <suffix> pulses</suffix>
         </app_pas_conf.torque_avg_pulses>
+        <app_pas_conf.taper_start_kmh>
+            <longName>PAS Taper Start Speed</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Assist is at full up to this road speed and then falls off. Set this and the end speed to the same value for a hard cutoff. Both zero disables the taper. The speed comes from the motor RPM and the configured pole count, wheel diameter and gear ratio unless the hardware has a wheel speed sensor, so those have to be correct for this to mean anything.</description>
+            <cDefine>APPCONF_PAS_TAPER_START_KMH</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>100</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> km/h</suffix>
+        </app_pas_conf.taper_start_kmh>
+        <app_pas_conf.taper_end_kmh>
+            <longName>PAS Taper End Speed</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Assist reaches zero at this road speed. If it is not above the start speed, assist is cut off at the start speed instead of tapering.</description>
+            <cDefine>APPCONF_PAS_TAPER_END_KMH</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>100</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> km/h</suffix>
+        </app_pas_conf.taper_end_kmh>
+        <app_pas_conf.power_max_w>
+            <longName>PAS Power Cap</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Upper limit on the motor power PAS requests, or 0 for no limit. Applied to every control type, not only Proportional Power. Computed against the measured input voltage and the motor current limit.</description>
+            <cDefine>APPCONF_PAS_POWER_MAX_W</cDefine>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>5000</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>10</stepDouble>
+            <suffix> W</suffix>
+        </app_pas_conf.power_max_w>
+        <app_pas_conf.pedal_stop_hard>
+            <longName>PAS Hard Pedal Stop</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>Cut assist immediately when the cranks stop, instead of ramping it down over the negative ramp time.</description>
+            <cDefine>APPCONF_PAS_PEDAL_STOP_HARD</cDefine>
+            <valInt>0</valInt>
+        </app_pas_conf.pedal_stop_hard>
+        <app_pas_conf.brake_source>
+            <longName>PAS Brake Source</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>Where the brake input comes from. A brake cuts PAS assist immediately, bypassing the ramp. The PAS app previously had no brake input at all, and in the ADC and PAS combined mode the two outputs are combined by taking the larger, so brake handling on the ADC side does not suppress PAS.</description>
+            <cDefine>APPCONF_PAS_BRAKE_SOURCE</cDefine>
+            <valInt>0</valInt>
+            <enumNames>None</enumNames>
+            <enumNames>ADC</enumNames>
+        </app_pas_conf.brake_source>
+        <app_pas_conf.brake_adc_ch>
+            <longName>PAS Brake ADC Channel</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>The ADC channel the brake input is on. A channel the hardware does not provide is rejected, which the pas_status terminal command reports.</description>
+            <cDefine>APPCONF_PAS_BRAKE_ADC_CH</cDefine>
+            <valInt>1</valInt>
+            <enumNames>ADC 1</enumNames>
+            <enumNames>ADC 2</enumNames>
+            <enumNames>ADC 3</enumNames>
+            <enumNames>ADC 4</enumNames>
+            <enumNames>ADC 5</enumNames>
+            <enumNames>ADC 6</enumNames>
+            <enumNames>ADC 7</enumNames>
+            <enumNames>ADC 8</enumNames>
+        </app_pas_conf.brake_adc_ch>
+        <app_pas_conf.brake_threshold_v>
+            <longName>PAS Brake Threshold</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The brake counts as applied at or above this voltage. This suits a proportional lever and a plain switch alike, since a switch reads as one supply rail or the other.</description>
+            <cDefine>APPCONF_PAS_BRAKE_THRESHOLD_V</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>1.65</valDouble>
+            <maxDouble>3.3</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.05</stepDouble>
+            <suffix> V</suffix>
+        </app_pas_conf.brake_threshold_v>
+        <app_pas_conf.brake_invert>
+            <longName>PAS Brake Inverted</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>Treat a reading below the threshold as the brake being applied, for a switch that pulls the input low when the brake is used.</description>
+            <cDefine>APPCONF_PAS_BRAKE_INVERT</cDefine>
+            <valInt>0</valInt>
+        </app_pas_conf.brake_invert>
         <imu_conf.type>
             <longName>IMU Type</longName>
             <type>4</type>
@@ -3076,6 +3190,14 @@ p, li { white-space: pre-wrap; }
         <ser>app_pas_conf.torque_deadband_nm</ser>
         <ser>app_pas_conf.assist_gain</ser>
         <ser>app_pas_conf.torque_avg_pulses</ser>
+        <ser>app_pas_conf.taper_start_kmh</ser>
+        <ser>app_pas_conf.taper_end_kmh</ser>
+        <ser>app_pas_conf.power_max_w</ser>
+        <ser>app_pas_conf.pedal_stop_hard</ser>
+        <ser>app_pas_conf.brake_source</ser>
+        <ser>app_pas_conf.brake_adc_ch</ser>
+        <ser>app_pas_conf.brake_threshold_v</ser>
+        <ser>app_pas_conf.brake_invert</ser>
         <ser>imu_conf.type</ser>
         <ser>imu_conf.mode</ser>
         <ser>imu_conf.filter</ser>
@@ -3343,6 +3465,20 @@ p, li { white-space: pre-wrap; }
                 <subgroupName>Assist</subgroupName>
                 <subgroupParams>
                     <param>app_pas_conf.assist_gain</param>
+                </subgroupParams>
+            </subgroup>
+            <subgroup>
+                <subgroupName>Limits</subgroupName>
+                <subgroupParams>
+                    <param>app_pas_conf.taper_start_kmh</param>
+                    <param>app_pas_conf.taper_end_kmh</param>
+                    <param>app_pas_conf.power_max_w</param>
+                    <param>app_pas_conf.pedal_stop_hard</param>
+                    <param>::sep::Brake</param>
+                    <param>app_pas_conf.brake_source</param>
+                    <param>app_pas_conf.brake_adc_ch</param>
+                    <param>app_pas_conf.brake_threshold_v</param>
+                    <param>app_pas_conf.brake_invert</param>
                 </subgroupParams>
             </subgroup>
         </group>
