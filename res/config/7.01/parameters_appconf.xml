@@ -2186,6 +2186,7 @@ p, li { white-space: pre-wrap; }
             <cDefine>APPCONF_PAS_SENSOR_TYPE</cDefine>
             <valInt>0</valInt>
             <enumNames>Quadrature</enumNames>
+            <enumNames>Single Wire</enumNames>
         </app_pas_conf.sensor_type>
         <app_pas_conf.pedal_rpm_start>
             <longName>Pedal RPM Start</longName>
@@ -2362,6 +2363,105 @@ p, li { white-space: pre-wrap; }
             <suffix> Hz</suffix>
             <vTx>3</vTx>
         </app_pas_conf.update_rate_hz>
+        <app_pas_conf.torque_source>
+            <longName>PAS Torque Source</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>Where the crank torque reading comes from. None disables torque control. Hardware uses a board specific implementation and is only available on hardware that provides one. ADC reads an analog torque sensor on the channel selected below.</description>
+            <cDefine>APPCONF_PAS_TORQUE_SOURCE</cDefine>
+            <valInt>0</valInt>
+            <enumNames>None</enumNames>
+            <enumNames>Hardware</enumNames>
+            <enumNames>ADC</enumNames>
+        </app_pas_conf.torque_source>
+        <app_pas_conf.torque_adc_ch>
+            <longName>PAS Torque ADC Channel</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>The ADC channel the analog torque sensor is connected to. Note that ADC 1 is normally the throttle input and ADC 2 is normally the brake input. A channel the hardware does not provide is rejected, which the pas_status terminal command reports.</description>
+            <cDefine>APPCONF_PAS_TORQUE_ADC_CH</cDefine>
+            <valInt>2</valInt>
+            <enumNames>ADC 1</enumNames>
+            <enumNames>ADC 2</enumNames>
+            <enumNames>ADC 3</enumNames>
+            <enumNames>ADC 4</enumNames>
+            <enumNames>ADC 5</enumNames>
+            <enumNames>ADC 6</enumNames>
+            <enumNames>ADC 7</enumNames>
+            <enumNames>ADC 8</enumNames>
+        </app_pas_conf.torque_adc_ch>
+        <app_pas_conf.torque_zero_v>
+            <longName>PAS Torque Zero Voltage</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The voltage the torque sensor outputs with no force on the cranks. The pas_torque terminal command reports the measured voltage, which is the practical way to determine this.</description>
+            <cDefine>APPCONF_PAS_TORQUE_ZERO_V</cDefine>
+            <editorDecimalsDouble>3</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1000</vTxDoubleScale>
+            <valDouble>1.5</valDouble>
+            <maxDouble>3.3</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.01</stepDouble>
+            <suffix> V</suffix>
+        </app_pas_conf.torque_zero_v>
+        <app_pas_conf.torque_nm_per_v>
+            <longName>PAS Torque Scale</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Crank torque per volt above the zero voltage, from the torque sensor datasheet.</description>
+            <cDefine>APPCONF_PAS_TORQUE_NM_PER_V</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>70</valDouble>
+            <maxDouble>300</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>1</stepDouble>
+            <suffix> Nm/V</suffix>
+        </app_pas_conf.torque_nm_per_v>
+        <app_pas_conf.torque_max_nm>
+            <longName>PAS Torque Full Scale</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The crank torque treated as full assist by the constant torque control types. Also used to express a hardware torque sensor, which reports a ratio rather than a unit, in Nm.</description>
+            <cDefine>APPCONF_PAS_TORQUE_MAX_NM</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>140</valDouble>
+            <maxDouble>500</maxDouble>
+            <minDouble>1</minDouble>
+            <stepDouble>5</stepDouble>
+            <suffix> Nm</suffix>
+        </app_pas_conf.torque_max_nm>
+        <app_pas_conf.torque_deadband_nm>
+            <longName>PAS Torque Deadband</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Crank torque below this is treated as zero, so that sensor noise and the weight of a rider resting on the pedals do not engage assist. The remaining range is rescaled so that the response stays continuous.</description>
+            <cDefine>APPCONF_PAS_TORQUE_DEADBAND_NM</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>2</valDouble>
+            <maxDouble>50</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> Nm</suffix>
+        </app_pas_conf.torque_deadband_nm>
         <imu_conf.type>
             <longName>IMU Type</longName>
             <type>4</type>
@@ -2935,6 +3035,12 @@ p, li { white-space: pre-wrap; }
         <ser>app_pas_conf.ramp_time_pos</ser>
         <ser>app_pas_conf.ramp_time_neg</ser>
         <ser>app_pas_conf.update_rate_hz</ser>
+        <ser>app_pas_conf.torque_source</ser>
+        <ser>app_pas_conf.torque_adc_ch</ser>
+        <ser>app_pas_conf.torque_zero_v</ser>
+        <ser>app_pas_conf.torque_nm_per_v</ser>
+        <ser>app_pas_conf.torque_max_nm</ser>
+        <ser>app_pas_conf.torque_deadband_nm</ser>
         <ser>imu_conf.type</ser>
         <ser>imu_conf.mode</ser>
         <ser>imu_conf.filter</ser>
@@ -3184,6 +3290,17 @@ p, li { white-space: pre-wrap; }
                     <param>app_pas_conf.ramp_time_pos</param>
                     <param>app_pas_conf.ramp_time_neg</param>
                     <param>app_pas_conf.update_rate_hz</param>
+                </subgroupParams>
+            </subgroup>
+            <subgroup>
+                <subgroupName>Torque Sensor</subgroupName>
+                <subgroupParams>
+                    <param>app_pas_conf.torque_source</param>
+                    <param>app_pas_conf.torque_adc_ch</param>
+                    <param>app_pas_conf.torque_zero_v</param>
+                    <param>app_pas_conf.torque_nm_per_v</param>
+                    <param>app_pas_conf.torque_max_nm</param>
+                    <param>app_pas_conf.torque_deadband_nm</param>
                 </subgroupParams>
             </subgroup>
         </group>
