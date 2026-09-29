@@ -2468,7 +2468,7 @@ p, li { white-space: pre-wrap; }
             <longName>PAS Assist Gain</longName>
             <type>1</type>
             <transmittable>1</transmittable>
-            <description>Motor watts per rider watt, for the Proportional Power control type. A gain of 1 means the motor contributes about as much power as the rider. The result is still subject to PAS Max Current and to the motor current limits.</description>
+            <description>Motor watts per rider watt, for the Proportional Power control type. A gain of 1 means the motor contributes about as much power as the rider. Grin suggest 2 to 4 times the rider power suits most people on a Cycle Analyst. The result is still subject to PAS Max Current, to the power cap and to the motor current limits.</description>
             <cDefine>APPCONF_PAS_ASSIST_GAIN</cDefine>
             <editorDecimalsDouble>2</editorDecimalsDouble>
             <editorScale>1</editorScale>
@@ -2609,6 +2609,60 @@ p, li { white-space: pre-wrap; }
             <cDefine>APPCONF_PAS_BRAKE_INVERT</cDefine>
             <valInt>0</valInt>
         </app_pas_conf.brake_invert>
+        <app_pas_conf.cadence_floor_rpm>
+            <longName>PAS Assist Cadence Floor</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Cadence used for the assist calculation when pedalling slower than this, for the Proportional Power control type. Power is torque times cadence, which collapses towards zero as the cranks slow, so without a floor there would be the least assist when pulling away from a standstill. A Cycle Analyst uses 55 rpm. The floor only applies while the cranks are turning, so stopped cranks still mean no assist. Reported rider power always uses the real cadence. Set to 0 to disable.</description>
+            <cDefine>APPCONF_PAS_CADENCE_FLOOR_RPM</cDefine>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>55</valDouble>
+            <maxDouble>150</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>5</stepDouble>
+            <suffix> rpm</suffix>
+        </app_pas_conf.cadence_floor_rpm>
+        <app_pas_conf.start_timeout_s>
+            <longName>PAS Start Threshold</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The longest gap between pedal pulses that still counts as continued pedalling. A longer value engages assist sooner when pulling away from a standstill, but too long lets an incidental nudge of the pedals produce a burst of assist. Grin suggest 0.25 to 0.40 s. Set to 0 to derive it from the start cadence and magnet count, which is what this app did when one value served both thresholds.</description>
+            <cDefine>APPCONF_PAS_START_TIMEOUT_S</cDefine>
+            <editorDecimalsDouble>3</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1000</vTxDoubleScale>
+            <valDouble>0.3</valDouble>
+            <maxDouble>2</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.05</stepDouble>
+            <suffix> s</suffix>
+        </app_pas_conf.start_timeout_s>
+        <app_pas_conf.stop_timeout_s>
+            <longName>PAS Stop Threshold</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The gap without a pedal pulse after which the cranks count as stopped and assist ends. A shorter value ends assist sooner, but too short causes dropouts when pedalling slowly. Grin suggest 0.15 to 0.30 s. Note that this and the start threshold are tuned in opposite directions, which is why one value cannot serve both. Set to 0 to derive it from the start cadence and magnet count.</description>
+            <cDefine>APPCONF_PAS_STOP_TIMEOUT_S</cDefine>
+            <editorDecimalsDouble>3</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1000</vTxDoubleScale>
+            <valDouble>0.25</valDouble>
+            <maxDouble>2</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.05</stepDouble>
+            <suffix> s</suffix>
+        </app_pas_conf.stop_timeout_s>
         <imu_conf.type>
             <longName>IMU Type</longName>
             <type>4</type>
@@ -3198,6 +3252,9 @@ p, li { white-space: pre-wrap; }
         <ser>app_pas_conf.brake_adc_ch</ser>
         <ser>app_pas_conf.brake_threshold_v</ser>
         <ser>app_pas_conf.brake_invert</ser>
+        <ser>app_pas_conf.cadence_floor_rpm</ser>
+        <ser>app_pas_conf.start_timeout_s</ser>
+        <ser>app_pas_conf.stop_timeout_s</ser>
         <ser>imu_conf.type</ser>
         <ser>imu_conf.mode</ser>
         <ser>imu_conf.filter</ser>
@@ -3447,6 +3504,9 @@ p, li { white-space: pre-wrap; }
                     <param>app_pas_conf.ramp_time_pos</param>
                     <param>app_pas_conf.ramp_time_neg</param>
                     <param>app_pas_conf.update_rate_hz</param>
+                    <param>::sep::Pedalling Detection</param>
+                    <param>app_pas_conf.start_timeout_s</param>
+                    <param>app_pas_conf.stop_timeout_s</param>
                 </subgroupParams>
             </subgroup>
             <subgroup>
@@ -3465,6 +3525,7 @@ p, li { white-space: pre-wrap; }
                 <subgroupName>Assist</subgroupName>
                 <subgroupParams>
                     <param>app_pas_conf.assist_gain</param>
+                    <param>app_pas_conf.cadence_floor_rpm</param>
                 </subgroupParams>
             </subgroup>
             <subgroup>
