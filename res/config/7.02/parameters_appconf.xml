@@ -2172,6 +2172,8 @@ p, li { white-space: pre-wrap; }
             <enumNames>Off</enumNames>
             <enumNames>Cadence</enumNames>
             <enumNames>Constant Torque</enumNames>
+            <enumNames>Constant Torque, Cadence Timeout</enumNames>
+            <enumNames>Proportional Power</enumNames>
         </app_pas_conf.ctrl_type>
         <app_pas_conf.sensor_type>
             <longName>Sensor Type</longName>
@@ -2186,6 +2188,7 @@ p, li { white-space: pre-wrap; }
             <cDefine>APPCONF_PAS_SENSOR_TYPE</cDefine>
             <valInt>0</valInt>
             <enumNames>Quadrature</enumNames>
+            <enumNames>Single Wire</enumNames>
         </app_pas_conf.sensor_type>
         <app_pas_conf.pedal_rpm_start>
             <longName>Pedal RPM Start</longName>
@@ -2362,6 +2365,358 @@ p, li { white-space: pre-wrap; }
             <suffix> Hz</suffix>
             <vTx>3</vTx>
         </app_pas_conf.update_rate_hz>
+        <app_pas_conf.torque_source>
+            <longName>PAS Torque Source</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>Where the crank torque reading comes from. None disables torque control. Hardware uses a board specific implementation and is only available on hardware that provides one. ADC reads an analog torque sensor on the channel selected below.</description>
+            <cDefine>APPCONF_PAS_TORQUE_SOURCE</cDefine>
+            <valInt>0</valInt>
+            <enumNames>None</enumNames>
+            <enumNames>Hardware</enumNames>
+            <enumNames>ADC</enumNames>
+        </app_pas_conf.torque_source>
+        <app_pas_conf.torque_adc_ch>
+            <longName>PAS Torque ADC Channel</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>The ADC channel the analog torque sensor is connected to. Note that ADC 1 is normally the throttle input and ADC 2 is normally the brake input. A channel the hardware does not provide is rejected, which the pas_status terminal command reports.</description>
+            <cDefine>APPCONF_PAS_TORQUE_ADC_CH</cDefine>
+            <valInt>2</valInt>
+            <enumNames>ADC 1</enumNames>
+            <enumNames>ADC 2</enumNames>
+            <enumNames>ADC 3</enumNames>
+            <enumNames>ADC 4</enumNames>
+            <enumNames>ADC 5</enumNames>
+            <enumNames>ADC 6</enumNames>
+            <enumNames>ADC 7</enumNames>
+            <enumNames>ADC 8</enumNames>
+        </app_pas_conf.torque_adc_ch>
+        <app_pas_conf.torque_zero_v>
+            <longName>PAS Torque Zero Voltage</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The voltage the torque sensor outputs with no force on the cranks. The pas_torque terminal command reports the measured voltage, which is the practical way to determine this.</description>
+            <cDefine>APPCONF_PAS_TORQUE_ZERO_V</cDefine>
+            <editorDecimalsDouble>3</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1000</vTxDoubleScale>
+            <valDouble>1.5</valDouble>
+            <maxDouble>3.3</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.01</stepDouble>
+            <suffix> V</suffix>
+        </app_pas_conf.torque_zero_v>
+        <app_pas_conf.torque_nm_per_v>
+            <longName>PAS Torque Scale</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Crank torque per volt above the zero voltage, from the torque sensor datasheet.</description>
+            <cDefine>APPCONF_PAS_TORQUE_NM_PER_V</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>70</valDouble>
+            <maxDouble>300</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>1</stepDouble>
+            <suffix> Nm/V</suffix>
+        </app_pas_conf.torque_nm_per_v>
+        <app_pas_conf.torque_max_nm>
+            <longName>PAS Torque Full Scale</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The crank torque treated as full assist by the constant torque control types. Also used to express a hardware torque sensor, which reports a ratio rather than a unit, in Nm.</description>
+            <cDefine>APPCONF_PAS_TORQUE_MAX_NM</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>140</valDouble>
+            <maxDouble>500</maxDouble>
+            <minDouble>1</minDouble>
+            <stepDouble>5</stepDouble>
+            <suffix> Nm</suffix>
+        </app_pas_conf.torque_max_nm>
+        <app_pas_conf.torque_deadband_nm>
+            <longName>PAS Torque Deadband</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Crank torque below this is treated as zero, so that sensor noise and the weight of a rider resting on the pedals do not engage assist. The remaining range is rescaled so that the response stays continuous.</description>
+            <cDefine>APPCONF_PAS_TORQUE_DEADBAND_NM</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>2</valDouble>
+            <maxDouble>50</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> Nm</suffix>
+        </app_pas_conf.torque_deadband_nm>
+        <app_pas_conf.assist_gain>
+            <longName>PAS Assist Gain</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Motor watts per rider watt, for the Proportional Power control type. A gain of 1 means the motor contributes about as much power as the rider. Grin suggest 2 to 4 times the rider power suits most people on a Cycle Analyst. The result is still subject to PAS Max Current, to the power cap and to the motor current limits.</description>
+            <cDefine>APPCONF_PAS_ASSIST_GAIN</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>1</valDouble>
+            <maxDouble>10</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.1</stepDouble>
+            <suffix> W/W</suffix>
+        </app_pas_conf.assist_gain>
+        <app_pas_conf.torque_avg_pulses>
+            <longName>PAS Torque Averaging</longName>
+            <type>2</type>
+            <transmittable>1</transmittable>
+            <description>Number of pedal pulses to average crank torque over, or 0 to use the instantaneous reading. Crank torque varies strongly within a pedal stroke, so averaging over whole pulse intervals smooths it without changing character with cadence. Set this to the magnet count for exactly one crank revolution. Longer windows are smoother and less responsive.</description>
+            <cDefine>APPCONF_PAS_TORQUE_AVG_PULSES</cDefine>
+            <vTx>3</vTx>
+            <valInt>0</valInt>
+            <maxInt>128</maxInt>
+            <minInt>0</minInt>
+            <stepInt>1</stepInt>
+            <suffix> pulses</suffix>
+        </app_pas_conf.torque_avg_pulses>
+        <app_pas_conf.taper_start_kmh>
+            <longName>PAS Taper Start Speed</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Assist is at full up to this road speed and then falls off. Set this and the end speed to the same value for a hard cutoff. Both zero disables the taper. The speed comes from the motor RPM and the configured pole count, wheel diameter and gear ratio unless the hardware has a wheel speed sensor, so those have to be correct for this to mean anything.</description>
+            <cDefine>APPCONF_PAS_TAPER_START_KMH</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>100</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> km/h</suffix>
+        </app_pas_conf.taper_start_kmh>
+        <app_pas_conf.taper_end_kmh>
+            <longName>PAS Taper End Speed</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Assist reaches zero at this road speed. If it is not above the start speed, assist is cut off at the start speed instead of tapering.</description>
+            <cDefine>APPCONF_PAS_TAPER_END_KMH</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>100</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> km/h</suffix>
+        </app_pas_conf.taper_end_kmh>
+        <app_pas_conf.power_max_w>
+            <longName>PAS Power Cap</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Upper limit on the motor power PAS requests, or 0 for no limit. Applied to every control type, not only Proportional Power. Computed against the measured input voltage and the motor current limit.</description>
+            <cDefine>APPCONF_PAS_POWER_MAX_W</cDefine>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>5000</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>10</stepDouble>
+            <suffix> W</suffix>
+        </app_pas_conf.power_max_w>
+        <app_pas_conf.pedal_stop_hard>
+            <longName>PAS Hard Pedal Stop</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>Cut assist immediately when the cranks stop, instead of ramping it down over the negative ramp time.</description>
+            <cDefine>APPCONF_PAS_PEDAL_STOP_HARD</cDefine>
+            <valInt>0</valInt>
+        </app_pas_conf.pedal_stop_hard>
+        <app_pas_conf.brake_source>
+            <longName>PAS Brake Source</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>Where the brake input comes from. A brake cuts PAS assist immediately, bypassing the ramp. The PAS app previously had no brake input at all, and in the ADC and PAS combined mode the two outputs are combined by taking the larger, so brake handling on the ADC side does not suppress PAS.</description>
+            <cDefine>APPCONF_PAS_BRAKE_SOURCE</cDefine>
+            <valInt>0</valInt>
+            <enumNames>None</enumNames>
+            <enumNames>ADC</enumNames>
+        </app_pas_conf.brake_source>
+        <app_pas_conf.brake_adc_ch>
+            <longName>PAS Brake ADC Channel</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>The ADC channel the brake input is on. A channel the hardware does not provide is rejected, which the pas_status terminal command reports.</description>
+            <cDefine>APPCONF_PAS_BRAKE_ADC_CH</cDefine>
+            <valInt>1</valInt>
+            <enumNames>ADC 1</enumNames>
+            <enumNames>ADC 2</enumNames>
+            <enumNames>ADC 3</enumNames>
+            <enumNames>ADC 4</enumNames>
+            <enumNames>ADC 5</enumNames>
+            <enumNames>ADC 6</enumNames>
+            <enumNames>ADC 7</enumNames>
+            <enumNames>ADC 8</enumNames>
+        </app_pas_conf.brake_adc_ch>
+        <app_pas_conf.brake_threshold_v>
+            <longName>PAS Brake Threshold</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The brake counts as applied at or above this voltage. This suits a proportional lever and a plain switch alike, since a switch reads as one supply rail or the other.</description>
+            <cDefine>APPCONF_PAS_BRAKE_THRESHOLD_V</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <valDouble>1.65</valDouble>
+            <maxDouble>3.3</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.05</stepDouble>
+            <suffix> V</suffix>
+        </app_pas_conf.brake_threshold_v>
+        <app_pas_conf.brake_invert>
+            <longName>PAS Brake Inverted</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>Treat a reading below the threshold as the brake being applied, for a switch that pulls the input low when the brake is used.</description>
+            <cDefine>APPCONF_PAS_BRAKE_INVERT</cDefine>
+            <valInt>0</valInt>
+        </app_pas_conf.brake_invert>
+        <app_pas_conf.cadence_floor_rpm>
+            <longName>PAS Assist Cadence Floor</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Cadence used for the assist calculation when pedalling slower than this, for the Proportional Power control type. Power is torque times cadence, which collapses towards zero as the cranks slow, so without a floor there would be the least assist when pulling away from a standstill. A Cycle Analyst uses 55 rpm. The floor only applies while the cranks are turning, so stopped cranks still mean no assist. Reported rider power always uses the real cadence. Set to 0 to disable.</description>
+            <cDefine>APPCONF_PAS_CADENCE_FLOOR_RPM</cDefine>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>55</valDouble>
+            <maxDouble>150</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>5</stepDouble>
+            <suffix> rpm</suffix>
+        </app_pas_conf.cadence_floor_rpm>
+        <app_pas_conf.start_timeout_s>
+            <longName>PAS Start Threshold</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The longest gap between pedal pulses that still counts as continued pedalling. A longer value engages assist sooner when pulling away from a standstill, but too long lets an incidental nudge of the pedals produce a burst of assist. Grin suggest 0.25 to 0.40 s. Set to 0 to derive it from the start cadence and magnet count, which is what this app did when one value served both thresholds.</description>
+            <cDefine>APPCONF_PAS_START_TIMEOUT_S</cDefine>
+            <editorDecimalsDouble>3</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1000</vTxDoubleScale>
+            <valDouble>0.3</valDouble>
+            <maxDouble>2</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.05</stepDouble>
+            <suffix> s</suffix>
+        </app_pas_conf.start_timeout_s>
+        <app_pas_conf.stop_timeout_s>
+            <longName>PAS Stop Threshold</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>The gap without a pedal pulse after which the cranks count as stopped and assist ends. A shorter value ends assist sooner, but too short causes dropouts when pedalling slowly. Grin suggest 0.15 to 0.30 s. Note that this and the start threshold are tuned in opposite directions, which is why one value cannot serve both. Set to 0 to derive it from the start cadence and magnet count.</description>
+            <cDefine>APPCONF_PAS_STOP_TIMEOUT_S</cDefine>
+            <editorDecimalsDouble>3</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1000</vTxDoubleScale>
+            <valDouble>0.25</valDouble>
+            <maxDouble>2</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.05</stepDouble>
+            <suffix> s</suffix>
+        </app_pas_conf.stop_timeout_s>
+        <app_pas_conf.torque_bipolar>
+            <longName>PAS Torque Bipolar</longName>
+            <type>5</type>
+            <transmittable>1</transmittable>
+            <description>The torque sensor rests mid range and swings both ways, measuring the left and right pedal separately, so the magnitude either side of the zero voltage is the torque. A Thun bottom bracket is like this: 2.5 V at rest, and 0.5 V to 4.5 V for -200 Nm to +200 Nm. Leave this off for a sensor that rests at the bottom of its range, where anything below the zero point is noise or backwards force.</description>
+            <cDefine>APPCONF_PAS_TORQUE_BIPOLAR</cDefine>
+            <valInt>0</valInt>
+        </app_pas_conf.torque_bipolar>
+        <app_pas_conf.assist_start_w>
+            <longName>PAS Assist Start Power</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Rider power required before the motor contributes anything, subtracted from the assist basis before the gain is applied. This is how a Cycle Analyst applies its start level. Unlike the torque deadband it demands actual effort, since leaning on the pedals without turning them produces no power.</description>
+            <cDefine>APPCONF_PAS_ASSIST_START_W</cDefine>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>1</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>1000</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>5</stepDouble>
+            <suffix> W</suffix>
+        </app_pas_conf.assist_start_w>
+        <app_pas_conf.throttle_mode>
+            <longName>PAS Throttle Mixing</longName>
+            <type>4</type>
+            <transmittable>1</transmittable>
+            <description>How the PAS output combines with a throttle when the ADC and PAS apps both run. Highest wins is what this firmware has always done, and means a throttle can only ever add to the assist. Throttle priority is what a Cycle Analyst does, where any throttle at all takes over and PAS is ignored; that is more predictable, at the cost that a throttle brushed by a knee will reduce assist.</description>
+            <cDefine>APPCONF_PAS_THROTTLE_MODE</cDefine>
+            <valInt>0</valInt>
+            <enumNames>Highest Wins</enumNames>
+            <enumNames>Throttle Priority</enumNames>
+        </app_pas_conf.throttle_mode>
+        <app_pas_conf.throttle_no_pedal_kmh>
+            <longName>PAS Throttle Without Pedalling</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>Above this road speed the throttle only works while pedalling. This is the Cycle Analyst MxThrotSpd behaviour, which together with the speed taper is how a pedelec arrangement is usually expressed. Note that 0 disables the check here and leaves the throttle always working, rather than meaning always require pedalling as it does on a Cycle Analyst.</description>
+            <cDefine>APPCONF_PAS_THROTTLE_NO_PEDAL_KMH</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <showDisplay>1</showDisplay>
+            <vTx>7</vTx>
+            <vTxDoubleScale>10</vTxDoubleScale>
+            <valDouble>0</valDouble>
+            <maxDouble>100</maxDouble>
+            <minDouble>0</minDouble>
+            <stepDouble>0.5</stepDouble>
+            <suffix> km/h</suffix>
+        </app_pas_conf.throttle_no_pedal_kmh>
         <imu_conf.type>
             <longName>IMU Type</longName>
             <type>4</type>
@@ -2935,6 +3290,29 @@ p, li { white-space: pre-wrap; }
         <ser>app_pas_conf.ramp_time_pos</ser>
         <ser>app_pas_conf.ramp_time_neg</ser>
         <ser>app_pas_conf.update_rate_hz</ser>
+        <ser>app_pas_conf.torque_source</ser>
+        <ser>app_pas_conf.torque_adc_ch</ser>
+        <ser>app_pas_conf.torque_zero_v</ser>
+        <ser>app_pas_conf.torque_nm_per_v</ser>
+        <ser>app_pas_conf.torque_max_nm</ser>
+        <ser>app_pas_conf.torque_deadband_nm</ser>
+        <ser>app_pas_conf.assist_gain</ser>
+        <ser>app_pas_conf.torque_avg_pulses</ser>
+        <ser>app_pas_conf.taper_start_kmh</ser>
+        <ser>app_pas_conf.taper_end_kmh</ser>
+        <ser>app_pas_conf.power_max_w</ser>
+        <ser>app_pas_conf.pedal_stop_hard</ser>
+        <ser>app_pas_conf.brake_source</ser>
+        <ser>app_pas_conf.brake_adc_ch</ser>
+        <ser>app_pas_conf.brake_threshold_v</ser>
+        <ser>app_pas_conf.brake_invert</ser>
+        <ser>app_pas_conf.cadence_floor_rpm</ser>
+        <ser>app_pas_conf.start_timeout_s</ser>
+        <ser>app_pas_conf.stop_timeout_s</ser>
+        <ser>app_pas_conf.torque_bipolar</ser>
+        <ser>app_pas_conf.assist_start_w</ser>
+        <ser>app_pas_conf.throttle_mode</ser>
+        <ser>app_pas_conf.throttle_no_pedal_kmh</ser>
         <ser>imu_conf.type</ser>
         <ser>imu_conf.mode</ser>
         <ser>imu_conf.filter</ser>
@@ -3184,6 +3562,47 @@ p, li { white-space: pre-wrap; }
                     <param>app_pas_conf.ramp_time_pos</param>
                     <param>app_pas_conf.ramp_time_neg</param>
                     <param>app_pas_conf.update_rate_hz</param>
+                    <param>::sep::Pedalling Detection</param>
+                    <param>app_pas_conf.start_timeout_s</param>
+                    <param>app_pas_conf.stop_timeout_s</param>
+                </subgroupParams>
+            </subgroup>
+            <subgroup>
+                <subgroupName>Torque Sensor</subgroupName>
+                <subgroupParams>
+                    <param>app_pas_conf.torque_source</param>
+                    <param>app_pas_conf.torque_adc_ch</param>
+                    <param>app_pas_conf.torque_zero_v</param>
+                    <param>app_pas_conf.torque_nm_per_v</param>
+                    <param>app_pas_conf.torque_max_nm</param>
+                    <param>app_pas_conf.torque_bipolar</param>
+                    <param>app_pas_conf.torque_deadband_nm</param>
+                    <param>app_pas_conf.torque_avg_pulses</param>
+                </subgroupParams>
+            </subgroup>
+            <subgroup>
+                <subgroupName>Assist</subgroupName>
+                <subgroupParams>
+                    <param>app_pas_conf.assist_gain</param>
+                    <param>app_pas_conf.cadence_floor_rpm</param>
+                    <param>app_pas_conf.assist_start_w</param>
+                    <param>::sep::Throttle</param>
+                    <param>app_pas_conf.throttle_mode</param>
+                    <param>app_pas_conf.throttle_no_pedal_kmh</param>
+                </subgroupParams>
+            </subgroup>
+            <subgroup>
+                <subgroupName>Limits</subgroupName>
+                <subgroupParams>
+                    <param>app_pas_conf.taper_start_kmh</param>
+                    <param>app_pas_conf.taper_end_kmh</param>
+                    <param>app_pas_conf.power_max_w</param>
+                    <param>app_pas_conf.pedal_stop_hard</param>
+                    <param>::sep::Brake</param>
+                    <param>app_pas_conf.brake_source</param>
+                    <param>app_pas_conf.brake_adc_ch</param>
+                    <param>app_pas_conf.brake_threshold_v</param>
+                    <param>app_pas_conf.brake_invert</param>
                 </subgroupParams>
             </subgroup>
         </group>
