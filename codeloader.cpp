@@ -1392,10 +1392,39 @@ bool CodeLoader::createPackageFromDescription(QString path, VescPackage *pkgRes,
             }
 
             if (!pkg.lispData.isEmpty()) {
+                /*
+                 * Against both script limits, not against the QML block size.
+                 *
+                 * The script does not live in the QML block: lispUpload
+                 * allows 512k - 6 on an ESP32 and 128k - 6 on an STM32, which
+                 * is one flash page there. Dividing by the QML figure
+                 * reported a 244 KB script as 186% of a limit it was nowhere
+                 * near, on a board with four times the room -- which reads as
+                 * "this will not fit" about a package that installs and runs.
+                 *
+                 * Both are printed because the target is not known here. A
+                 * package is built once and installed on whatever answers,
+                 * and only lispUpload sees the hardware type.
+                 */
                 int lispSize = pkg.lispData.size();
-                qDebug().noquote() << QString("Lisp data size      : %1 / %2 bytes (%3%)")
-                            .arg(lispSize).arg(flashBlockSize)
-                            .arg(100.0 * lispSize / flashBlockSize, 0, 'f', 1);
+                const int espMax = 512 * 1024 - 6;
+                const int stmMax = 128 * 1024 - 6;
+                qDebug().noquote() << QString("Script data size    : %1 bytes "
+                                              "(%2% of the ESP32 limit, "
+                                              "%3% of the STM32 limit)")
+                            .arg(lispSize)
+                            .arg(100.0 * lispSize / espMax, 0, 'f', 1)
+                            .arg(100.0 * lispSize / stmMax, 0, 'f', 1);
+
+                if (lispSize > stmMax) {
+                    qDebug().noquote() << QString("  Too large for an STM32 "
+                                                  "target; ESP32 only.");
+                }
+                if (lispSize > espMax) {
+                    qWarning().noquote() << QString("  Larger than any target "
+                                                    "accepts; this will not "
+                                                    "install.");
+                }
             }
         } else {
             qWarning() << QString("Could not open %1 for writing.").arg(pkgOutput);

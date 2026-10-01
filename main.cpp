@@ -1037,10 +1037,27 @@ int main(int argc, char *argv[])
         }
 
         if (!pkg.lispData.isEmpty()) {
+            // Against both script limits rather than the QML block size. See
+            // the longer note on the same report in codeloader.cpp.
             int lispSize = pkg.lispData.size();
-            qDebug().noquote() << QString("Lisp data size      : %1 / %2 bytes (%3%)")
-                        .arg(lispSize).arg(flashBlockSize)
-                        .arg(100.0 * lispSize / flashBlockSize, 0, 'f', 1);
+            const int espMax = 512 * 1024 - 6;
+            const int stmMax = 128 * 1024 - 6;
+            qDebug().noquote() << QString("Script data size    : %1 bytes "
+                                          "(%2% of the ESP32 limit, "
+                                          "%3% of the STM32 limit)")
+                        .arg(lispSize)
+                        .arg(100.0 * lispSize / espMax, 0, 'f', 1)
+                        .arg(100.0 * lispSize / stmMax, 0, 'f', 1);
+
+            if (lispSize > stmMax) {
+                qDebug().noquote() << QString("  Too large for an STM32 "
+                                              "target; ESP32 only.");
+            }
+            if (lispSize > espMax) {
+                qWarning().noquote() << QString("  Larger than any target "
+                                                "accepts; this will not "
+                                                "install.");
+            }
         }
 
         qDebug() << "Package Saved!";
