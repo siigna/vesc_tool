@@ -106,6 +106,7 @@ static void showHelp()
     qDebug() << "--setCustomConf [confPath] : Connect and write custom configuration 1 XML from confPath.";
     qDebug() << "--debugOutFile [path] : Print debug output to file with path.";
     qDebug() << "--uploadLisp [path] : Upload LispBM script.";
+    qDebug() << "--installPkg [path] : Connect and install a VESC Package (.vescpkg).";
     qDebug() << "--reduceLisp : Reduce LispBM file size by removing comments, spaces and imports.";
     qDebug() << "--eraseLisp : Erase LispBM script.";
     qDebug() << "--uploadFirmware [path] : Upload firmware-file from path.";
@@ -330,6 +331,7 @@ int main(int argc, char *argv[])
     QString setCustomConfPath = "";
     QSize qmlWindowSize = QSize(-1, -1);
     QString lispPath = "";
+    QString installPkgPath = "";
     bool reduceLisp = false;
     bool eraseLisp = false;
     QString firmwarePath = "";
@@ -627,6 +629,18 @@ int main(int argc, char *argv[])
             if ((i + 1) < args.size()) {
                 i++;
                 setCustomConfPath = args.at(i);
+                found = true;
+            } else {
+                i++;
+                qCritical() << "No path specified";
+                return 1;
+            }
+        }
+
+        if (str == "--installPkg") {
+            if ((i + 1) < args.size()) {
+                i++;
+                installPkgPath = args.at(i);
                 found = true;
             } else {
                 i++;
@@ -1111,6 +1125,7 @@ int main(int argc, char *argv[])
     bool isCustomConf = !getCustomConfPath.isEmpty() || !setCustomConfPath.isEmpty();
 
     if (isMcConf || isAppConf || isCustomConf || !lispPath.isEmpty() ||
+            !installPkgPath.isEmpty() ||
             eraseLisp || !firmwarePath.isEmpty() || uploadBootloaderBuiltin ||
             queryDeviceFwParams || !fileForSdIn.isEmpty() || bridgeAppData) {
         if (offscreen) {
@@ -1223,6 +1238,35 @@ int main(int argc, char *argv[])
                     } else {
                         qWarning() << "Could not erase LispBM";
                         exitCode = -10;
+                    }
+                }
+
+                /*
+                 * Install a built package, which until now was reachable only
+                 * from the GUI. Without it the packaging path -- build,
+                 * embed, install, run -- could not be exercised by a script,
+                 * so the only way to find out whether a package worked was to
+                 * click through it.
+                 *
+                 * installVescPackage does the unpacking, the erase, the
+                 * upload and the QML registration; this is the connection and
+                 * the exit code.
+                 */
+                if (!installPkgPath.isEmpty()) {
+                    QFile f(installPkgPath);
+                    if (f.open(QIODevice::ReadOnly)) {
+                        auto pkgData = f.readAll();
+                        f.close();
+
+                        if (loader.installVescPackage(pkgData)) {
+                            qDebug() << "Package install OK!";
+                        } else {
+                            qWarning() << "Could not install package";
+                            exitCode = -22;
+                        }
+                    } else {
+                        qCritical() << "Could not open" << installPkgPath;
+                        exitCode = -21;
                     }
                 }
 

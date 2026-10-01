@@ -1231,6 +1231,97 @@ bool CodeLoader::createPackageFromDescription(QString path, VescPackage *pkgRes,
         }
     }
 
+    /*
+     * pkgLua: a prebuilt Lua container, embedded verbatim.
+     *
+     * Not a source file. The Lua side walks its own require() tree with
+     * tools/luapack.py in vesc_express, which produces the same container
+     * format lispPackImports does -- same header, same import table, with the
+     * language flag set -- so there is nothing for this to parse. Walking the
+     * imports here would mean a second implementation of module resolution
+     * that could disagree with the one the packer uses.
+     *
+     * The container reaches the board by the same path a lisp one does:
+     * installVescPackage erases and uploads pkg.lispData as raw bytes, and
+     * the firmware reads the language flag out of the header. So the field
+     * it lands in is still called lispData, which is the honest name for
+     * "the script blob" even when the script is not lisp.
+     */
+    prop = qmlItem->property("pkgLua");
+    if (prop.isValid()) {
+        auto luaPath = prop.toString();
+
+        if (!luaPath.isEmpty()) {
+            if (!pkg.lispData.isEmpty()) {
+                qWarning() << "Both pkgLisp and pkgLua are set; a package "
+                              "carries one script.";
+                result = false;
+            }
+
+            QFile f(luaPath);
+            if (f.open(QIODevice::ReadOnly)) {
+                auto data = f.readAll();
+                f.close();
+
+                /*
+                 * Checked rather than trusted, because the failure is
+                 * expensive and silent: a package built from a .lua source
+                 * instead of a .luapkg installs, erases the board's script
+                 * slot and leaves it holding bytes no engine can run.
+                 *
+                 * Header is big endian: uint32 size, uint16 crc, uint16
+                 * flags, flags bit 0 set for Lua.
+                 *
+                 * The size field is the body length minus two, which is what
+                 * this tool itself writes for a lisp container. So it is
+                 * eight less than the file, not four: four for the size, two
+                 * for the crc, and the two the field already excludes. The
+                 * firmware validates size and crc together, so being two out
+                 * makes the engine run nothing at all, silently -- which is
+                 * why this is checked here rather than discovered there.
+                 *
+                 * The crc is not rechecked: the firmware does that on every
+                 * load, and the point here is catching the wrong kind of
+                 * file rather than a corrupt one.
+                 */
+                bool ok = data.size() >= 8;
+
+                if (ok) {
+                    const auto *u = reinterpret_cast<const quint8*>(data.constData());
+                    quint32 size = (quint32(u[0]) << 24) | (quint32(u[1]) << 16) |
+                            (quint32(u[2]) << 8) | quint32(u[3]);
+                    quint16 flags = (quint16(u[6]) << 8) | quint16(u[7]);
+
+                    if (size != quint32(data.size()) - 8) {
+                        qWarning() << "pkgLua: not a script container -- the "
+                                      "header says" << size
+                                   << "bytes of body and the file implies"
+                                   << data.size() - 8;
+                        ok = false;
+                    } else if ((flags & 1) == 0) {
+                        qWarning() << "pkgLua: this container is flagged "
+                                      "LispBM, not Lua. Did it come from "
+                                      "luapack.py?";
+                        ok = false;
+                    }
+                } else {
+                    qWarning() << "pkgLua: too short to be a container";
+                }
+
+                if (ok) {
+                    pkg.lispData = data;
+                    qDebug() << "Package Lua container found,"
+                             << data.size() << "bytes";
+                } else {
+                    result = false;
+                }
+            } else {
+                qWarning() << "Could not open Lua container file.";
+                result = false;
+            }
+        }
+    }
+
     prop = qmlItem->property("pkgQml");
     if (prop.isValid()) {
         auto qmlPath = prop.toString();
