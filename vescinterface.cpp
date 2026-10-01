@@ -2384,33 +2384,58 @@ bool VescInterface::autoconnect()
     disconnect(mCommands, SIGNAL(fwVersionReceived(FW_RX_PARAMS)),
                this, SLOT(fwVersionReceived(FW_RX_PARAMS)));
 
-    for (int i = 0;i < ports.size();i++) {
+    /*
+     * Rates to try on each port. A board answers at the one it was built for
+     * and is silent at every other, and that silence is indistinguishable
+     * from a port with nothing on it -- so scanning at one rate means a board
+     * built for another is simply never found.
+     *
+     * The rate last connected at comes first, so the common case costs exactly
+     * what it did before. 115200 follows because it is every board's default,
+     * then the rates a board is plausibly built for when 115200 was the
+     * bottleneck. Each attempt is bounded by the 500 ms below, and later rates
+     * are only reached on a port that has already stayed silent.
+     */
+    QVector<int> bauds;
+    bauds.append(mLastSerialBaud);
+    foreach (int b, QVector<int>({115200, 921600, 460800})) {
+        if (!bauds.contains(b)) {
+            bauds.append(b);
+        }
+    }
+
+    for (int i = 0;i < ports.size() && !res;i++) {
         VSerialInfo_t serial = ports[i].value<VSerialInfo_t>();
 
-        if (!connectSerial(serial.systemPath)) {
-            continue;
+        foreach (int baud, bauds) {
+            if (!connectSerial(serial.systemPath, baud)) {
+                continue;
+            }
+
+            mSerialPort->flush();
+            Utility::sleepWithEventLoop(100);
+            mPacket->resetState();
+
+            QEventLoop loop;
+            QTimer timeoutTimer;
+            timeoutTimer.setSingleShot(true);
+            timeoutTimer.start(500);
+            connect(mCommands, SIGNAL(fwVersionReceived(FW_RX_PARAMS)), &loop, SLOT(quit()));
+            connect(&timeoutTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
+            loop.exec();
+
+            if (timeoutTimer.isActive()) {
+                // If the timer is still running, a firmware version was received.
+                res = true;
+                break;
+            }
+
+            disconnectPort();
         }
 
-        mSerialPort->flush();
-        Utility::sleepWithEventLoop(100);
-        mPacket->resetState();
-
-        QEventLoop loop;
-        QTimer timeoutTimer;
-        timeoutTimer.setSingleShot(true);
-        timeoutTimer.start(500);
-        connect(mCommands, SIGNAL(fwVersionReceived(FW_RX_PARAMS)), &loop, SLOT(quit()));
-        connect(&timeoutTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
-        loop.exec();
-
-        if (timeoutTimer.isActive()) {
-            // If the timer is still running, a firmware version was received.
-            res = true;
-            break;
-        } else {
+        if (!res) {
             mAutoconnectProgress = double(i) / double(ports.size());
             emit autoConnectProgressUpdated(mAutoconnectProgress, false);
-            disconnectPort();
         }
     }
 
@@ -2513,11 +2538,36 @@ bool VescInterface::connectSerial(QString port, int baudrate)
             return false;
         }
 
-        mSerialPort->setBaudRate(baudrate);
+        if (!mSerialPort->setBaudRate(baudrate)) {
+            // Reported rather than discarded. All five of these returns were
+            // ignored, so a rate the driver would not accept left the port
+            // open at whatever it defaulted to while mLastSerialBaud below
+            // recorded the rate that was asked for -- a board that answers
+            // nothing, and a remembered setting that disagrees with the
+            // hardware.
+            emit statusMessage(tr("Could not set %1 baud: %2").
+                               arg(baudrate).arg(mSerialPort->errorString()), false);
+            mSerialPort->close();
+            return false;
+        }
+
         mSerialPort->setDataBits(QSerialPort::Data8);
         mSerialPort->setParity(QSerialPort::NoParity);
         mSerialPort->setStopBits(QSerialPort::OneStop);
         mSerialPort->setFlowControl(QSerialPort::NoFlowControl);
+    } else if (mSerialPort->baudRate() != baudrate) {
+        /*
+         * The port was already open at a different rate, and every setting
+         * above is inside the "not open" branch -- so this used to fall
+         * through, leaving the hardware at the old rate while recording the
+         * new one. Connecting at one rate and then another without closing in
+         * between therefore silently kept the first.
+         */
+        if (!mSerialPort->setBaudRate(baudrate)) {
+            emit statusMessage(tr("Could not change to %1 baud: %2").
+                               arg(baudrate).arg(mSerialPort->errorString()), false);
+            return false;
+        }
     }
 
     mLastSerialPort = port;

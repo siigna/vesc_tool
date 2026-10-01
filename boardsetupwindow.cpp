@@ -355,7 +355,11 @@ void BoardSetupWindow::resetRoutine(){
 bool BoardSetupWindow::trySerialConnect(){
     bool res;
     mVesc->commands()->setSendCan(false);
-    res = mVesc->connectSerial(ui->serialPortBox->currentData().toString(), 115200);
+    // Was a hardcoded 115200. The overload follows the rate last connected
+    // at, which is 115200 until the user changes it, so a stock board behaves
+    // as before while a board built for a faster comm UART can still be set
+    // up without editing anything.
+    res = mVesc->connectSerial(ui->serialPortBox->currentData().toString());
     if(res){
         Utility::waitSignal(mVesc, SIGNAL(fwRxChanged(bool, bool)), 5000);
     }

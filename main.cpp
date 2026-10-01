@@ -96,6 +96,7 @@ static void showHelp()
     qDebug() << "--useBoardSetupWindow : Start board setup window instead of the main UI";
     qDebug() << "--xmlConfToCode [xml-file] : Generate C code from XML configuration file (the files are saved in the same directory as the XML)";
     qDebug() << "--vescPort [port] : VESC Port for commands that connect, e.g. /dev/ttyACM0. If this command is left out autoconnect will be used.";
+    qDebug() << "--vescBaud [rate] : Serial rate for --vescPort, e.g. 921600. Defaults to the rate last connected at.";
     qDebug() << "--canFwd [canId] : Can ID for CAN forwarding";
     qDebug() << "--getMcConf [confPath] : Connect and read motor configuration and store the XML to confPath.";
     qDebug() << "--setMcConf [confPath] : Connect and write motor configuration XML from confPath.";
@@ -319,6 +320,7 @@ int main(int argc, char *argv[])
     QStringList pkgDescTests;
     QString xmlCodePath = "";
     QString vescPort = "";
+    int vescBaud = 0;
     int canFwd = -1;
     QString getMcConfPath = "";
     QString setMcConfPath = "";
@@ -528,6 +530,23 @@ int main(int argc, char *argv[])
             } else {
                 i++;
                 qCritical() << "No port specified";
+                return 1;
+            }
+        }
+
+        if (str == "--vescBaud") {
+            if ((i + 1) < args.size()) {
+                i++;
+                bool parsed = false;
+                vescBaud = args.at(i).toInt(&parsed);
+                if (!parsed || vescBaud <= 0) {
+                    qCritical() << "Invalid baud rate:" << args.at(i);
+                    return 1;
+                }
+                found = true;
+            } else {
+                i++;
+                qCritical() << "No baud rate specified";
                 return 1;
             }
         }
@@ -1071,7 +1090,8 @@ int main(int argc, char *argv[])
             if (serialAutoconnect) {
                 ok = vesc->autoconnect();
             } else {
-                ok = vesc->connectSerial(vescPort);
+                ok = vescBaud > 0 ? vesc->connectSerial(vescPort, vescBaud)
+                                  : vesc->connectSerial(vescPort);
             }
 
             if (ok) {
@@ -1168,7 +1188,8 @@ int main(int argc, char *argv[])
             if (serialAutoconnect) {
                 ok = vesc->autoconnect();
             } else {
-                ok = vesc->connectSerial(vescPort);
+                ok = vescBaud > 0 ? vesc->connectSerial(vescPort, vescBaud)
+                                  : vesc->connectSerial(vescPort);
                 if (ok) {
                     ok = Utility::waitSignal(vesc, SIGNAL(fwRxChanged(bool, bool)), 1000);
                     if (!ok) {

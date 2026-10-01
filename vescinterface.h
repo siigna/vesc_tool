@@ -186,8 +186,18 @@ public:
     Q_INVOKABLE bool autoconnect();
     Q_INVOKABLE QString getConnectedPortName();
     Q_INVOKABLE bool connectSerial(QString port, int baudrate);
+    // Uses the rate last connected at, which is persisted as serial_baud and
+    // starts out as 115200. Every caller that used to get a hardcoded 115200
+    // here -- reconnect, autoconnect's fallback, the --vescPort CLI path --
+    // now follows a board that was built for a different rate.
     bool connectSerial(QString port) {
+#ifdef HAS_SERIALPORT
+        return connectSerial(port, mLastSerialBaud);
+#else
+        // No serial support, so there is no remembered rate to follow; the
+        // call fails in connectSerial either way.
         return connectSerial(port, 115200);
+#endif
     }
     Q_INVOKABLE QVariantList listSerialPorts();
     QList<QString> listCANbusInterfaces();
