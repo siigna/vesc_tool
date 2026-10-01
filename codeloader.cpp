@@ -1242,10 +1242,12 @@ bool CodeLoader::createPackageFromDescription(QString path, VescPackage *pkgRes,
      * that could disagree with the one the packer uses.
      *
      * The container reaches the board by the same path a lisp one does:
-     * installVescPackage erases and uploads pkg.lispData as raw bytes, and
-     * the firmware reads the language flag out of the header. So the field
-     * it lands in is still called lispData, which is the honest name for
-     * "the script blob" even when the script is not lisp.
+     * installVescPackage erases and hands pkg.lispData to lispUpload, which
+     * prepends the size and crc header, and the firmware reads the language
+     * flag out of that. So the field it lands in is still called lispData,
+     * which is the honest name for "the script blob" even when the script is
+     * not lisp -- and what goes in it is a body, not a whole container. See
+     * the note at the mid(6) below, which is where I got that wrong.
      */
     prop = qmlItem->property("pkgLua");
     if (prop.isValid()) {
@@ -1309,9 +1311,29 @@ bool CodeLoader::createPackageFromDescription(QString path, VescPackage *pkgRes,
                 }
 
                 if (ok) {
-                    pkg.lispData = data;
+                    /*
+                     * Stored without its six-byte header, because lispUpload
+                     * adds one: it takes a body, prepends the size and the
+                     * crc, and sends that. lispPackImports returns a body for
+                     * the same reason.
+                     *
+                     * Keeping the header here nested one container inside
+                     * another, and the firmware read the outer header's bytes
+                     * as the inner one's fields -- it reported a script of
+                     * "4 source bytes, 301 imports" and refused to run it.
+                     * The install reported success, because nothing between
+                     * here and the board looks inside the blob.
+                     *
+                     * The header lispUpload recomputes is identical to the
+                     * one dropped here: both write the body length minus two
+                     * and a crc16 over the body. So this is not discarding
+                     * information, only avoiding writing it twice.
+                     */
+                    pkg.lispData = data.mid(6);
                     qDebug() << "Package Lua container found,"
-                             << data.size() << "bytes";
+                             << data.size() << "bytes ("
+                             << pkg.lispData.size() << "without the header,"
+                             << "which lispUpload re-adds)";
                 } else {
                     result = false;
                 }
