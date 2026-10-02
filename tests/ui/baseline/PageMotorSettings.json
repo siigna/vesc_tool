@@ -1,0 +1,32 @@
+{
+    "page": "PageMotorSettings",
+    "widget_count": 5,
+    "widgets": [
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "motorSetupWizardButton",
+            "text": "Motor Setup Wizard"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "textEdit"
+        }
+    ]
+}

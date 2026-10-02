@@ -1,0 +1,326 @@
+{
+    "page": "PageCanAnalyzer",
+    "widget_count": 56,
+    "widgets": [
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "autoScrollBox",
+            "text": "Autoscroll"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "125",
+                "250",
+                "500",
+                "1000",
+                "10",
+                "20",
+                "50",
+                "75",
+                "100"
+            ],
+            "name": "canBaudBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearRxButton",
+            "text": "Clear"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Send Frame"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "Update CAN Baudrate"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Extended"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_10",
+            "text": "D7"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_11",
+            "text": "KBits/sec"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "ID"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_3",
+            "text": "D0"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_4",
+            "text": "D1"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_5",
+            "text": "D2"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_6",
+            "text": "D3"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_7",
+            "text": "D4"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_8",
+            "text": "D5"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_9",
+            "text": "D6"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+            ],
+            "enabled": true,
+            "name": "msgTable",
+            "rows": 0
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "ParamEditEnum",
+                "ParamEditEnum"
+            ],
+            "enabled": true,
+            "name": "paramTable",
+            "rows": 2
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sendButton",
+            "text": "Send"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD0Box"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD1Box"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD2Box"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD3Box"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD4Box"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD5Box"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD6Box"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sendD7Box"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "False",
+                "True"
+            ],
+            "name": "sendExtBox"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "sendIdEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "updateCanBaudButton",
+            "text": "Start Update"
+        }
+    ]
+}

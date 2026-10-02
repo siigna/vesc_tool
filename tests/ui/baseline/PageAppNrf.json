@@ -1,0 +1,109 @@
+{
+    "page": "PageAppNrf",
+    "widget_count": 17,
+    "widgets": [
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "countLabel",
+            "text": "0"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "(none)",
+                "ParamEditEnum",
+                "ParamEditEnum",
+                "ParamEditInt",
+                "(none)",
+                "ParamEditEnum",
+                "ParamEditBool",
+                "ParamEditEnum",
+                "ParamEditInt",
+                "(none)",
+                "ParamEditInt",
+                "ParamEditInt",
+                "ParamEditInt"
+            ],
+            "enabled": true,
+            "name": "generalTab",
+            "rows": 13
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "NRF Pairing"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "helpButton"
+        },
+        {
+            "class": "NrfPair",
+            "enabled": true,
+            "name": "nrfPair"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "startButton"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "timeBox"
+        }
+    ]
+}

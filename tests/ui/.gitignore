@@ -1,0 +1,11 @@
+# The suite builds in place, like tests/tuning.
+Makefile
+obj/
+tst_ui
+*.o
+moc_*.cpp
+*.moc
+.qmake.stash
+target_wrapper.*
+# Written only when a snapshot does not match its baseline.
+actual/

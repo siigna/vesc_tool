@@ -1,0 +1,102 @@
+{
+    "page": "PageControllers",
+    "widget_count": 14,
+    "widgets": [
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Position Offset Calculator"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "(none)",
+                "ParamEditEnum",
+                "(none)",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditBool",
+                "ParamEditDouble",
+                "ParamEditEnum",
+                "ParamEditEnum",
+                "(none)",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble"
+            ],
+            "enabled": true,
+            "name": "paramTab",
+            "rows": 21
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posOffsetApplyButton",
+            "text": "Apply"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "posOffsetBox"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        }
+    ]
+}

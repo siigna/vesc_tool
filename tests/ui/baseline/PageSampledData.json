@@ -1,0 +1,389 @@
+{
+    "page": "PageSampledData",
+    "widget_count": 70,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "compDelayBox",
+            "text": "Delay Comp"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "currentFilterFreqBox"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "currentFilterTapBox"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "currentPlot"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "currentStack"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "decimationBox"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "fftFreqBox"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "No Filter",
+                "FIR Filter",
+                "Mean Filter"
+            ],
+            "name": "filterBox"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "filterLogScaleBox",
+            "text": "Logscale"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "filterPlot"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "filterResponsePlot"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "filterScatterBox",
+            "text": "Scatterplot"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Filter Data"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "hammingBox",
+            "text": "Hamming"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget_3"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget_4"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "loadDataButton"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "page"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "page_2"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "Time Plot",
+                "FFT Plot",
+                "Filter Plot"
+            ],
+            "name": "plotModeBox"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "rawBox",
+            "text": "Raw"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "rescaleButton"
+        },
+        {
+            "class": "QProgressBar",
+            "enabled": true,
+            "name": "sampProgBar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleLastButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleNowButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleStartButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleStopButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleTriggerFaultButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleTriggerFaultNosendButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleTriggerStartButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sampleTriggerStartNosendButton"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "samplesBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveDataButton"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showCurrent1Box",
+            "text": "PH 1"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showCurrent2Box",
+            "text": "PH 2"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showCurrent3Box",
+            "text": "PH 3"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showMcTotalCurrentBox",
+            "text": "MC total"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showPh1Box",
+            "text": "PH 1"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showPh2Box",
+            "text": "PH 2"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showPh3Box",
+            "text": "PH 3"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showPhaseBox",
+            "text": "Phase"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showPhaseVoltageBox",
+            "text": "Phase"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showPosCurrentBox",
+            "text": "Position"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showPosVoltageBox",
+            "text": "Position"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showVirtualGndBox",
+            "text": "Virtual Ground"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Current",
+                "BEMF"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "truncateBox",
+            "text": "Truncate"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "voltagePlot"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomHButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomVButton"
+        }
+    ]
+}

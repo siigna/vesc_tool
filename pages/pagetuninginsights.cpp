@@ -220,6 +220,48 @@ void PageTuningInsights::loadLog(QStringList &header,
         return;
     }
 
+    if (ui->sdBox->isChecked()) {
+        /*
+         * Off the card on the connected device, which is where the logs
+         * actually are -- they are written by the Express, not by this
+         * program. CAN forwarding has to come off for the transfer: with it
+         * on, the file commands go to the controller, which has no card.
+         *
+         * canTmpOverride rather than setSendCan, because it also suppresses
+         * the firmware re-detection that a plain CAN change triggers.
+         * Toggling by hand raised the "old but mostly compatible firmware"
+         * dialog in the middle of a transfer, and that dialog's modal event
+         * loop wedged the analysis behind it.
+         */
+        if (!mVesc) {
+            *err = tr("Not connected");
+            return;
+        }
+
+        mVesc->canTmpOverride(false, 0);
+        const QByteArray raw = mVesc->commands()->fileBlockRead(path);
+        mVesc->canTmpOverrideEnd();
+
+        if (raw.isEmpty()) {
+            *err = tr("Could not read %1 from the SD card").arg(path);
+            return;
+        }
+
+        for (const QString &line: QString::fromUtf8(raw).split('\n')) {
+            if (line.trimmed().isEmpty()) {
+                continue;
+            }
+
+            if (header.isEmpty()) {
+                header = line.split(";");
+            } else {
+                rows.append(line.split(";"));
+            }
+        }
+
+        return;
+    }
+
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         *err = tr("Could not open %1").arg(path);

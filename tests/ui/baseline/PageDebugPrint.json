@@ -1,0 +1,31 @@
+{
+    "page": "PageDebugPrint",
+    "widget_count": 5,
+    "widgets": [
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearButton"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "consoleBrowser"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        }
+    ]
+}

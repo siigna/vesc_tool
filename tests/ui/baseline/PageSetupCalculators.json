@@ -1,0 +1,85 @@
+{
+    "page": "PageSetupCalculators",
+    "widget_count": 15,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "addSetupButton",
+            "text": "Add Setup"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "removeSetupButton",
+            "text": "Remove Setup"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "setupText"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "widget"
+        }
+    ]
+}

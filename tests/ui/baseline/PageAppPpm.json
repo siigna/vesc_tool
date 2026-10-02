@@ -1,0 +1,322 @@
+{
+    "page": "PageAppPpm",
+    "widget_count": 55,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "applyButton",
+            "text": "Apply"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "centerBox"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "display"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "displayVesc"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "dualBox",
+            "text": "Use Centered Control"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "ParamEditEnum",
+                "ParamEditBool",
+                "ParamEditEnum",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "(none)",
+                "ParamEditBool",
+                "ParamEditBool",
+                "ParamEditDouble"
+            ],
+            "enabled": true,
+            "name": "generalTab",
+            "rows": 13
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "PPM Pulselength Mapping"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "helpButton",
+            "text": "Help"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "VESC Tool"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "VESC Firmware"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble"
+            ],
+            "enabled": true,
+            "name": "mappingTab",
+            "rows": 4
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "maxBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "minBox"
+        },
+        {
+            "class": "PpmMap",
+            "enabled": true,
+            "name": "ppmMap"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "resetButton",
+            "text": "Reset"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "General",
+                "Mapping",
+                "Throttle Curve"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditEnum"
+            ],
+            "enabled": true,
+            "name": "throttleCurveTab",
+            "rows": 3
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "throttlePlot"
+        }
+    ]
+}

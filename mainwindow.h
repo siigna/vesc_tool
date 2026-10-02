@@ -87,6 +87,18 @@ public:
     bool eventFilter(QObject *object, QEvent *e);
     void closeEvent(QCloseEvent *event);
 
+public:
+    /*
+     * Select a page by its navigation name, for --showPage. Deep-linking the
+     * window to one page makes a session reproducible: driving the
+     * navigation list by mouse coordinates is not, because the scroll does
+     * not always land on the same row.
+     */
+    void openPage(const QString &name) { showPage(name); }
+
+    // For --vescTcp, which connects after the window exists.
+    VescInterface *vesc() const { return mVesc; }
+
 protected:
     void dragEnterEvent(QDragEnterEvent* event);
     void dropEvent(QDropEvent* event);

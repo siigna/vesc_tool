@@ -1,0 +1,189 @@
+{
+    "page": "PageRtData",
+    "widget_count": 33,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "autoscaleButton"
+        },
+        {
+            "class": "QFrame",
+            "enabled": true,
+            "name": "buttonFrame"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "currentPlot"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "focPlot"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "logRtButton",
+            "text": "..."
+        },
+        {
+            "class": "QProgressBar",
+            "enabled": true,
+            "name": "posBar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posEncoderButton",
+            "text": "Encoder"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posEncoderObserverErrorButton",
+            "text": "Obs vs Enc"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posHallObserverErrorButton",
+            "text": "Obs vs Hall"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posInductanceButton",
+            "text": "Inductance"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posObserverButton",
+            "text": "Observer"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posPidButton",
+            "text": "PID Pos"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posPidErrorButton",
+            "text": "PID Error"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "posPlot"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "posStopButton",
+            "text": "Stop"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "rescaleButton"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "rpmPlot"
+        },
+        {
+            "class": "RtDataText",
+            "enabled": true,
+            "name": "rtText"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Current",
+                "Temperature",
+                "RPM",
+                "FOC",
+                "Rotor Position"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_4"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_5"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "tempPlot"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "tempShowMosfetBox",
+            "text": "MOSFET"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "tempShowMotorBox",
+            "text": "Motor"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomHButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomVButton"
+        }
+    ]
+}

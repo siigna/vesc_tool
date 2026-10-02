@@ -1,0 +1,202 @@
+{
+    "page": "PageBms",
+    "widget_count": 32,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "balOffButton",
+            "text": "Bal Off"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "balOnButton",
+            "text": "Bal On"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chgDisButton",
+            "text": "Chg Dis"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chgEnButton",
+            "text": "Chg En"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "plotCells"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "plotTemp"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "resetAhButton",
+            "text": "Reset Ah"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "resetWhButton",
+            "text": "Reset Wh"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Voltages",
+                "Temperatures",
+                "Temp Plot"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "BattTempPlot",
+            "enabled": true,
+            "name": "tempPlot"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)"
+            ],
+            "enabled": true,
+            "name": "valTable",
+            "rows": 21
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "zeroCurrentButton",
+            "text": "Cal Zero Current"
+        }
+    ]
+}

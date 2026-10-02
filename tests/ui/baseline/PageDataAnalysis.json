@@ -1,0 +1,26 @@
+{
+    "page": "PageDataAnalysis",
+    "widget_count": 4,
+    "widgets": [
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "textEdit"
+        }
+    ]
+}

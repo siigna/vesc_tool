@@ -1,0 +1,209 @@
+{
+    "page": "PageTuningInsights",
+    "widget_count": 34,
+    "widgets": [
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "analyseButton",
+            "text": "Analyse"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "baseUrlEdit"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "baseUrlLabel",
+            "text": "Base URL"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "copyButton",
+            "text": "Copy"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "customGroup",
+            "text": "Custom provider"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "dataGroup",
+            "text": "What is sent"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "endpointLabel",
+            "text": "Endpoint: http://localhost:11434/v1/chat/completions  -- on this machine, nothing leaves it"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": false,
+            "name": "keyEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "keyEnvEdit"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "keyEnvLabel",
+            "text": "Key variable"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": false,
+            "name": "keyGroup",
+            "text": "API key"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "keySaveButton",
+            "text": "Save key"
+        },
+        {
+            "class": "QLabel",
+            "enabled": false,
+            "name": "keyStatusLabel",
+            "text": "This provider needs no key, so none is read."
+        },
+        {
+            "class": "QLabel",
+            "enabled": false,
+            "name": "keyWarnLabel",
+            "text": "Stored in plain text, readable by anything running as you. An environment variable is read first and is never written to disk."
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "openai",
+                "anthropic"
+            ],
+            "name": "kindBox"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "kindLabel",
+            "text": "Dialect"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "logBrowseButton",
+            "text": "Browse"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "logEdit"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "logLabel",
+            "text": "Log file"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "maxRowsBox"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "maxRowsLabel",
+            "text": "Log rows"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "modelEdit"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "modelLabel",
+            "text": "Model"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "previewButton",
+            "text": "Preview payload"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "ollama",
+                "local",
+                "anthropic",
+                "openai",
+                "openrouter",
+                "Custom"
+            ],
+            "name": "providerBox"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "providerGroup",
+            "text": "Provider"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "providerLabel",
+            "text": "Provider"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "redactionLabel",
+            "text": "Location is never included: log columns pass an allowlist, so a column this build does not know is left out rather than sent. Preview payload shows the exact bytes before anything leaves this machine."
+        },
+        {
+            "class": "QPlainTextEdit",
+            "enabled": true,
+            "name": "replyEdit"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "sdBox",
+            "text": "On SD card"
+        }
+    ]
+}

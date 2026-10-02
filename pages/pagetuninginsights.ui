@@ -99,7 +99,10 @@
       </item>
       <item row="2" column="0" colspan="3">
        <widget class="QLabel" name="keyWarnLabel">
-        <property name="text"><string>A key saved here is written in plain text to this application's settings, which anything running as you can read. An environment variable is preferred: it is read first and is never written to disk by this page.</string></property>
+        <property name="minimumSize">
+         <size><width>0</width><height>22</height></size>
+        </property>
+        <property name="text"><string>Stored in plain text, readable by anything running as you. An environment variable is read first and is never written to disk.</string></property>
         <property name="wordWrap"><bool>true</bool></property>
        </widget>
       </item>
@@ -125,6 +128,14 @@
         <property name="text"><string>Browse</string></property>
        </widget>
       </item>
+      <item row="0" column="3">
+       <widget class="QCheckBox" name="sdBox">
+        <property name="text"><string>On SD card</string></property>
+        <property name="toolTip">
+         <string>Read the log off the connected device's SD card instead of this machine, e.g. /log_can/log_007_2026-09-30_18-58-25.csv</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="maxRowsLabel">
         <property name="text"><string>Log rows</string></property>
@@ -139,7 +150,10 @@
       </item>
       <item row="2" column="0" colspan="3">
        <widget class="QLabel" name="redactionLabel">
-        <property name="text"><string>Location is never included. Log columns are filtered by an allowlist, so a column this build does not know about is left out rather than sent. Press Preview payload to see the exact bytes before anything leaves this machine.</string></property>
+        <property name="minimumSize">
+         <size><width>0</width><height>40</height></size>
+        </property>
+        <property name="text"><string>Location is never included: log columns pass an allowlist, so a column this build does not know is left out rather than sent. Preview payload shows the exact bytes before anything leaves this machine.</string></property>
         <property name="wordWrap"><bool>true</bool></property>
        </widget>
       </item>
@@ -176,6 +190,9 @@
    <item>
     <widget class="QPlainTextEdit" name="replyEdit">
      <property name="readOnly"><bool>true</bool></property>
+     <property name="minimumSize">
+      <size><width>0</width><height>260</height></size>
+     </property>
      <property name="plainText">
       <string>Advisory only. Nothing on this page writes a configuration value; any change is yours to make on the page that owns the setting.</string>
      </property>

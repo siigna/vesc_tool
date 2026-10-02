@@ -30,6 +30,7 @@
 #include "codeloader.h"
 #include "configparam.h"
 #include "utility.h"
+#include "appstyle.h"
 #include "heatshrink/heatshrinkif.h"
 #include "minimp3/qminimp3.h"
 
@@ -64,19 +65,6 @@
 #include <QProxyStyle>
 #include <QtConcurrent/QtConcurrent>
 
-// Disables focus drawing for all widgets
-class Style_tweaks : public QProxyStyle
-{
-public:
-    using QProxyStyle::QProxyStyle;
-    void drawPrimitive(PrimitiveElement element, const QStyleOption *option,
-                       QPainter *painter, const QWidget *widget) const
-    {
-        if (element == QStyle::PE_FrameFocusRect) return;
-
-        QProxyStyle::drawPrimitive(element, option, painter, widget);
-    }
-};
 
 static void showHelp()
 {
@@ -101,6 +89,7 @@ static void showHelp()
     qDebug() << "--useBoardSetupWindow : Start board setup window instead of the main UI";
     qDebug() << "--xmlConfToCode [xml-file] : Generate C code from XML configuration file (the files are saved in the same directory as the XML)";
     qDebug() << "--vescPort [port] : VESC Port for commands that connect, e.g. /dev/ttyACM0. If this command is left out autoconnect will be used.";
+    qDebug() << "--showPage [name] : Open the window on this page, e.g. \"Tuning Insights\". With --vescTcp it also connects first.";
     qDebug() << "--vescTcp [host:port] : Connect over TCP instead of serial, e.g. 172.31.5.34:65102. Port defaults to 65102.";
     qDebug() << "--vescBaud [rate] : Serial rate for --vescPort, e.g. 921600. Defaults to the rate last connected at.";
     qDebug() << "--canFwd [canId] : Can ID for CAN forwarding";
@@ -158,107 +147,21 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     }
 }
 
-static void addFonts() {
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSans.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSans-Bold.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSans-BoldOblique.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSans-Oblique.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSansMono.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSansMono-Bold.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSansMono-BoldOblique.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/DejaVuSansMono-Oblique.ttf");
-
-    QFontDatabase::addApplicationFont("://res/fonts/Roboto/Roboto-Regular.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/Roboto/Roboto-Medium.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/Roboto/Roboto-Bolf.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/Roboto/Roboto-BoldItalic.ttf");
-    QFontDatabase::addApplicationFont("://res/fonts/Roboto/Roboto-Italic.ttf");
-    QFontDatabase::addApplicationFont(":/res/fonts/Roboto/RobotoMono-VariableFont_wght.ttf");
-
-    QFontDatabase::addApplicationFont("://res/fonts/Exan-Regular.ttf");
-
-    qApp->setFont(QFont("Roboto", 12));
-}
-
 int main(int argc, char *argv[])
 {
     // Settings
-    QCoreApplication::setOrganizationName("VESC");
-    QCoreApplication::setOrganizationDomain("vesc-project.com");
-    QCoreApplication::setApplicationName("VESC Tool");
+    VtAppStyle::initIdentity();
+
     QSettings set;
     bool isDark = set.value("darkMode", true).toBool();
-    Utility::setDarkMode(isDark);
-    QPixmapCache::setCacheLimit(256000);
 
-    if (isDark) {
-        qputenv("QT_QUICK_CONTROLS_CONF", ":/qtquickcontrols2_dark.conf");
-
-        Utility::setAppQColor("lightestBackground", QColor(80,80,80));
-        Utility::setAppQColor("lightBackground", QColor(72,72,72));
-        Utility::setAppQColor("normalBackground", QColor(48,48,48));
-        Utility::setAppQColor("darkBackground", QColor(39,39,39));
-        Utility::setAppQColor("plotBackground", QColor(39,39,39));
-        Utility::setAppQColor("normalText", QColor(180,180,180));
-        Utility::setAppQColor("lightText", QColor(215,215,215));
-        Utility::setAppQColor("disabledText", QColor(127,127,127));
-        Utility::setAppQColor("lightAccent", QColor(0,161,221));
-        Utility::setAppQColor("tertiary1",QColor(229, 207, 51));
-        Utility::setAppQColor("tertiary2",QColor(51, 180, 229));
-        Utility::setAppQColor("tertiary3",QColor(136, 51, 229));
-        Utility::setAppQColor("midAccent", QColor(0,107,153));
-        Utility::setAppQColor("darkAccent", QColor(0,75,107));
-        Utility::setAppQColor("pink", QColor(219,98,139));
-        Utility::setAppQColor("red", QColor(200,52,52));
-        Utility::setAppQColor("orange", QColor(206,125,44));
-        Utility::setAppQColor("yellow", QColor(210,210,127));
-        Utility::setAppQColor("green", QColor(127,200,127));
-        Utility::setAppQColor("cyan",QColor(79,203,203));
-        Utility::setAppQColor("blue", QColor(77,127,196));
-        Utility::setAppQColor("magenta", QColor(157,127,210));
-        Utility::setAppQColor("white", QColor(255,255,255));
-        Utility::setAppQColor("black", QColor(0,0,0));
-        Utility::setAppQColor("brightHighlightActive", QColor(224,89,37));
-        Utility::setAppQColor("brightHighlightInactive", QColor(224,89,37));
-        Utility::setAppQColor("vescGreen", QColor(13,177,75));
-        Utility::setAppQColor("vescGreenDark", QColor(37,86,56));
-        Utility::setAppQColor("vescGreenMedium", QColor(35,104,61));
-        Utility::setAppQColor("vescBlue", QColor(0,160,227));
-        Utility::setAppQColor("vescBlueDark", QColor(0,106,150));
-    } else {
-        qputenv("QT_QUICK_CONTROLS_CONF", ":/qtquickcontrols2.conf");
-
-        Utility::setAppQColor("lightestBackground", QColor(200,200,200));
-        Utility::setAppQColor("lightBackground", QColor(225,225,225));
-        Utility::setAppQColor("normalBackground", QColor(240,240,240));
-        Utility::setAppQColor("darkBackground", QColor(255,255,255));
-        Utility::setAppQColor("plotBackground", QColor(250,250,250));
-        Utility::setAppQColor("normalText", QColor(60,20,60));
-        Utility::setAppQColor("lightText", QColor(33,33,33));
-        Utility::setAppQColor("disabledText", QColor(110,110,110));
-        Utility::setAppQColor("lightAccent", QColor(0,114,178));
-        Utility::setAppQColor("tertiary1",QColor(229, 207, 51));
-        Utility::setAppQColor("tertiary2",QColor(51, 180, 229));
-        Utility::setAppQColor("tertiary3",QColor(136, 51, 229));
-        Utility::setAppQColor("midAccent", QColor(0,107,153));
-        Utility::setAppQColor("darkAccent", QColor(0,155,222));
-        Utility::setAppQColor("pink", QColor(219,98,139));
-        Utility::setAppQColor("red", QColor(200,52,52));
-        Utility::setAppQColor("orange", QColor(206,125,44));
-        Utility::setAppQColor("yellow", QColor(210,210,127));
-        Utility::setAppQColor("green", QColor(127,200,127));
-        Utility::setAppQColor("cyan",QColor(79,203,203));
-        Utility::setAppQColor("blue", QColor(77,127,196));
-        Utility::setAppQColor("magenta", QColor(157,127,210));
-        Utility::setAppQColor("white", QColor(255,255,255));
-        Utility::setAppQColor("black", QColor(0,0,0));
-        Utility::setAppQColor("brightHighlightActive", QColor(242,118,72));
-        Utility::setAppQColor("brightHighlightInactive", QColor(242,118,72));
-        Utility::setAppQColor("vescGreenDark", QColor(14,135,59));
-        Utility::setAppQColor("vescGreenMedium", QColor(24,166,77));
-        Utility::setAppQColor("vescBlue", QColor(0,160,227));
-        Utility::setAppQColor("vescBlueDark", QColor(0,106,150));
-    }
+    /*
+     * The colour table, the fonts and the style live in appstyle.cpp so the
+     * test binaries can reproduce the application's rendering. See the note
+     * there: without the colour table every Utility::getAppQColor lookup
+     * returns red and logs a warning.
+     */
+    VtAppStyle::initColors(isDark);
 
     // DPI settings
     // TODO: http://www.qcustomplot.com/index.php/support/forum/1344
@@ -337,6 +240,7 @@ int main(int argc, char *argv[])
     QStringList pkgDescTests;
     QString xmlCodePath = "";
     QString vescPort = "";
+    QString showPageName = "";
     QString vescTcpHost = "";
     int vescTcpPort = 65102;
     int vescBaud = 0;
@@ -560,6 +464,17 @@ int main(int argc, char *argv[])
             } else {
                 i++;
                 qCritical() << "No port specified";
+                return 1;
+            }
+        }
+
+        if (str == "--showPage") {
+            if ((i + 1) < args.size()) {
+                i++;
+                showPageName = args.at(i);
+                found = true;
+            } else {
+                showHelp();
                 return 1;
             }
         }
@@ -1208,7 +1123,7 @@ int main(int argc, char *argv[])
     QApplication *a = new QApplication(argc, argv);
     app = a;
 
-    addFonts();
+    VtAppStyle::registerFonts();
 
     QmlUi *qml = new QmlUi;
     qml->startQmlUi();
@@ -1796,21 +1711,10 @@ int main(int argc, char *argv[])
                              * which has no card, and fails. So it is turned
                              * off for the transfer and put back afterwards.
                              */
-                            const bool canWas =
-                                    vesc->commands()->getSendCan();
-                            const int canWasId =
-                                    vesc->commands()->getCanSendId();
-
-                            if (canWas) {
-                                vesc->commands()->setSendCan(false, 0);
-                            }
-
+                            vesc->canTmpOverride(false, 0);
                             const QByteArray raw = vesc->commands()->
                                     fileBlockRead(insightsLogSdPath);
-
-                            if (canWas) {
-                                vesc->commands()->setSendCan(true, canWasId);
-                            }
+                            vesc->canTmpOverrideEnd();
 
                             if (raw.isEmpty()) {
                                 qCritical() << "Could not read"
@@ -2128,58 +2032,10 @@ int main(int argc, char *argv[])
         QApplication *a = new QApplication(argc, argv);
         app = a;
 
-        addFonts();
+        VtAppStyle::registerFonts();
 
         // Style
-        qApp->setStyleSheet("QListView::item::selected {background: qlineargradient(x1: 1.0, y1: 0.0, x2: 0, y2: 0, stop: 0 " +
-                            Utility::getAppHexColor("lightAccent") +
-                            ", stop: 0.4 " + Utility::getAppHexColor("darkAccent") + ");" +
-                            " border: none;} ");
-        QStyle *myStyle = new Style_tweaks("Fusion");
-        a->setStyle(myStyle);
-
-        if (isDark) {
-            QPalette darkPalette;
-            //QPalette::Inactive
-            darkPalette.setColor(QPalette::Window,Utility::getAppQColor("darkBackground"));
-            darkPalette.setColor(QPalette::WindowText,Utility::getAppQColor("lightText"));
-            darkPalette.setColor(QPalette::Disabled,QPalette::WindowText,Utility::getAppQColor("disabledText"));
-            darkPalette.setColor(QPalette::Base,Utility::getAppQColor("normalBackground"));
-            darkPalette.setColor(QPalette::AlternateBase,Utility::getAppQColor("lightBackground"));
-            darkPalette.setColor(QPalette::ToolTipBase,Utility::getAppQColor("lightestBackground"));
-            darkPalette.setColor(QPalette::ToolTipText,Utility::getAppQColor("lightText"));
-            darkPalette.setColor(QPalette::Text,Utility::getAppQColor("lightText"));
-            darkPalette.setColor(QPalette::Disabled,QPalette::Text,Utility::getAppQColor("disabledText"));
-            darkPalette.setColor(QPalette::Dark,QColor(35,35,35));
-            darkPalette.setColor(QPalette::Shadow,QColor(20,20,20));
-            darkPalette.setColor(QPalette::Button,Utility::getAppQColor("normalBackground"));
-            darkPalette.setColor(QPalette::ButtonText,Utility::getAppQColor("lightText"));
-            darkPalette.setColor(QPalette::Disabled,QPalette::ButtonText,Utility::getAppQColor("disabledText"));
-            darkPalette.setColor(QPalette::Disabled,QPalette::Highlight,Utility::getAppQColor("lightestBackground"));
-            darkPalette.setColor(QPalette::HighlightedText,Utility::getAppQColor("white"));
-            darkPalette.setColor(QPalette::Inactive,QPalette::Highlight,Utility::getAppQColor("midAccent"));
-            darkPalette.setColor(QPalette::Active,QPalette::Highlight,Utility::getAppQColor("darkAccent"));
-            darkPalette.setColor(QPalette::Disabled,QPalette::HighlightedText,Utility::getAppQColor("disabledText"));
-            darkPalette.setColor(QPalette::Link, QColor(150,150,255));
-            darkPalette.setColor(QPalette::LinkVisited, QColor(220,150,255));
-            qApp->setPalette(darkPalette);
-            qApp->setStyleSheet(
-                        "QTabBar::tab:selected, QTabBar::tab:hover {"
-                        "    background: #3d3d3d;"
-                        "    color: #eeeeee;"
-                        "}"
-                        "QTabBar::tab:!selected {"
-                        "    background: #272727;"
-                        "    color: #a5a5a5;"
-                        "}"
-                        );
-        } else {
-            QPalette lightPalette = qApp->style()->standardPalette();
-            lightPalette.setColor(QPalette::Inactive,QPalette::Highlight,Utility::getAppQColor("darkAccent"));
-            lightPalette.setColor(QPalette::Active,QPalette::Highlight,Utility::getAppQColor("midAccent"));
-            qApp->setPalette(lightPalette);
-            qApp->setStyleSheet("");
-        }
+        VtAppStyle::applyStyle(a, isDark);
 
         // Register this to not stop on the import statement when reusing components
         // from the mobile UI. In the mobile UI these are provided as singletons, whereas
@@ -2275,6 +2131,47 @@ int main(int argc, char *argv[])
             QPixmapCache::setCacheLimit(256000);
             w = new MainWindow;
             w->show();
+
+            if (!vescTcpHost.isEmpty() || !showPageName.isEmpty()) {
+                /*
+                 * Connect and deep-link after the window is up, so the pages
+                 * that only exist once a board has answered are present
+                 * before one of them is asked for.
+                 */
+                QString host = vescTcpHost;
+                int port = vescTcpPort;
+                int can = canFwd;
+                QString page = showPageName;
+                MainWindow *mw = w;
+
+                QTimer::singleShot(500, [mw, host, port, can, page]() {
+                    if (!host.isEmpty()) {
+                        VescInterface *vi = mw->vesc();
+
+                        if (vi) {
+                            vi->connectTcp(host, port);
+
+                            for (int t = 0; t < 80; t++) {
+                                Utility::sleepWithEventLoop(100);
+
+                                if (vi->isPortConnected() &&
+                                        vi->getLastFwRxParams().major > 0) {
+                                    break;
+                                }
+                            }
+
+                            if (can >= 0) {
+                                vi->commands()->setSendCan(true, can);
+                                Utility::sleepWithEventLoop(500);
+                            }
+                        }
+                    }
+
+                    if (!page.isEmpty()) {
+                        mw->openPage(page);
+                    }
+                });
+            }
         }
     }
 #endif

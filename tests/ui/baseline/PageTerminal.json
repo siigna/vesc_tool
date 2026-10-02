@@ -1,0 +1,46 @@
+{
+    "page": "PageTerminal",
+    "widget_count": 8,
+    "widgets": [
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "helpButton"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "sendButton"
+        },
+        {
+            "class": "QTextEdit",
+            "enabled": true,
+            "name": "terminalBrowser"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "terminalEdit"
+        }
+    ]
+}
