@@ -82,6 +82,8 @@
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QRegularExpression>
+#include "vbytearray.h"
 
 #include "pages/pageapppas.h"
 #include "pages/pageappadc.h"
@@ -238,6 +240,12 @@ private slots:
     void editorEnumWritesThroughToConfig();
     void editorBitfieldWritesThroughToConfig();
     void editorStringWritesThroughToConfig();
+
+    void configSurvivesBinaryRoundTrip_data();
+    void configSurvivesBinaryRoundTrip();
+    void configSurvivesXmlRoundTrip_data();
+    void configSurvivesXmlRoundTrip();
+    void configSignatureIsPinned();
     void configChangeReachesEditor();
 
     void snapshotsAreStable_data();
@@ -973,6 +981,494 @@ void UiTest::editorStringWritesThroughToConfig()
         }, &where);
 
     QVERIFY2(err.isEmpty(), qPrintable(withWhere(err, where)));
+}
+
+/* ---- Serialization round-trip and the signature --------------------------
+ *
+ * Driving an editor reaching the config is half the guarantee. The other half
+ * is that the config then survives the trip to a controller and back, and to
+ * an XML file and back, because those are what a rider actually relies on: the
+ * write to the board, and the saved config they re-upload later.
+ *
+ * Both halves fail the same quiet way. Serialization is a flat stream with no
+ * per-field names -- one parameter written at the wrong width shifts every
+ * parameter after it, and nothing reports an error. The signature is supposed
+ * to catch exactly that, which is why it gets its own check below.
+ */
+
+// How much precision the wire costs this parameter, as the grid its value
+// lands on. Mirrors VByteArray's encoders; see getParamSerial.
+static double txGrid(const ConfigParam *p)
+{
+    switch (p->vTx) {
+    case VESC_TX_DOUBLE16:
+    case VESC_TX_DOUBLE32:
+        return p->vTxDoubleScale > 0.0 ? 1.0 / p->vTxDoubleScale : 0.0;
+    default:
+        return 0.0;    // DOUBLE32_AUTO is float precision, handled separately
+    }
+}
+
+// The largest magnitude this parameter's tx type can carry. vbAppendDouble16
+// casts to qint16 after rounding, so anything past this wraps rather than
+// clamps -- which would look exactly like a stream-shift bug.
+static double txCeiling(const ConfigParam *p)
+{
+    const double scale = p->vTxDoubleScale > 0.0 ? p->vTxDoubleScale : 1.0;
+
+    switch (p->vTx) {
+    case VESC_TX_DOUBLE16: return 32767.0 / scale;
+    case VESC_TX_DOUBLE32: return 2147483647.0 / scale;
+    default:               return 1e30;
+    }
+}
+
+static void intTxRange(const ConfigParam *p, double *lo, double *hi)
+{
+    switch (p->vTx) {
+    case VESC_TX_UINT8:  *lo = 0;           *hi = 255;         break;
+    case VESC_TX_INT8:   *lo = -128;        *hi = 127;         break;
+    case VESC_TX_UINT16: *lo = 0;           *hi = 65535;       break;
+    case VESC_TX_INT16:  *lo = -32768;      *hi = 32767;       break;
+    case VESC_TX_UINT32: *lo = 0;           *hi = 4294967295.0;break;
+    case VESC_TX_INT32:  *lo = -2147483648.0;*hi = 2147483647.0;break;
+    default:             *lo = 0;           *hi = 0;           break;
+    }
+}
+
+struct Wanted {
+    QVariant value;
+    double tol = 0.0;      // 0 means exact
+};
+
+/*
+ * Moves one parameter to a deterministic value inside both its declared range
+ * and what its tx type can carry, and says what should come back. Doubles are
+ * snapped onto the wire's own grid first, so the expectation is exact rather
+ * than approximate -- a tolerance wide enough to absorb quantization is also
+ * wide enough to absorb a real bug.
+ *
+ * Returns false for a parameter with no room to move, which is not a failure:
+ * a fixed-value parameter has nothing to prove here.
+ */
+static bool perturbParam(ConfigParams *conf, const QString &name, int idx,
+                         Wanted *out)
+{
+    ConfigParam *p = conf->getParam(name);
+
+    if (p == nullptr) {
+        return false;
+    }
+
+    // Deterministic, and never an endpoint: an endpoint is where clamping
+    // bugs hide, so hitting one by accident would make the result ambiguous.
+    const double frac = 0.2 + 0.1 * double(idx % 6);
+
+    switch (p->type) {
+    case CFG_T_DOUBLE: {
+        const double cap = txCeiling(p);
+        const double lo = qMax(p->minDouble, -cap);
+        const double hi = qMin(p->maxDouble, cap);
+
+        if (!(hi > lo)) {
+            return false;
+        }
+
+        double want = lo + (hi - lo) * frac;
+        const double grid = txGrid(p);
+
+        if (grid > 0.0) {
+            want = qRound64(want / grid) * grid;
+        } else {
+            // DOUBLE32_AUTO keeps about a float's worth of mantissa.
+            out->tol = qMax(qAbs(want) * 2e-7, 1e-30);
+        }
+
+        if (qAbs(want - p->valDouble) <= out->tol) {
+            return false;
+        }
+
+        out->value = QVariant(want);
+        conf->updateParamDouble(name, want);
+        return true;
+    }
+
+    case CFG_T_INT: {
+        double txLo = 0.0;
+        double txHi = 0.0;
+        intTxRange(p, &txLo, &txHi);
+
+        if (txHi <= txLo) {
+            return false;
+        }
+
+        const double lo = qMax(double(p->minInt), txLo);
+        const double hi = qMin(double(p->maxInt), txHi);
+
+        if (!(hi > lo)) {
+            return false;
+        }
+
+        const int want = int(lo + (hi - lo) * frac);
+
+        if (want == p->valInt) {
+            return false;
+        }
+
+        out->value = QVariant(want);
+        conf->updateParamInt(name, want);
+        return true;
+    }
+
+    case CFG_T_ENUM: {
+        if (p->enumNames.size() < 2) {
+            return false;
+        }
+
+        const int want = (p->valInt + 1 + idx) % p->enumNames.size();
+
+        if (want == p->valInt) {
+            return false;
+        }
+
+        out->value = QVariant(want);
+        conf->updateParamEnum(name, want);
+        return true;
+    }
+
+    case CFG_T_BOOL: {
+        const bool want = p->valInt == 0;
+        out->value = QVariant(want);
+        conf->updateParamBool(name, want);
+        return true;
+    }
+
+    case CFG_T_BITFIELD: {
+        /*
+         * Six bits, not eight: the two top bits of every shipped bitfield are
+         * labelled "Unused" and the editor hides them. Staying inside the
+         * reachable bits also steps around a wart that is not this test's
+         * subject -- bitfields go over the wire through vbAppendInt8, so a
+         * value with bit 7 set comes back negative. The bit pattern survives,
+         * the number does not, and no shipped parameter can reach it.
+         */
+        const int want = (p->valInt ^ (0x15 + idx)) & 0x3F;
+
+        if (want == p->valInt) {
+            return false;
+        }
+
+        out->value = QVariant(want);
+        conf->updateParamInt(name, want);
+        return true;
+    }
+
+    case CFG_T_QSTRING: {
+        QString want = QString("rt%1").arg(idx);
+
+        if (p->maxLen > 0) {
+            want.truncate(p->maxLen);
+        }
+
+        if (want == p->valString || want.isEmpty()) {
+            return false;
+        }
+
+        out->value = QVariant(want);
+        conf->updateParamString(name, want);
+        return true;
+    }
+
+    default:
+        return false;
+    }
+}
+
+/*
+ * Moves every parameter off its value, so that a parameter the round-trip
+ * never writes shows up as a failure instead of a value that happened to
+ * already be right. Dispatches by type: updateParamInt refuses an enum or a
+ * bool and only qWarns about it, so a default branch here would quietly leave
+ * those two types untouched -- exactly the parameters this is meant to clear.
+ */
+static void clearValues(ConfigParams *conf, const QStringList &names)
+{
+    for (const QString &name: names) {
+        ConfigParam *p = conf->getParam(name);
+
+        if (p == nullptr) {
+            continue;
+        }
+
+        switch (p->type) {
+        case CFG_T_DOUBLE:   conf->updateParamDouble(name, 0.0); break;
+        case CFG_T_INT:      conf->updateParamInt(name, 0); break;
+        case CFG_T_BITFIELD: conf->updateParamInt(name, 0); break;
+        case CFG_T_ENUM:     conf->updateParamEnum(name, 0); break;
+        case CFG_T_BOOL:     conf->updateParamBool(name, false); break;
+        case CFG_T_QSTRING:  conf->updateParamString(name, QString("zz")); break;
+        default: break;
+        }
+    }
+}
+
+static void restoreValues(ConfigParams *conf,
+                          const QHash<QString, QVariant> &snap)
+{
+    conf->setUpdateOnly("");
+
+    for (auto it = snap.constBegin(); it != snap.constEnd(); ++it) {
+        ConfigParam *p = conf->getParam(it.key());
+
+        if (p == nullptr) {
+            continue;
+        }
+
+        switch (p->type) {
+        case CFG_T_DOUBLE:   conf->updateParamDouble(it.key(), it.value().toDouble()); break;
+        case CFG_T_INT:      conf->updateParamInt(it.key(), it.value().toInt()); break;
+        case CFG_T_BITFIELD: conf->updateParamInt(it.key(), it.value().toInt()); break;
+        case CFG_T_ENUM:     conf->updateParamEnum(it.key(), it.value().toInt()); break;
+        case CFG_T_BOOL:     conf->updateParamBool(it.key(), it.value().toBool()); break;
+        case CFG_T_QSTRING:  conf->updateParamString(it.key(), it.value().toString()); break;
+        default: break;
+        }
+    }
+}
+
+static QString compareWanted(ConfigParams *conf,
+                             const QHash<QString, Wanted> &wanted,
+                             const QString &via)
+{
+    QStringList wrong;
+
+    for (auto it = wanted.constBegin(); it != wanted.constEnd(); ++it) {
+        const QVariant got = paramValue(conf, it.key());
+        const Wanted &w = it.value();
+        bool ok = false;
+
+        if (w.value.type() == QVariant::Double) {
+            const double tol = w.tol > 0.0 ? w.tol : 1e-9;
+            ok = qAbs(got.toDouble() - w.value.toDouble()) <= tol;
+        } else {
+            ok = got == w.value;
+        }
+
+        if (!ok) {
+            wrong << QString("%1: wrote %2, read %3")
+                     .arg(it.key(), w.value.toString(), got.toString());
+        }
+    }
+
+    if (wrong.isEmpty()) {
+        return QString();
+    }
+
+    wrong.sort();
+    // One wrong width shifts the whole rest of the stream, so the useful part
+    // of the report is the first few and the count, not all of them.
+    const int shown = qMin(wrong.size(), 6);
+    return QString("%1 of %2 parameters did not survive %3: %4")
+            .arg(wrong.size()).arg(wanted.size()).arg(via,
+                 QStringList(wrong.mid(0, shown)).join("; "));
+}
+
+void UiTest::configSurvivesBinaryRoundTrip_data()
+{
+    QTest::addColumn<QString>("which");
+    QTest::newRow("appconf") << QString("appconf");
+    QTest::newRow("mcconf") << QString("mcconf");
+}
+
+void UiTest::configSurvivesBinaryRoundTrip()
+{
+    QFETCH(QString, which);
+
+    ConfigParams *conf = which == QString("appconf")
+            ? g_vesc->appConfig() : g_vesc->mcConfig();
+    const QHash<QString, QVariant> original = confSnapshot(conf);
+    conf->setUpdateOnly("");
+
+    const QStringList order = conf->getSerializeOrder();
+    QVERIFY2(!order.isEmpty(), "no serialize order: the config did not load");
+
+    QHash<QString, Wanted> wanted;
+    int idx = 0;
+
+    for (const QString &name: order) {
+        Wanted w;
+
+        if (perturbParam(conf, name, idx, &w)) {
+            wanted.insert(name, w);
+        }
+
+        idx++;
+    }
+
+    QVERIFY2(wanted.size() > order.size() / 2,
+             qPrintable(QString("only %1 of %2 parameters could be moved; the "
+                                "ranges in the XML may have collapsed")
+                        .arg(wanted.size()).arg(order.size())));
+
+    VByteArray vb;
+    conf->serialize(vb);
+
+    clearValues(conf, order);
+
+    const bool ok = conf->deSerialize(vb);
+    const QString err = compareWanted(conf, wanted, QString("the wire"));
+    restoreValues(conf, original);
+
+    QVERIFY2(ok, "deSerialize rejected a stream this same object just wrote, "
+                 "which means getSignature is not stable within one process");
+    QVERIFY2(err.isEmpty(), qPrintable(err));
+}
+
+void UiTest::configSurvivesXmlRoundTrip_data()
+{
+    QTest::addColumn<QString>("which");
+    QTest::newRow("appconf") << QString("appconf");
+    QTest::newRow("mcconf") << QString("mcconf");
+}
+
+void UiTest::configSurvivesXmlRoundTrip()
+{
+    QFETCH(QString, which);
+
+    const bool isApp = which == QString("appconf");
+    ConfigParams *conf = isApp ? g_vesc->appConfig() : g_vesc->mcConfig();
+    const QString tag = isApp ? QString("APPConfiguration")
+                              : QString("MCConfiguration");
+    const QHash<QString, QVariant> original = confSnapshot(conf);
+    conf->setUpdateOnly("");
+
+    QHash<QString, Wanted> wanted;
+    int idx = 0;
+
+    for (const QString &name: conf->getParamOrder()) {
+        Wanted w;
+
+        if (perturbParam(conf, name, idx, &w)) {
+            /*
+             * getXML writes doubles with QString::number, which is six
+             * significant digits -- so the file is lossier than the wire, and
+             * this is the only tolerance in either test that is not the wire's
+             * own grid. Worth knowing when a saved config is compared against
+             * a controller: small differences in the last digits are the file
+             * format, not drift.
+             */
+            if (w.value.type() == QVariant::Double) {
+                w.tol = qMax(qAbs(w.value.toDouble()) * 1e-5, 1e-12);
+            }
+
+            wanted.insert(name, w);
+        }
+
+        idx++;
+    }
+
+    QVERIFY(!wanted.isEmpty());
+
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString path = dir.filePath("conf.xml");
+
+    QVERIFY2(conf->saveXml(path, tag), qPrintable(conf->xmlStatus()));
+
+    clearValues(conf, conf->getParamOrder());
+
+    const bool loaded = conf->loadXml(path, tag);
+    const QString status = conf->xmlStatus();
+    const QString err = compareWanted(conf, wanted, QString("an XML file"));
+    restoreValues(conf, original);
+
+    QVERIFY2(loaded, qPrintable(status));
+    QVERIFY2(err.isEmpty(), qPrintable(err));
+}
+
+void UiTest::configSignatureIsPinned()
+{
+    /*
+     * The signature is a CRC over every parameter's name, type, tx type and
+     * enum labels, and confgenerator_deserialize_appconf rejects the entire
+     * blob when it does not match -- not the changed field, the whole config.
+     * So an edit to the parameter XML that is not followed by regenerating the
+     * firmware's confgenerator.h breaks config transfer completely, in both
+     * directions, with "Invalid signature" as the only clue.
+     *
+     * Pinning the pair here turns that into a failing test at the moment of
+     * the edit. When this fails because the XML was changed on purpose:
+     * regenerate confgenerator.h/.c in the firmware tree, flash it, and update
+     * the numbers below in the same commit.
+     */
+    const quint32 expectApp = 2638111212u;
+    const quint32 expectMc = 3154770096u;
+
+    const quint32 gotApp = g_vesc->appConfig()->getSignature();
+    const quint32 gotMc = g_vesc->mcConfig()->getSignature();
+
+    QVERIFY2(gotApp == expectApp,
+             qPrintable(QString("appconf signature is %1, pinned at %2 -- "
+                                "regenerate the firmware's confgenerator.h "
+                                "and update this test together")
+                        .arg(gotApp).arg(expectApp)));
+    QVERIFY2(gotMc == expectMc,
+             qPrintable(QString("mcconf signature is %1, pinned at %2 -- "
+                                "regenerate the firmware's confgenerator.h "
+                                "and update this test together")
+                        .arg(gotMc).arg(expectMc)));
+
+    /*
+     * And when the firmware tree is next door, check the real header rather
+     * than trusting that the pin above was kept in step with it. Skipped, not
+     * failed, when it is not there: this suite has to pass in a clone of
+     * vesc_tool on its own.
+     */
+    const QStringList roots = { QString::fromLocal8Bit(qgetenv("BLDC_DIR")),
+                                QString("../../../bldc") };
+    QString header;
+
+    for (const QString &r: roots) {
+        if (r.isEmpty()) {
+            continue;
+        }
+
+        const QString cand = r + "/confgenerator.h";
+
+        if (QFile::exists(cand)) {
+            header = cand;
+            break;
+        }
+    }
+
+    if (header.isEmpty()) {
+        qInfo() << "firmware confgenerator.h not found, checked BLDC_DIR and "
+                   "../../../bldc -- the pinned values above still ran";
+        return;
+    }
+
+    QFile f(header);
+    QVERIFY(f.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QString text = QString::fromUtf8(f.readAll());
+
+    const QRegularExpression reApp("#define\\s+APPCONF_SIGNATURE\\s+(\\d+)");
+    const QRegularExpression reMc("#define\\s+MCCONF_SIGNATURE\\s+(\\d+)");
+    const QRegularExpressionMatch mApp = reApp.match(text);
+    const QRegularExpressionMatch mMc = reMc.match(text);
+
+    QVERIFY2(mApp.hasMatch() && mMc.hasMatch(),
+             qPrintable(QString("no signature defines in %1").arg(header)));
+
+    QVERIFY2(mApp.captured(1).toUInt() == gotApp,
+             qPrintable(QString("%1 has APPCONF_SIGNATURE %2, this config "
+                                "computes %3 -- the firmware would reject "
+                                "every appconf this Tool writes")
+                        .arg(header, mApp.captured(1)).arg(gotApp)));
+    QVERIFY2(mMc.captured(1).toUInt() == gotMc,
+             qPrintable(QString("%1 has MCCONF_SIGNATURE %2, this config "
+                                "computes %3 -- the firmware would reject "
+                                "every mcconf this Tool writes")
+                        .arg(header, mMc.captured(1)).arg(gotMc)));
 }
 
 void UiTest::configChangeReachesEditor()
