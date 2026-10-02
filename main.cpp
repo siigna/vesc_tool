@@ -36,6 +36,10 @@
 #include <QApplication>
 #include <QStyleFactory>
 #include <QSettings>
+#include "tuninginsights.h"
+#include "tuninginsightsconf.h"
+#include "insightsprovider.h"
+#include "tuningclient.h"
 #include <QDesktopWidget>
 #include <QFontDatabase>
 #include <QPixmapCache>
@@ -99,6 +103,12 @@ static void showHelp()
     qDebug() << "--vescPort [port] : VESC Port for commands that connect, e.g. /dev/ttyACM0. If this command is left out autoconnect will be used.";
     qDebug() << "--vescBaud [rate] : Serial rate for --vescPort, e.g. 921600. Defaults to the rate last connected at.";
     qDebug() << "--canFwd [canId] : Can ID for CAN forwarding";
+    qDebug() << "--tuningInsights : Connect, gather configuration and telemetry, and ask a model for tuning observations. Advisory only; nothing is applied.";
+    qDebug() << "--dryRun : With --tuningInsights, print the exact payload and send nothing.";
+    qDebug() << "--insightsLog [path] : Include this RT log. Location columns (gnss_*) are never sent.";
+    qDebug() << "--insightsProvider [id] : ollama (default), local, anthropic, openai, openrouter, or kind:baseUrl:model where kind is anthropic or openai.";
+    qDebug() << "--insightsModel [id] : Override the provider's model.";
+    qDebug() << "--insightsMaxRows [n] : Log rows to send after downsampling (default 200).";
     qDebug() << "--getMcConf [confPath] : Connect and read motor configuration and store the XML to confPath.";
     qDebug() << "--setMcConf [confPath] : Connect and write motor configuration XML from confPath.";
     qDebug() << "--getAppConf [confPath] : Connect and read app configuration and store the XML to confPath.";
@@ -324,6 +334,12 @@ int main(int argc, char *argv[])
     QString vescPort = "";
     int vescBaud = 0;
     int canFwd = -1;
+    bool tuningInsights = false;
+    bool insightsDryRun = false;
+    QString insightsLogPath = "";
+    QString insightsProviderSpec = "";
+    QString insightsModel = "";
+    int insightsMaxRows = 200;
     QString getMcConfPath = "";
     QString setMcConfPath = "";
     QString getAppConfPath = "";
@@ -562,6 +578,42 @@ int main(int argc, char *argv[])
             } else {
                 i++;
                 qCritical() << "No can id specified";
+                return 1;
+            }
+        }
+
+        if (str == "--tuningInsights") {
+            tuningInsights = true;
+            found = true;
+        }
+
+        if (str == "--dryRun") {
+            insightsDryRun = true;
+            found = true;
+        }
+
+        if (str == "--insightsLog" || str == "--insightsProvider" ||
+                str == "--insightsModel" || str == "--insightsMaxRows") {
+            if ((i + 1) < args.size()) {
+                i++;
+                if (str == "--insightsLog") {
+                    insightsLogPath = args.at(i);
+                } else if (str == "--insightsProvider") {
+                    insightsProviderSpec = args.at(i);
+                } else if (str == "--insightsModel") {
+                    insightsModel = args.at(i);
+                } else {
+                    bool ok = false;
+                    insightsMaxRows = args.at(i).toInt(&ok);
+                    if (!ok || insightsMaxRows < 1) {
+                        qCritical() << "--insightsMaxRows needs a positive number";
+                        return 1;
+                    }
+                }
+                found = true;
+            } else {
+                i++;
+                qCritical() << "No value specified for" << str;
                 return 1;
             }
         }
@@ -1142,7 +1194,8 @@ int main(int argc, char *argv[])
     bool isAppConf = !getAppConfPath.isEmpty() || !setAppConfPath.isEmpty();
     bool isCustomConf = !getCustomConfPath.isEmpty() || !setCustomConfPath.isEmpty();
 
-    if (isMcConf || isAppConf || isCustomConf || !lispPath.isEmpty() ||
+    if (isMcConf || isAppConf || isCustomConf || tuningInsights ||
+            !lispPath.isEmpty() ||
             !installPkgPath.isEmpty() ||
             eraseLisp || !firmwarePath.isEmpty() || uploadBootloaderBuiltin ||
             queryDeviceFwParams || !fileForSdIn.isEmpty() || bridgeAppData) {
@@ -1465,6 +1518,136 @@ int main(int argc, char *argv[])
                                 exitCode = -2;
                             }
                         }
+
+                        if (tuningInsights) {
+                            /*
+                             * Fetches its own configurations rather than
+                             * borrowing the --getMcConf path, which would then
+                             * try to save XML to an empty filename.
+                             */
+                            ConfigParams *mcp = vesc->mcConfig();
+                            ConfigParams *app = vesc->appConfig();
+
+                            vesc->commands()->getMcconf();
+                            bool okMc = Utility::waitSignal(
+                                        mcp, SIGNAL(updated()), 4000);
+                            vesc->commands()->getAppConf();
+                            bool okApp = Utility::waitSignal(
+                                        app, SIGNAL(updated()), 4000);
+
+                            if (!okMc || !okApp) {
+                                qWarning() << "Could not read the configuration";
+                                exitCode = -2;
+                            } else {
+                                /*
+                                 * A telemetry snapshot. getValues() is a
+                                 * request; the numbers arrive on a signal, so
+                                 * capture them from it rather than guessing
+                                 * at a getter.
+                                 */
+                                MC_VALUES rtVals;
+                                QObject::connect(vesc->commands(),
+                                                 &Commands::valuesReceived,
+                                                 [&rtVals](MC_VALUES v, unsigned int) {
+                                    rtVals = v;
+                                });
+                                vesc->commands()->getValues();
+                                if (!Utility::waitSignal(
+                                            vesc->commands(),
+                                            SIGNAL(valuesReceived(MC_VALUES,uint)),
+                                            4000)) {
+                                    qWarning() << "No realtime data; "
+                                                  "continuing without it";
+                                }
+
+                                FW_RX_PARAMS fwp = vesc->getLastFwRxParams();
+                                const QString fwStrInsights =
+                                        QString("V%1.%2 %3 hw:%4")
+                                        .arg(fwp.major).arg(fwp.minor, 2, 10,
+                                                            QLatin1Char('0'))
+                                        .arg(fwp.fwName, fwp.hw);
+
+                                QStringList logHeader;
+                                QList<QStringList> logRows;
+
+                                if (!insightsLogPath.isEmpty()) {
+                                    QFile lf(insightsLogPath);
+                                    if (lf.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                                        QTextStream ts(&lf);
+                                        if (!ts.atEnd()) {
+                                            logHeader = ts.readLine().split(";");
+                                        }
+                                        while (!ts.atEnd()) {
+                                            const QString line = ts.readLine();
+                                            if (!line.trimmed().isEmpty()) {
+                                                logRows.append(line.split(";"));
+                                            }
+                                        }
+                                        qDebug() << "Read" << logRows.size()
+                                                 << "log rows," << logHeader.size()
+                                                 << "columns";
+                                    } else {
+                                        qCritical() << "Could not open"
+                                                    << insightsLogPath;
+                                        exitCode = -3;
+                                    }
+                                }
+
+                                if (exitCode == 0) {
+                                    QJsonObject payload =
+                                            TuningInsights::buildPayload(
+                                                TuningInsightsConf::extract(mcp),
+                                                TuningInsightsConf::extract(app),
+                                                rtVals,
+                                                logHeader, logRows,
+                                                insightsMaxRows, fwStrInsights);
+
+                                    if (insightsDryRun) {
+                                        // Exactly what would be sent, and
+                                        // nothing is.
+                                        printf("%s\n", QJsonDocument(payload)
+                                               .toJson(QJsonDocument::Indented)
+                                               .constData());
+                                    } else {
+                                        QString err;
+                                        InsightsProvider::Config cfg =
+                                                InsightsProvider::fromSpec(
+                                                    insightsProviderSpec.isEmpty()
+                                                    ? "ollama"
+                                                    : insightsProviderSpec, &err);
+
+                                        if (!err.isEmpty()) {
+                                            qCritical() << err.toLocal8Bit().constData();
+                                            exitCode = -4;
+                                        } else {
+                                            if (!insightsModel.isEmpty()) {
+                                                cfg.model = insightsModel;
+                                            }
+
+                                            QScopedPointer<InsightsProvider> prov(
+                                                        InsightsProvider::create(cfg));
+                                            qDebug() << "Sending to"
+                                                     << prov->endpoint()
+                                                     << "model" << cfg.model;
+
+                                            TuningClient client;
+                                            const QString text = client.send(
+                                                        prov.data(),
+                                                        TuningInsights::buildPrompt(payload),
+                                                        4096, 120000, &err);
+
+                                            if (text.isEmpty()) {
+                                                qCritical() << err.toLocal8Bit().constData();
+                                                exitCode = -5;
+                                            } else {
+                                                printf("%s\n", text.toLocal8Bit().constData());
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                     } else {
                         qWarning() << "Could not load config";
                         exitCode = -1;

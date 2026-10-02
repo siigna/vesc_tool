@@ -225,6 +225,10 @@ SOURCES += main.cpp\
     vbytearray.cpp \
     commands.cpp \
     configparams.cpp \
+    tuninginsights.cpp \
+    tuninginsightsconf.cpp \
+    insightsprovider.cpp \
+    tuningclient.cpp \
     configparam.cpp \
     vescinterface.cpp \
     parametereditor.cpp \
@@ -249,6 +253,10 @@ HEADERS  += mainwindow.h \
     commands.h \
     datatypes.h \
     configparams.h \
+    tuninginsights.h \
+    tuninginsightsconf.h \
+    insightsprovider.h \
+    tuningclient.h \
     configparam.h \
     vescinterface.h \
     parametereditor.h \

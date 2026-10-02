@@ -1,0 +1,6 @@
+Makefile
+*.o
+moc_*.cpp
+*.moc
+tst_tuning
+.qmake.stash
