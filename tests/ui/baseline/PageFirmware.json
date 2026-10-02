@@ -1,0 +1,369 @@
+{
+    "page": "PageFirmware",
+    "widget_count": 68,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "archFwList"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "archVersionList"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "blList"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "cancelButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "changelogButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "choose2Button"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "choose3Button"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "choose4Button"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chooseButton"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "currentLabel"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "display"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "displayDl"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "displayDlFw"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "dlArchiveButton",
+            "text": "Download Archive"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "dlFwButton",
+            "text": "Download Latest"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fw2Edit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fw3Edit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fw4Edit"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "fwCustomBlBox",
+            "text": "Upload Bootloader"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fwEdit"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "fwList"
+        },
+        {
+            "class": "QTextEdit",
+            "enabled": true,
+            "name": "fwMissingText"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "fwTabWidget",
+            "tabs": [
+                "Included Files",
+                "Custom File",
+                "Bootloader",
+                "Archive"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "fwWidget"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Install New Firmware"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "VESC Firmware, Hardware and UUID"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_3",
+            "text": "Supported Firmwares Loaded"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "hwList"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Hardware Version"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "Firmware"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_3",
+            "text": "Firmware Version"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_4",
+            "text": "File"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "readVersionButton"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showNonDefaultArchBox",
+            "text": "Show non-default firmwares"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "showNonDefaultBox",
+            "text": "Show non-default firmwares"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "supportedLabel"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_4"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uploadAllButton",
+            "text": "All"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uploadButton"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw1Button",
+            "text": "Use"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw2Button",
+            "text": "Use"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw3Button",
+            "text": "Use"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw4Button",
+            "text": "Use"
+        }
+    ]
+}

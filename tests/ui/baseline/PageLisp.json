@@ -1,0 +1,776 @@
+{
+    "page": "PageLisp",
+    "widget_count": 143,
+    "widgets": [
+        {
+            "class": "ScriptEditor",
+            "enabled": true,
+            "name": "ScriptEditor"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "autoRunBox",
+            "text": "AutoRun"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "autoscaleButton"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "bindingPlot"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+            ],
+            "enabled": true,
+            "name": "bindingTable",
+            "rows": 0
+        },
+        {
+            "class": "QFrame",
+            "enabled": true,
+            "name": "buttonFrame"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearConsoleButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearRecentButton",
+            "text": "Clear"
+        },
+        {
+            "class": "QCodeEditor",
+            "enabled": true,
+            "name": "codeEdit"
+        },
+        {
+            "class": "QProgressBar",
+            "enabled": true,
+            "name": "cpuBar"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "debugEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "eraseButton",
+            "text": "Erase"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "exampleFilterClearButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "exampleFilterEdit"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "exampleList"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentAutoScaleButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentClearDataButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentGraph1Button"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentGraph2Button"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentGraph3Button"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentGraph4Button"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentGraph5Button"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentGraph6Button"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "experimentHBox"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentHZoomButton"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "experimentHistoryBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "experimentLoadXmlButton",
+            "text": "XML"
+        },
+        {
+            "class": "ExperimentPlot",
+            "enabled": true,
+            "name": "experimentPlot"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "experimentPlot"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "experimentSaveCsvButton",
+            "text": "CSV"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "experimentSavePdfButton",
+            "text": "PDF"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "experimentSavePngButton",
+            "text": "PNG"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "experimentSaveXmlButton",
+            "text": "XML"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "experimentScaleBox"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentScatterButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentShowLineButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "experimentVZoomButton"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "experimentWBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "fileChangeIgnoreButton",
+            "text": "Ignore"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "fileChangedLabel",
+            "text": "This file has been changed on the filesystem."
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "fileChangedReloadButton",
+            "text": "Reload"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "fileChangedWidget"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "fileNowLabel"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "fileTabs",
+            "tabs": [
+                "Unnamed"
+            ]
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Import"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "Export"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_3",
+            "text": "Settings"
+        },
+        {
+            "class": "QProgressBar",
+            "enabled": true,
+            "name": "heapBar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "helpButton",
+            "text": "Help"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "infoButton",
+            "text": "Info"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "CPU"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "Filter"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_3",
+            "text": "Heap"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_4",
+            "text": "Mem"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_5",
+            "text": "Filter"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget2"
+        },
+        {
+            "class": "QProgressBar",
+            "enabled": true,
+            "name": "memBar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openExampleButton",
+            "text": "Open"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openFileButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openRecentButton",
+            "text": "Open"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "pollAllButton",
+            "text": "Poll All"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "pollOffButton",
+            "text": "Poll Off"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "pollRateBox"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "pollVtButton",
+            "text": "Poll VT"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "readExistingButton",
+            "text": "Read"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "recentFilterClearButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "recentFilterEdit"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "recentList"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "refreshButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "removeSelectedButton",
+            "text": "Remove"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "replEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replHelpButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replaceAllButton",
+            "text": "Replace All"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "replaceEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replaceThisButton",
+            "text": "Replace"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "rescaleButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "runButton",
+            "text": "Run"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveAsButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveButton"
+        },
+        {
+            "class": "QScrollArea",
+            "enabled": true,
+            "name": "scrollArea"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "scrollAreaWidgetContents"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "searchCaseSensitiveBox",
+            "text": "Case Sensitive"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "searchEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchHideButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchNextButton",
+            "text": "Next"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchPrevButton",
+            "text": "Previous"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "searchWidget"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter_2"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "stopButton",
+            "text": "Stop"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "streamButton",
+            "text": "Stream"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "After Stream: Load on top",
+                "After Stream: Reset & Load",
+                "After Stream: Reload Flash & Load"
+            ],
+            "name": "streamModeBox"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Console/REPL",
+                "Recent",
+                "Examples",
+                "Binding Plot",
+                "Experiment Plot"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_4"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_5"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uploadButton",
+            "text": "Upload"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomHButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomVButton"
+        }
+    ]
+}

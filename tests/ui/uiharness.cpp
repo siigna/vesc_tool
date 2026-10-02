@@ -19,6 +19,8 @@
 
 #include "uiharness.h"
 
+#include <QtTest>
+
 #include <QAbstractButton>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -175,6 +177,15 @@ void UiHarness::settle()
     }
 }
 
+void UiHarness::settleWithTimers(int ms)
+{
+    /*
+     * Real time, unlike settle(): processEvents returns at once when the queue
+     * is empty, so it advances no wall clock and a 50 ms timer never fires.
+     */
+    QTest::qWait(ms);
+}
+
 namespace {
 
 /*
@@ -275,11 +286,29 @@ QJsonObject UiHarness::describe(QWidget *page, const QString &pageName)
         }
 
         if (auto c = qobject_cast<QComboBox*>(w)) {
-            QJsonArray items;
-            for (int i = 0; i < c->count(); i++) {
-                items.append(c->itemText(i));
+            /*
+             * A few combos are filled from the host rather than from the
+             * program: these two list the serial ports this machine happens to
+             * have, which put "ttyACM0" into a committed baseline and would
+             * fail on any other machine -- or on this one with the board
+             * unplugged.
+             *
+             * Recorded as a note rather than dropped, so the control is still
+             * known to exist and the reason it has no contents is visible in
+             * the baseline instead of being a silent omission.
+             */
+            static const QStringList hostFilled{
+                "serialPortBox", "victronPortBox", "serialDeviceBox"};
+
+            if (hostFilled.contains(w->objectName())) {
+                o["items"] = "(filled from the host; not recorded)";
+            } else {
+                QJsonArray items;
+                for (int i = 0; i < c->count(); i++) {
+                    items.append(c->itemText(i));
+                }
+                o["items"] = items;
             }
-            o["items"] = items;
         }
 
         /*

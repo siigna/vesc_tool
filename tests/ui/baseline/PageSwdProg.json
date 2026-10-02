@@ -1,0 +1,341 @@
+{
+    "page": "PageSwdProg",
+    "widget_count": 49,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "cancelButton",
+            "text": "Cancel"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "choose2Button"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "choose3Button"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "choose4Button"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chooseButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "connectButton",
+            "text": "Connect"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "connectNrf5xButton",
+            "text": "Connect Internal"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "disconnectButton",
+            "text": "Disconnect"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "display"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "eraseFlashButton",
+            "text": "Erase Only"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fw2Edit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fw3Edit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fw4Edit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "fwEdit"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "fwList"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Target:"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "Connect to see relevant firmwares"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "resetButton",
+            "text": "Reset"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Included Firmwares",
+                "Custom File",
+                "NRF52 UICR"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "targetLabel"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uicrEraseButton",
+            "text": "Erase"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uicrReadButton",
+            "text": "Read All"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)"
+            ],
+            "enabled": true,
+            "name": "uicrTable",
+            "rows": 65
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uicrWriteButton",
+            "text": "Write All"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uploadButton",
+            "text": "Erase && Upload"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw1Button",
+            "text": "Use"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw2Button",
+            "text": "Use"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw3Button",
+            "text": "Use"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "useFw4Button",
+            "text": "Use"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "verifyBox",
+            "text": "Verify flash while programming"
+        }
+    ]
+}

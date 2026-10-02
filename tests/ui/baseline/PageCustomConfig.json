@@ -1,0 +1,63 @@
+{
+    "page": "PageCustomConfig",
+    "widget_count": 10,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "loadXmlButton",
+            "text": "Load XML"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "readButton",
+            "text": "Read"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "readDefaultButton",
+            "text": "Read Default"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveXmlButton",
+            "text": "Save XML"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+            ]
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "writeButton",
+            "text": "Write"
+        }
+    ]
+}

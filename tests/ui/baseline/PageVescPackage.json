@@ -1,0 +1,471 @@
+{
+    "page": "PageVescPackage",
+    "widget_count": 87,
+    "widgets": [
+        {
+            "class": "QPlainTextEditSearchWidget",
+            "enabled": true,
+            "name": "QPlainTextEditSearchWidget"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "applicationList"
+        },
+        {
+            "class": "QFrame",
+            "enabled": true,
+            "name": "buttonFrame"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chooseLispButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chooseLoadButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chooseOutputButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "chooseQmlButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "closeButton"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "descriptionBrowser"
+        },
+        {
+            "class": "QMarkdownTextEdit",
+            "enabled": true,
+            "name": "descriptionEdit"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "displayDl"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "dlArchiveButton",
+            "text": "Update Archive"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "filterEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "installButton",
+            "text": "Install"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Package Name"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "Applications"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_3",
+            "text": "Libraries"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_4",
+            "text": "Filter"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget2"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "libraryList"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "lispBox",
+            "text": "LispBM"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "lispBox_2",
+            "text": "Output"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "lispBox_3",
+            "text": "Load Package"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "lispEdit"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "loadBrowser"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "loadEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "loadRefreshButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "matchCaseSensitiveButton"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "Plain text",
+                "Whole words",
+                "Regular expression"
+            ],
+            "name": "modeComboBox"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "modeLabel",
+            "text": "Mode:"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "nameEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "outputEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "outputRefreshButton"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "qmlBox",
+            "text": "Qml"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qmlEdit"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "qmlFullscreenBox",
+            "text": "Fullscreen"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replaceAllButton",
+            "text": "Replace all"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replaceButton",
+            "text": "Replace"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "replaceLabel",
+            "text": "Replace:"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "replaceLineEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replaceToggleButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveButton",
+            "text": "Save Package"
+        },
+        {
+            "class": "QLabel",
+            "enabled": false,
+            "name": "searchCountLabel",
+            "text": "-/-"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchDownButton"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "searchLabel",
+            "text": "Find:"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "searchLineEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchUpButton"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter_2"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "storeBrowser"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Package Store",
+                "Load Custom",
+                "Create Package"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uninstallButton",
+            "text": "Uninstall Current"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "widget3"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "writeButton",
+            "text": "Install"
+        }
+    ]
+}

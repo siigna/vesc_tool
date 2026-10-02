@@ -76,6 +76,17 @@ QJsonObject describe(QWidget *page, const QString &pageName);
 void settle();
 
 /*
+ * Waits real time, so constructor timers actually fire.
+ *
+ * settle() spins processEvents, which returns at once when the queue is empty
+ * and therefore advances no wall-clock time -- a 50 ms timer never runs. That
+ * matters for more than the tests: several pages ship controls enabled in
+ * their .ui and only correct them when their timer first fires, so a snapshot
+ * taken without waiting records a state the user never sees.
+ */
+void settleWithTimers(int ms = 120);
+
+/*
  * Qt warnings collected since the last clearMessages(). Several failures in
  * this program are reported only as a warning and are otherwise invisible: a
  * missing icon draws nothing, and an unknown colour name comes back red. A

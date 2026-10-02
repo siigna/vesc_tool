@@ -45,6 +45,19 @@ editor. Both ask the editor for the parameter it is bound to via
 equal value and picked `app_ppm_conf.ramp_time_neg`, which is not on the page
 under test at all.
 
+**`snapshotsAreStable`** — the same page described twice, with a real wait in
+between, must come out the same. Only the eight pages that start a timer in
+their constructor; nothing else can drift, and waiting on all thirty-two cost
+twenty-two seconds for nothing. This separates "the page changed" from "the
+page changes on its own", which otherwise shows up as an unreproducible
+failure against the baseline.
+
+It found a real one immediately: `PageEspProg` ships `eraseLispButton` and
+others *enabled* in its `.ui`, and its 50 ms timer disables them because no ESP
+is attached. The committed baseline had recorded a state that exists for 50 ms
+and that nobody ever sees. The structure snapshot now waits before describing,
+so the baseline is the settled page.
+
 **`noMissingIconsOrColours`** — constructs every page with the Qt message
 handler captured and fails on `icon not found` or `not found in standard
 colors`. Both failures are otherwise invisible: a missing icon draws nothing
@@ -135,6 +148,8 @@ and reverted:
 | delete a light-theme icon from `res.qrc` | **caught by the light run only** — dark stayed green |
 | save the source log instead of the filtered one | **caught** — `insightsSavesWhatWasSent`, gnss reappeared |
 | write the config in a form that cannot be loaded | **caught** — `insightsSavedConfigLoadsBackIn` |
+| set a label from `currentMSecsSinceEpoch()` on a timer | **caught** — `snapshotsAreStable` |
+| fill a combo from the host (serial ports) | **not a mutation** — found while generating baselines, see below |
 
 Three of those were *not* caught when first written, and the reasons are worth
 keeping:
@@ -153,6 +168,22 @@ keeping:
   heading lives in `pagewelcome.ui`, and that page is QML-backed and excluded
   from the suite, so a widget test cannot reach it. That check is a grep over
   the sources in `tests/check.sh` instead.
+
+## Two traps in the harness itself
+
+**`processEvents` advances no wall-clock time.** It returns at once when the
+queue is empty, so a loop of it — however many iterations — never lets a timer
+fire. The first stability test looped it twenty-five times, called that "long
+enough for a one-second timer", and did not notice a label being set to
+`QDateTime::currentMSecsSinceEpoch()` every 500 ms. `UiHarness::settleWithTimers`
+uses `QTest::qWait`, which waits.
+
+**Some combos are filled from the host.** `serialPortBox` and `victronPortBox`
+list this machine's serial ports, so the first baselines for `PageEspProg` and
+`PageExperiments` contained `ttyACM0` and would have failed on any other
+machine, or on this one with the board unplugged. They are recorded as
+`"(filled from the host; not recorded)"` — a note rather than an omission, so
+the control is still known to exist and the reason is visible in the baseline.
 
 ## Hermeticity
 
@@ -188,16 +219,20 @@ no filesystem or network: the `pageapp*` family, `pagebldc`, `pagedc`, `pagefoc`
 `pagebms`, `pagecananalyzer`, `pagesetupcalculators`, `pagertdata`,
 `pagesampleddata`.
 
-**Not yet covered, needing isolation** — these read the developer's state in
-their constructors, so they are deterministic only once the preconditions are
-handled:
+**Now covered, once the harness became hermetic** — `pagefirmware`,
+`pageswdprog`, `pageespprog`, `pagevescpackage`, `pagelisp`,
+`pagecustomconfig` (with `setConfNum(0)`, as MainWindow does) and
+`pageexperiments`. Their constructors read `QSettings` last-used paths and
+recent-file lists, which a temporary `XDG_CONFIG_HOME` makes absent, and that
+absence is the deterministic state. 32 of 40 pages.
+
+**Still not covered** — these read the host in a way no environment variable
+fixes:
 
 | page | why |
 |---|---|
 | `pageconnection` | `pageconnection.cpp:78` binds **UDP 65109** with `ShareAddress`, and the handler appends to `tcpDetectBox` on any VESC Tool broadcast on the LAN. No environment variable fixes this; the page would need the bind moved out of its constructor, which is the right change anyway — a page constructor should not open a socket. `setVesc` also enumerates host serial ports |
-| `pagefirmware`, `pageswdprog`, `pageespprog`, `pagevescpackage` | read `QSettings` last-used paths and register `$AppData/*.rcc` archives; a fresh `XDG_*` covers most of it, and these are the next ones to add |
-| `pagelisp`, `pagescripting` | read `QSettings` recent-file arrays and **open the host user's files into editor tabs** |
-| `pageexperiments` | `setVesc` dereferences unguarded and the page enumerates host serial ports |
+| `pagescripting` | reads `QSettings` recent files **and** hosts a `QQuickWidget`, so it is in the GL group below |
 | `pagedisplaytool` | two `QFontComboBox`es enumerate the system font database; needs fontconfig pinned to the bundled faces before any snapshot of it is stable |
 
 **Not covered, needing OpenGL** — `offscreen` reports no GL capability:

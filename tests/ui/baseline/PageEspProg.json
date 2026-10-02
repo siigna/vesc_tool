@@ -1,0 +1,227 @@
+{
+    "page": "PageEspProg",
+    "widget_count": 41,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "appChooseButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "appEdit"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "appOffsetBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "blChooseButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "blEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "cancelButton",
+            "text": "Cancel"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "eraseLispButton",
+            "text": "Erase LispBM"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "eraseQmlButton",
+            "text": "Erase QML"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "flashBlButton",
+            "text": "Flash using Bootloader"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "flashButton",
+            "text": "Flash using USB"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "fwList"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Connection"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "Flash"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Bootloader"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "Port"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_3",
+            "text": "Partition Table"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_4",
+            "text": "Application"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "lispOffsetBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "partChooseButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "partEdit"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "partOffsetBox"
+        },
+        {
+            "class": "DisplayPercentage",
+            "enabled": true,
+            "name": "progWidget"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "qmlOffsetBox"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "serialConnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "serialDisconnectButton"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": "(filled from the host; not recorded)",
+            "name": "serialPortBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "serialRefreshButton"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Included",
+                "Custom"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        }
+    ]
+}

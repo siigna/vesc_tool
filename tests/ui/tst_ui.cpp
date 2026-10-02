@@ -54,6 +54,7 @@
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QFile>
+#include <QEventLoop>
 #include <QLabel>
 #include <QPushButton>
 
@@ -95,6 +96,13 @@
 #include "pages/pagesetupcalculators.h"
 #include "pages/pagertdata.h"
 #include "pages/pagesampleddata.h"
+#include "pages/pagefirmware.h"
+#include "pages/pageswdprog.h"
+#include "pages/pageespprog.h"
+#include "pages/pagevescpackage.h"
+#include "pages/pagelisp.h"
+#include "pages/pagecustomconfig.h"
+#include "pages/pageexperiments.h"
 
 enum PageId {
     Page_PageAppPas,
@@ -121,7 +129,14 @@ enum PageId {
     Page_PageCanAnalyzer,
     Page_PageSetupCalculators,
     Page_PageRtData,
-    Page_PageSampledData
+    Page_PageSampledData,
+    Page_PageFirmware,
+    Page_PageSwdProg,
+    Page_PageEspProg,
+    Page_PageVescPackage,
+    Page_PageLisp,
+    Page_PageCustomConfig,
+    Page_PageExperiments
 };
 
 static VescInterface *g_vesc = nullptr;
@@ -154,6 +169,13 @@ static QWidget *makePage(int id, VescInterface *vesc)
     case Page_PageSetupCalculators: { auto p = new PageSetupCalculators(); p->setVesc(vesc); return p; }
     case Page_PageRtData: { auto p = new PageRtData(); p->setVesc(vesc); return p; }
     case Page_PageSampledData: { auto p = new PageSampledData(); p->setVesc(vesc); return p; }
+    case Page_PageFirmware: { auto p = new PageFirmware(); p->setVesc(vesc); return p; }
+    case Page_PageSwdProg: { auto p = new PageSwdProg(); p->setVesc(vesc); return p; }
+    case Page_PageEspProg: { auto p = new PageEspProg(); p->setVesc(vesc); return p; }
+    case Page_PageVescPackage: { auto p = new PageVescPackage(); p->setVesc(vesc); return p; }
+    case Page_PageLisp: { auto p = new PageLisp(); p->setVesc(vesc); return p; }
+    case Page_PageCustomConfig: { auto p = new PageCustomConfig(); p->setVesc(vesc); p->setConfNum(0); return p; }
+    case Page_PageExperiments: { auto p = new PageExperiments(); p->setVesc(vesc); return p; }
     }
     return nullptr;
 }
@@ -170,6 +192,9 @@ private slots:
     void paramEditorKeepsItsValue();
     void editorWritesThroughToConfig();
     void configChangeReachesEditor();
+
+    void snapshotsAreStable_data();
+    void snapshotsAreStable();
 
     void noMissingIconsOrColours();
     void brandingIsOurs();
@@ -224,6 +249,13 @@ void UiTest::structureMatchesBaseline_data()
     QTest::newRow("PageSetupCalculators") << QString("PageSetupCalculators") << int(Page_PageSetupCalculators);
     QTest::newRow("PageRtData") << QString("PageRtData") << int(Page_PageRtData);
     QTest::newRow("PageSampledData") << QString("PageSampledData") << int(Page_PageSampledData);
+    QTest::newRow("PageFirmware") << QString("PageFirmware") << int(Page_PageFirmware);
+    QTest::newRow("PageSwdProg") << QString("PageSwdProg") << int(Page_PageSwdProg);
+    QTest::newRow("PageEspProg") << QString("PageEspProg") << int(Page_PageEspProg);
+    QTest::newRow("PageVescPackage") << QString("PageVescPackage") << int(Page_PageVescPackage);
+    QTest::newRow("PageLisp") << QString("PageLisp") << int(Page_PageLisp);
+    QTest::newRow("PageCustomConfig") << QString("PageCustomConfig") << int(Page_PageCustomConfig);
+    QTest::newRow("PageExperiments") << QString("PageExperiments") << int(Page_PageExperiments);
 }
 
 void UiTest::structureMatchesBaseline()
@@ -235,6 +267,14 @@ void UiTest::structureMatchesBaseline()
     QVERIFY2(!page.isNull(), qPrintable(name));
 
     UiHarness::settle();
+
+    /*
+     * Waited for, not just pumped. PageEspProg ships eraseLispButton enabled
+     * in its .ui and its 50 ms timer disables it because no ESP is attached,
+     * so a snapshot taken immediately recorded a state that exists for 50 ms
+     * and is never seen.
+     */
+    UiHarness::settleWithTimers();
 
     const QJsonObject snap = UiHarness::describe(page.data(), name);
 
@@ -491,6 +531,78 @@ void UiTest::configChangeReachesEditor()
     QVERIFY2(qAbs(box->value() - before) > 1e-12, "the value did not move");
 }
 
+void UiTest::snapshotsAreStable_data()
+{
+    QTest::addColumn<QString>("name");
+    QTest::addColumn<int>("id");
+
+    /*
+     * Only the pages that start a timer in their constructor. Nothing else can
+     * change on its own, and waiting on all thirty-two cost twenty-two
+     * seconds for nothing.
+     */
+    QTest::newRow("PageEspProg") << QString("PageEspProg") << int(Page_PageEspProg);
+    QTest::newRow("PageExperiments") << QString("PageExperiments") << int(Page_PageExperiments);
+    QTest::newRow("PageFirmware") << QString("PageFirmware") << int(Page_PageFirmware);
+    QTest::newRow("PageLisp") << QString("PageLisp") << int(Page_PageLisp);
+    QTest::newRow("PageRtData") << QString("PageRtData") << int(Page_PageRtData);
+    QTest::newRow("PageSampledData") << QString("PageSampledData") << int(Page_PageSampledData);
+    QTest::newRow("PageSwdProg") << QString("PageSwdProg") << int(Page_PageSwdProg);
+    QTest::newRow("PageVescPackage") << QString("PageVescPackage") << int(Page_PageVescPackage);
+}
+
+void UiTest::snapshotsAreStable()
+{
+    /*
+     * The same page, described twice, must come out the same.
+     *
+     * Several of these pages start a timer in their constructor and a few
+     * print a timestamp, so a snapshot can differ from one moment to the next
+     * -- which would show up as an unreproducible failure against the
+     * committed baseline rather than as the nondeterminism it is. Comparing a
+     * page against itself says plainly which of the two it is.
+     */
+    QFETCH(QString, name);
+    QFETCH(int, id);
+
+    QScopedPointer<QWidget> page(makePage(id, g_vesc));
+    QVERIFY(!page.isNull());
+
+    UiHarness::settle();
+    UiHarness::settleWithTimers();
+    const QJsonObject first = UiHarness::describe(page.data(), name);
+
+    /*
+     * QTest::qWait, not a loop of processEvents: processEvents returns at once
+     * when the queue is empty, so it advances no wall-clock time and a timer
+     * never fires. The first version of this test looped it 25 times, "long
+     * enough for a one-second timer", and caught nothing -- a label set to
+     * QDateTime::currentMSecsSinceEpoch() on a 500 ms timer went unnoticed.
+     */
+    QTest::qWait(700);
+
+    const QJsonObject second = UiHarness::describe(page.data(), name);
+
+    if (first != second) {
+        const QStringList a = QString::fromUtf8(QJsonDocument(first)
+                                                .toJson()).split('\n');
+        const QStringList b = QString::fromUtf8(QJsonDocument(second)
+                                                .toJson()).split('\n');
+
+        for (int i = 0; i < qMax(a.size(), b.size()); i++) {
+            const QString la = i < a.size() ? a.at(i) : QString("(end)");
+            const QString lb = i < b.size() ? b.at(i) : QString("(end)");
+
+            if (la != lb) {
+                QFAIL(qPrintable(QString("%1 changed on its own at line %2:\n"
+                                         "  first:  %3\n  second: %4")
+                                 .arg(name).arg(i + 1)
+                                 .arg(la.trimmed(), lb.trimmed())));
+            }
+        }
+    }
+}
+
 void UiTest::noMissingIconsOrColours()
 {
     /*
@@ -515,7 +627,7 @@ void UiTest::noMissingIconsOrColours()
      */
     QPixmapCache::clear();
 
-    for (int id = 0; id <= int(Page_PageSampledData); id++) {
+    for (int id = 0; id <= int(Page_PageExperiments); id++) {
         QScopedPointer<QWidget> page(makePage(id, g_vesc));
         UiHarness::settle();
     }
@@ -561,7 +673,7 @@ void UiTest::brandingIsOurs()
     QVERIFY2(about.contains("CC BY-SA 3.0"), "placeholder logo licence is missing");
 
     // And no page may call this program by the upstream name.
-    for (int id = 0; id <= int(Page_PageSampledData); id++) {
+    for (int id = 0; id <= int(Page_PageExperiments); id++) {
         QScopedPointer<QWidget> page(makePage(id, g_vesc));
         UiHarness::settle();
 

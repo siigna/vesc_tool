@@ -1,0 +1,502 @@
+{
+    "page": "PageExperiments",
+    "widget_count": 91,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "autoscaleButton"
+        },
+        {
+            "class": "QFrame",
+            "enabled": true,
+            "name": "buttonFrame"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "compAEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "compBEdit"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "compCloseButton",
+            "text": "X"
+        },
+        {
+            "class": "QFrame",
+            "enabled": false,
+            "name": "compareButtons"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "currentFromBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "currentRunButton",
+            "text": "Run"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "currentStepBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "currentStepTimeBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "currentToBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "dutyFromBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "dutyRunButton",
+            "text": "Run"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "dutyStepBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "dutyStepTimeBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "dutyToBox"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "extCurrentLabel",
+            "text": "Current:"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "extVoltageLabel",
+            "text": "Voltage:"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Duty Sweep"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "Current Sweep"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_3",
+            "text": "ERPM Sweep"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_4",
+            "text": "Victron Energy"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "keepRPMcheckBox",
+            "text": "Keep End Speed"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openButton",
+            "text": "Open"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openCompButton",
+            "text": "Compare"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "plot"
+        },
+        {
+            "class": "QProgressBar",
+            "enabled": true,
+            "name": "progressBar"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "rescaleButton"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "rpmEndBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "rpmFromBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "rpmRunButton",
+            "text": "Run"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "rpmStepBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "rpmStepTimeBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "rpmToBox"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "sampleIntervalBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveCsvButton",
+            "text": "CSV"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "saveHeightBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "savePdfButton",
+            "text": "PDF"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "savePngButton",
+            "text": "PNG"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "saveWidthBox"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCCurrentButton",
+            "text": "IM"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCCurrentInButton",
+            "text": "II"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCDutyButton",
+            "text": "D"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCPowerButton",
+            "text": "P"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCTempFetButton",
+            "text": "TF"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCTempFetIndButton",
+            "text": "TFI"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCTempMotorButton",
+            "text": "TM"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "showCVoltageButton",
+            "text": "U"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showCurrentButton",
+            "text": "IM"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showCurrentInButton",
+            "text": "II"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showDutyButton",
+            "text": "D"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showPowerButton",
+            "text": "P"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showTempFetButton",
+            "text": "TF"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showTempFetIndButton",
+            "text": "TFI"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showTempMotorButton",
+            "text": "TM"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "showVoltageButton",
+            "text": "U"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "stopButton",
+            "text": "Stop"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Setup",
+                "Plot",
+                "EXT Monitor"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "titleEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "victronConnectButton",
+            "text": "Connect"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "victronDisconnectButton",
+            "text": "Disconnect"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": "(filled from the host; not recorded)",
+            "name": "victronPortBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "victronRefreshButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomHButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomVButton"
+        }
+    ]
+}
