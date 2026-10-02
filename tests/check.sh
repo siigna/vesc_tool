@@ -42,6 +42,23 @@ report() {
     fi
 }
 
+# Each stage filters its suite's output down to summary lines, which is what
+# makes this readable -- and what makes a crash unreadable. A tier that dies
+# before printing a summary matched nothing, so the stage printed a bare
+# FAILED and threw away the only evidence. That is how a GL-tier crash in CI
+# looked identical to every other kind of failure.
+#
+# So the raw output is kept, and shown on failure only.
+raw=$(mktemp -d)
+trap 'rm -rf "$raw"' EXIT
+
+explain() {
+    if [ "$1" -ne 0 ] && [ -s "$2" ]; then
+        printf '  --- last %d lines of raw output ---\n' 20
+        tail -20 "$2" | sed 's/^/  | /'
+    fi
+}
+
 # Qt's test binaries need the platform plugins, which each suite's run.sh
 # locates for itself -- see tests/ui/run.sh for why that is not a one-liner.
 
@@ -53,9 +70,14 @@ if [ -f tests/tuning/tuning.pro ]; then
         # for the run step to test, which reads as a pass.
         make clean >/dev/null 2>&1
         qmake tuning.pro >/dev/null 2>&1 && make -j8 >/dev/null 2>&1 || exit 1
-        timeout 120 ./tst_tuning 2>&1 | grep -E "^Totals" || exit 1
+        timeout 120 ./tst_tuning > "$raw/tuning" 2>&1
+        st=$?
+        grep -E "^Totals" "$raw/tuning"
+        exit $st
     )
-    report $?
+    st=$?
+    explain $st "$raw/tuning"
+    report $st
 else
     printf '  skipped: tests/tuning not present\n'
 fi
@@ -67,9 +89,14 @@ if [ -f tests/ui/ui.pro ]; then
         make clean >/dev/null 2>&1
         qmake ui.pro >/dev/null 2>&1 && make -j8 >/dev/null 2>&1 || exit 1
         # run.sh enforces its own timeout, so a hang is a failure not a pass.
-        ./run.sh 2>&1 | grep -E "^(FAIL|Totals)" || exit 1
+        ./run.sh > "$raw/ui" 2>&1
+        st=$?
+        grep -E "^(FAIL|SKIP|Totals)" "$raw/ui"
+        exit $st
     )
-    report $?
+    st=$?
+    explain $st "$raw/ui"
+    report $st
 else
     printf '  skipped: tests/ui not present\n'
 fi
@@ -94,8 +121,10 @@ if [ -x tests/cli/run.sh ]; then
     # the application is not built and this suite cannot run -- never reached
     # the branding stage at all, and the file's own promise that one failing
     # suite does not stop the others was false.
-    (cd tests/cli && ./run.sh 2>&1 | tail -3)
-    report $?
+    (cd tests/cli && ./run.sh > "$raw/cli" 2>&1; st=$?; tail -3 "$raw/cli"; exit $st)
+    st=$?
+    explain $st "$raw/cli"
+    report $st
 else
     printf '  skipped: tests/cli not present\n'
 fi
