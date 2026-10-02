@@ -701,6 +701,20 @@ int main(int argc, char *argv[])
                     insightsLogPath = args.at(i);
                 } else if (str == "--insightsProvider") {
                     insightsProviderSpec = args.at(i);
+
+                    /*
+                     * Checked here rather than where it is used, because the
+                     * offline dump never resolves a provider at all -- so a
+                     * typo in the name used to be accepted in silence and the
+                     * run looked like it had used the provider asked for.
+                     */
+                    QString provErr;
+                    InsightsProvider::fromSpec(insightsProviderSpec, &provErr);
+
+                    if (!provErr.isEmpty()) {
+                        qCritical() << provErr.toLocal8Bit().constData();
+                        return 1;
+                    }
                 } else if (str == "--insightsModel") {
                     insightsModel = args.at(i);
                 } else {
@@ -2342,6 +2356,7 @@ int main(int argc, char *argv[])
                 int can = canFwd;
                 QString page = showPageName;
                 QString shot = screenshotPath;
+                QSize shotSize = screenshotSize;
                 QString click = screenshotClick;
                 QString provSpec = insightsProviderSpec;
                 QString provModel = insightsModel;
@@ -2360,7 +2375,7 @@ int main(int argc, char *argv[])
                                          provSpec, provModel, provKeyEnv,
                                          provLog, provLogOnSd, maxTok,
                                          timeoutMs, maxRows, prompt,
-                                         reasoning]() {
+                                         reasoning, shotSize]() {
                     QElapsedTimer stage;
                     stage.start();
 
@@ -2456,6 +2471,20 @@ int main(int argc, char *argv[])
                         Utility::sleepWithEventLoop(300);
 
                         const QPixmap pm = mw->grab();
+
+                        if (!shotSize.isEmpty() && pm.size() != shotSize) {
+                            /*
+                             * The window has a minimum size its layouts will
+                             * not go below, so --screenshotSize can enlarge
+                             * but not shrink past it. Reporting that is better
+                             * than handing back a different size in silence.
+                             */
+                            fprintf(stderr, "screenshot: asked for %dx%d, "
+                                    "got %dx%d (the window will not go "
+                                    "smaller)\n",
+                                    shotSize.width(), shotSize.height(),
+                                    pm.width(), pm.height());
+                        }
 
                         if (pm.isNull() || !pm.save(shot, "PNG")) {
                             qCritical() << "Could not write" << shot;

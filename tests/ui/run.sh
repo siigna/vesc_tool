@@ -4,45 +4,13 @@
 #   ./run.sh                 everything
 #   ./run.sh structure       one slot (any QTest filter works)
 #
-# Qt will not start without being told where its platform plugins are. In this
-# nix setup QT_PLUGIN_PATH is empty and `qmake -query QT_INSTALL_PLUGINS`
-# answers with the -dev output, which has no plugins directory at all: both
-# libqoffscreen.so and libqxcb.so live in the separate -bin output. Deriving
-# one path from the other keeps this free of store hashes.
+# Plugin discovery is shared with the other suites -- see tests/qtenv.sh.
 
 set -uo pipefail
 cd "$(dirname "$0")"
 
-if [ -z "${QT_PLUGIN_PATH:-}" ]; then
-    # The -dev and -bin outputs have different store hashes, so one path cannot
-    # be derived from the other by substitution. Match on the Qt version, which
-    # qmake does know, and take whichever candidate actually has platforms/.
-    ver=$(qmake -query QT_VERSION 2>/dev/null || true)
-    dev=$(qmake -query QT_INSTALL_PLUGINS 2>/dev/null || true)
-
-    for cand in "$dev" /nix/store/*-qtbase-"$ver"-bin/lib/qt-"$ver"/plugins; do
-        if [ -d "$cand/platforms" ]; then
-            export QT_PLUGIN_PATH="$cand"
-            break
-        fi
-    done
-
-    # The SVG image-format plugin lives in qtsvg, a different store path, and
-    # without it QPixmap(":/res/icon.svg") silently returns a null pixmap --
-    # which is how the application icon went missing without anyone noticing.
-    for cand in /nix/store/*-qtsvg-"$ver"-bin/lib/qt-"$ver"/plugins; do
-        if [ -d "$cand/imageformats" ]; then
-            export QT_PLUGIN_PATH="${QT_PLUGIN_PATH:+$QT_PLUGIN_PATH:}$cand"
-            break
-        fi
-    done
-
-    if [ -z "${QT_PLUGIN_PATH:-}" ]; then
-        echo "run.sh: cannot find Qt platform plugins for Qt $ver." >&2
-        echo "  set QT_PLUGIN_PATH to the directory containing platforms/" >&2
-        exit 2
-    fi
-fi
+. "$(dirname "$0")/../qtenv.sh"
+qt_env_setup || exit 2
 
 # The harness pins everything else itself, before the QApplication exists.
 export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-offscreen}

@@ -58,6 +58,16 @@ else
     printf '  skipped: tests/ui not present\n'
 fi
 
+stage "cli (flags, the offline dump, the screenshot path)"
+if [ -x tests/cli/run.sh ]; then
+    # Needs the application built, not a test binary of its own: these are
+    # paths through main.cpp, exercised as a process.
+    (cd tests/cli && ./run.sh 2>&1 | tail -3) || exit 1
+    report $?
+else
+    printf '  skipped: tests/cli not present\n'
+fi
+
 stage "branding (no upstream product name in display strings)"
 (
     # A widget test cannot see all of these: the welcome heading lives in
