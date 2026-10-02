@@ -38,6 +38,24 @@ subgroup names still match it.
 out to `ConfigParams` and back. This is the guarantee that a redesign has not
 changed what gets written to a controller.
 
+**`editorWritesThroughToConfig` / `configChangeReachesEditor`** — driving an
+editor changes the backing `ConfigParams`, and changing `ConfigParams` moves the
+editor. Both ask the editor for the parameter it is bound to via
+`ParamEditDouble::name()`; an earlier version matched parameter to editor by
+equal value and picked `app_ppm_conf.ramp_time_neg`, which is not on the page
+under test at all.
+
+**`noMissingIconsOrColours`** — constructs every page with the Qt message
+handler captured and fails on `icon not found` or `not found in standard
+colors`. Both failures are otherwise invisible: a missing icon draws nothing
+(so a light-theme variant nobody added looks fine in dark mode) and an unknown
+colour name comes back red. `Utility::getIcon` was made to warn for this;
+`getAppQColor` already did, at debug level.
+
+**`brandingIsOurs`** — the logo and icon resources load in both themes, the
+about box names this fork and carries the placeholder logo's CC BY-SA credit,
+and no page label calls this program by the upstream name.
+
 **The `insights*` checks** — the flows whose breakage would be silent: the
 default provider is the one that keeps data on this machine, a remote endpoint
 does not claim otherwise, a keyless provider does not invite a key, and neither
@@ -63,6 +81,27 @@ and reverted:
 | rename `generalTab` in `pageapppas.ui` | **caught** — `PageAppPas` structure, naming the line |
 | delete the `addParamSubgroup` call in `pageapppas.cpp` | **caught twice** — structure *and* `paramPagesAreNotEmpty` |
 | enable Analyse unconditionally in `pagetuninginsights.cpp` | **caught twice** — structure *and* `insightsButtonsNeedAController` |
+| delete both `updateParamDouble` calls in `parameditdouble.cpp` | **caught** — `editorWritesThroughToConfig` |
+| remove a colour the pages request from `appstyle.cpp` | **caught** — `noMissingIconsOrColours` |
+| revert the welcome heading to the upstream name | **caught** — the `branding` stage of `tests/check.sh` |
+
+Three of those were *not* caught when first written, and the reasons are worth
+keeping:
+
+- **The round-trip suite was vacuous.** `paramEditorKeepsItsValue` only read
+  the spin box's own value back, so severing both `updateParamDouble` calls —
+  which disconnects every parameter editor from the configuration that gets
+  written to a controller — left the suite fully green.
+  `editorWritesThroughToConfig` now diffs `ConfigParams` and asserts the one
+  parameter that changed is the editor's own `name()`.
+- **The message capture collected nothing.** `QTest::qExec` installs its own
+  message handler, replacing the one installed in `main()`. The colour warning
+  was emitted 42 times and the test still passed. The handler is now installed
+  inside the test and chains to whatever QTest put there.
+- **The branding test could not see the string that motivated it.** The welcome
+  heading lives in `pagewelcome.ui`, and that page is QML-backed and excluded
+  from the suite, so a widget test cannot reach it. That check is a grep over
+  the sources in `tests/check.sh` instead.
 
 ## Hermeticity
 

@@ -27,6 +27,16 @@ if [ -z "${QT_PLUGIN_PATH:-}" ]; then
         fi
     done
 
+    # The SVG image-format plugin lives in qtsvg, a different store path, and
+    # without it QPixmap(":/res/icon.svg") silently returns a null pixmap --
+    # which is how the application icon went missing without anyone noticing.
+    for cand in /nix/store/*-qtsvg-"$ver"-bin/lib/qt-"$ver"/plugins; do
+        if [ -d "$cand/imageformats" ]; then
+            export QT_PLUGIN_PATH="${QT_PLUGIN_PATH:+$QT_PLUGIN_PATH:}$cand"
+            break
+        fi
+    done
+
     if [ -z "${QT_PLUGIN_PATH:-}" ]; then
         echo "run.sh: cannot find Qt platform plugins for Qt $ver." >&2
         echo "  set QT_PLUGIN_PATH to the directory containing platforms/" >&2

@@ -45,6 +45,52 @@ namespace {
 
 QTemporaryDir *g_dir = nullptr;
 
+QStringList g_messages;
+QtMessageHandler g_prevHandler = nullptr;
+
+void captureHandler(QtMsgType type, const QMessageLogContext &ctx,
+                    const QString &msg)
+{
+    /*
+     * Debug messages are collected too, because the one that matters most is
+     * logged at that level: Utility::getAppQColor reports an unknown colour
+     * name with qDebug and then returns red. Filtering to warnings let a
+     * deliberately removed colour pass the test.
+     */
+    if (type == QtDebugMsg || type == QtWarningMsg ||
+            type == QtCriticalMsg || type == QtFatalMsg) {
+        g_messages.append(msg);
+    }
+
+    // Still pass it on, so a real problem is visible in the test output too.
+    if (g_prevHandler != nullptr) {
+        g_prevHandler(type, ctx, msg);
+    }
+}
+
+}
+
+void UiHarness::installMessageCapture()
+{
+    /*
+     * Must be called from inside a test, not from main(): QTest::qExec
+     * installs its own message handler, which replaced an earlier one and made
+     * this silently collect nothing. Chaining to whatever is current keeps
+     * QTest's own reporting intact.
+     */
+    if (g_prevHandler == nullptr) {
+        g_prevHandler = qInstallMessageHandler(captureHandler);
+    }
+}
+
+void UiHarness::clearMessages()
+{
+    g_messages.clear();
+}
+
+QStringList UiHarness::messages()
+{
+    return g_messages;
 }
 
 QString UiHarness::pinEnvironment()

@@ -76,6 +76,16 @@ QJsonObject describe(QWidget *page, const QString &pageName);
 void settle();
 
 /*
+ * Qt warnings collected since the last clearMessages(). Several failures in
+ * this program are reported only as a warning and are otherwise invisible: a
+ * missing icon draws nothing, and an unknown colour name comes back red. A
+ * test that reads these turns both into real failures.
+ */
+void installMessageCapture();
+void clearMessages();
+QStringList messages();
+
+/*
  * Compares against tests/ui/baseline/<name>.json. On a mismatch, writes
  * actual/<name>.json, reports the first differing path, and returns false.
  */

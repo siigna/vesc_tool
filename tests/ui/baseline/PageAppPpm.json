@@ -76,7 +76,7 @@
             "class": "QLabel",
             "enabled": true,
             "name": "label",
-            "text": "VESC Tool"
+            "text": "ESCargot Tool"
         },
         {
             "class": "QLabel",

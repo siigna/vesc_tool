@@ -58,6 +58,42 @@ else
     printf '  skipped: tests/ui not present\n'
 fi
 
+stage "branding (no upstream product name in display strings)"
+(
+    # A widget test cannot see all of these: the welcome heading lives in
+    # pagewelcome.ui, and that page is QML-backed and not in the suite, so
+    # reverting it passed every test. A grep over the sources can see it.
+    #
+    # Two patterns are forbidden. Any "VESC(R) Tool" spelling is always a
+    # product-name claim, and "VESC Tool" as a quoted string literal is this
+    # program naming itself. Licence headers say `part of VESC Tool.` without
+    # quotes, so they are not matched.
+    #
+    # appstyle.cpp is the one documented exception: setApplicationName is not
+    # displayed, it is what QSettings resolves paths from, and changing it
+    # would strand existing users' settings. See ATTRIBUTION.md.
+    # Two files may name it, and both are deliberate:
+    #   utility.cpp  -- the about box says "a fork of VESC(R) Tool", which is a
+    #                   nominative reference and the honest thing to state.
+    #   tests/       -- this rule's own description and the test that checks it.
+    hits=$(grep -rnE 'VESC(®|&#174;|&reg;) Tool' \
+             --include='*.cpp' --include='*.h' --include='*.ui' \
+             --include='*.qml' --include='*.xml' \
+             . 2>/dev/null \
+           | grep -vE '/maddy/|/qmarkdowntextedit/|/QCodeEditor/|/build/|/obj/' \
+           | grep -vE '^\./utility\.cpp:|^\./tests/' || true)
+
+    lits=$(grep -rn '"VESC Tool"' \
+             --include='*.cpp' --include='*.h' --include='*.qml' \
+             . 2>/dev/null | grep -vE 'appstyle\.cpp|/build/|/obj/' || true)
+
+    if [ -n "$hits$lits" ]; then
+        printf '%s\n' "$hits" "$lits" | sed '/^$/d' | sed 's/^/  /'
+        exit 1
+    fi
+)
+report $?
+
 printf '\n'
 if [ $fail -eq 0 ]; then
     printf 'all suites passed\n'

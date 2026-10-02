@@ -42,10 +42,18 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QJsonObject>
+#include <QGroupBox>
+#include <QPlainTextEdit>
+#include <QTabWidget>
+#include <QTextBrowser>
+#include <QHash>
+#include <QPixmapCache>
 #include <QLabel>
 #include <QPushButton>
 
 #include "uiharness.h"
+#include "utility.h"
+#include "tuninginsights.h"
 #include "appstyle.h"
 #include "configparams.h"
 #include "vescinterface.h"
@@ -150,6 +158,14 @@ private slots:
 
     void paramPagesAreNotEmpty();
     void paramEditorKeepsItsValue();
+    void editorWritesThroughToConfig();
+    void configChangeReachesEditor();
+
+    void noMissingIconsOrColours();
+    void brandingIsOurs();
+
+    void insightsPreviewShowsTheAnswerTab();
+    void insightsInstructionsAreEditable();
 
     void insightsEndpointFollowsProvider();
     void insightsKeylessProviderNeedsNoKey();
@@ -338,6 +354,266 @@ void UiTest::insightsButtonsNeedAController()
     QVERIFY2(!g_vesc->isPortConnected(), "the test must not be connected");
     QVERIFY2(!analyse->isEnabled(), "Analyse was enabled with no controller");
     QVERIFY2(!preview->isEnabled(), "Preview was enabled with no controller");
+}
+
+
+/*
+ * Every double-valued parameter and its value. Used to find which parameter an
+ * editor actually wrote to, without needing the private name it is bound to.
+ */
+static QHash<QString, double> doubleSnapshot(ConfigParams *conf)
+{
+    QHash<QString, double> out;
+
+    for (const QString &n: conf->getParamOrder()) {
+        ConfigParam *p = conf->getParam(n);
+
+        if (p != nullptr && p->type == CFG_T_DOUBLE) {
+            out.insert(n, conf->getParamDouble(n));
+        }
+    }
+
+    return out;
+}
+
+void UiTest::editorWritesThroughToConfig()
+{
+    /*
+     * The test that matters here, and the one that was missing: driving an
+     * editor has to change the backing ConfigParams, because that is what gets
+     * written to a controller.
+     *
+     * The previous version of this only read the spin box's own value back,
+     * which proved QDoubleSpinBox works and nothing else -- deleting both
+     * updateParamDouble calls in parameditdouble.cpp left the whole suite
+     * green.
+     */
+    QScopedPointer<QWidget> page(makePage(Page_PageAppPas, g_vesc));
+    UiHarness::settle();
+
+    ConfigParams *conf = g_vesc->appConfig();
+    const QHash<QString, double> before = doubleSnapshot(conf);
+    QVERIFY2(!before.isEmpty(), "no double parameters to drive");
+
+    ParamEditDouble *ed = page->findChild<ParamEditDouble*>();
+    QVERIFY(ed);
+    QDoubleSpinBox *box = ed->findChild<QDoubleSpinBox*>();
+    QVERIFY(box);
+
+    const double target = qMin(box->value() + box->singleStep(),
+                               box->maximum());
+    QVERIFY2(qAbs(target - box->value()) > 1e-12, "no headroom to move");
+
+    box->setValue(target);
+    UiHarness::settle();
+
+    const QHash<QString, double> after = doubleSnapshot(conf);
+    QStringList changed;
+
+    for (auto it = after.constBegin(); it != after.constEnd(); ++it) {
+        if (qAbs(it.value() - before.value(it.key())) > 1e-9) {
+            changed << it.key();
+        }
+    }
+
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(changed.first(), ed->name());
+    QVERIFY2(qAbs(conf->getParamDouble(changed.first()) - target) < 1e-6,
+             qPrintable(QString("%1 is %2, the editor was set to %3")
+                        .arg(changed.first())
+                        .arg(conf->getParamDouble(changed.first()))
+                        .arg(target)));
+}
+
+void UiTest::configChangeReachesEditor()
+{
+    // The other direction: a value set on the config moves the widget.
+    QScopedPointer<QWidget> page(makePage(Page_PageAppPas, g_vesc));
+    UiHarness::settle();
+
+    ConfigParams *conf = g_vesc->appConfig();
+
+    /*
+     * Asked of the editor rather than guessed. The first version of this
+     * matched a parameter to an editor by equal value and picked
+     * app_ppm_conf.ramp_time_neg, which is not on this page at all --
+     * ParamEditDouble::name() is the parameter it is actually bound to.
+     */
+    ParamEditDouble *ed = nullptr;
+    QDoubleSpinBox *box = nullptr;
+
+    for (ParamEditDouble *cand: page->findChildren<ParamEditDouble*>()) {
+        QDoubleSpinBox *b = cand->findChild<QDoubleSpinBox*>();
+
+        if (b != nullptr && !cand->name().isEmpty() &&
+                b->maximum() > conf->getParamDouble(cand->name()) + 1e-6) {
+            ed = cand;
+            box = b;
+            break;
+        }
+    }
+
+    QVERIFY2(ed != nullptr, "no editor on the page has headroom to move");
+
+    const QString name = ed->name();
+    const double before = box->value();
+    const double target = qMin(before + box->singleStep(), box->maximum());
+
+    conf->updateParamDouble(name, target, nullptr);
+    UiHarness::settle();
+
+    QVERIFY2(qAbs(box->value() - target) < 1e-6,
+             qPrintable(QString("setting %1 to %2 on the config left the "
+                                "editor at %3")
+                        .arg(name).arg(target).arg(box->value())));
+    QVERIFY2(qAbs(box->value() - before) > 1e-12, "the value did not move");
+}
+
+void UiTest::noMissingIconsOrColours()
+{
+    /*
+     * Two failures this program reports only as a warning, and which are
+     * otherwise invisible: Utility::getIcon draws nothing when a file is
+     * missing (a light-theme variant nobody added looks fine in dark mode),
+     * and Utility::getAppQColor returns red for a name it does not know.
+     *
+     * Constructing every page and reading the warnings turns both into
+     * failures. Note that icons are cached process-wide, so a miss is only
+     * reported on the first page that asks for it -- which is why this
+     * constructs all of them rather than testing one.
+     */
+    UiHarness::installMessageCapture();
+    UiHarness::clearMessages();
+
+    /*
+     * Icons are cached process-wide, so a miss is only reported the first time
+     * one is asked for -- and the structure test has already constructed every
+     * page by now. Clearing the cache makes this test see them again rather
+     * than depending on which test ran first.
+     */
+    QPixmapCache::clear();
+
+    for (int id = 0; id <= int(Page_PageSampledData); id++) {
+        QScopedPointer<QWidget> page(makePage(id, g_vesc));
+        UiHarness::settle();
+    }
+
+    QStringList bad;
+    for (const QString &m: UiHarness::messages()) {
+        if (m.contains("icon not found") ||
+                m.contains("not found in standard colors")) {
+            bad << m;
+        }
+    }
+
+    QVERIFY2(bad.isEmpty(), qPrintable("\n  " + bad.join("\n  ")));
+}
+
+void UiTest::brandingIsOurs()
+{
+    /*
+     * The fork must not present the upstream project's marks as its own. This
+     * is mechanical to check and was not: the welcome heading still said
+     * "VESC® Tool" after the rebrand, and it took a screenshot to notice.
+     */
+    for (const QString &path: {":/res/logo.png", ":/res/icon.svg",
+                               ":/res/+theme_light/logo.png",
+                               ":/res/+theme_light/icon.svg"}) {
+        QPixmap pm(path);
+        QVERIFY2(!pm.isNull(), qPrintable(path + " does not load"));
+    }
+
+    const QString about = Utility::aboutText();
+
+    // Our name, our copyright.
+    QVERIFY(about.contains("ESCargot Tool"));
+    QVERIFY(about.contains("Stephen Bouche"));
+
+    // The upstream mark acknowledged, not claimed.
+    QVERIFY2(!about.contains("<b>VESC"),
+             "the about box must not lead with the upstream product name");
+    QVERIFY(about.contains("not affiliated with or endorsed"));
+
+    // CC BY-SA requires the credit to travel with the binary, not just the repo.
+    QVERIFY2(about.contains("Geierunited"), "placeholder logo attribution is missing");
+    QVERIFY2(about.contains("CC BY-SA 3.0"), "placeholder logo licence is missing");
+
+    // And no page may call this program by the upstream name.
+    for (int id = 0; id <= int(Page_PageSampledData); id++) {
+        QScopedPointer<QWidget> page(makePage(id, g_vesc));
+        UiHarness::settle();
+
+        for (QLabel *l: page->findChildren<QLabel*>()) {
+            QVERIFY2(!l->text().contains("VESC® Tool") &&
+                     !l->text().contains("VESC&reg; Tool"),
+                     qPrintable(QString("a label still says VESC(R) Tool: %1")
+                                .arg(l->text().left(80))));
+        }
+    }
+}
+
+void UiTest::insightsPreviewShowsTheAnswerTab()
+{
+    QScopedPointer<QWidget> page(makePage(Page_PageTuningInsights, g_vesc));
+    UiHarness::settle();
+
+    QTabWidget *tabs = page->findChild<QTabWidget*>("tabs");
+    QWidget *answerTab = page->findChild<QWidget*>("answerTab");
+    QPushButton *preview = page->findChild<QPushButton*>("previewButton");
+    QVERIFY(tabs);
+    QVERIFY(answerTab);
+    QVERIFY(preview);
+
+    QCOMPARE(tabs->currentIndex(), 0);
+
+    /*
+     * Not connected, so this reports why rather than producing a payload --
+     * and the result still belongs on the answer tab. Leaving the user on
+     * Setup after pressing a button looks like nothing happened.
+     */
+    preview->setEnabled(true);
+    QTest::mouseClick(preview, Qt::LeftButton);
+    UiHarness::settle();
+
+    QCOMPARE(tabs->currentWidget(), answerTab);
+
+    QTextBrowser *view = page->findChild<QTextBrowser*>("answerView");
+    QVERIFY(view);
+    QVERIFY2(!view->toPlainText().trimmed().isEmpty(),
+             "the answer tab was shown with nothing in it");
+}
+
+void UiTest::insightsInstructionsAreEditable()
+{
+    /*
+     * The prompt decides what advice you get about your own hardware, so it
+     * has to be visible and changeable rather than a constant in the source.
+     */
+    QScopedPointer<QWidget> p(makePage(Page_PageTuningInsights, g_vesc));
+    PageTuningInsights *page = qobject_cast<PageTuningInsights*>(p.data());
+    QVERIFY(page);
+    UiHarness::settle();
+
+    QPlainTextEdit *edit = page->findChild<QPlainTextEdit*>("promptEdit");
+    QGroupBox *group = page->findChild<QGroupBox*>("promptGroup");
+    QVERIFY(edit);
+    QVERIFY(group);
+
+    // Shown by default, holding the real text, and not in force until ticked.
+    QCOMPARE(edit->toPlainText(), TuningInsights::defaultInstructions());
+    QVERIFY(!group->isChecked());
+
+    page->setInstructions("Only comment on PAS.");
+    UiHarness::settle();
+
+    QVERIFY2(group->isChecked(), "a supplied prompt must be in force");
+    QCOMPARE(edit->toPlainText(), QString("Only comment on PAS."));
+
+    page->setInstructions(QString());
+    UiHarness::settle();
+
+    QVERIFY2(!group->isChecked(), "an empty prompt must restore the default");
+    QCOMPARE(edit->toPlainText(), TuningInsights::defaultInstructions());
 }
 
 int main(int argc, char *argv[])
