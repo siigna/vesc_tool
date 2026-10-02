@@ -268,6 +268,21 @@ Run it deliberately, after a change you meant to make, and commit the diff with
 that change — the diff *is* the record of what the change did to the interface.
 Never run it to turn a red suite green without reading what moved.
 
+## In CI
+
+`.github/workflows/tests.yml` runs `tests/check.sh` on every push and pull
+request, and `tests/mutate.py` weekly and on request — fifteen rebuilds is the
+wrong trade for every push, and its job is to catch a check that has quietly
+stopped being able to fail.
+
+Both jobs work through `nix develop`, so CI runs the same shell as a developer
+does, with the same `xvfb-run`. That matters here specifically: the thing that
+made the GL tier skip forever was the shell, not the test.
+
+**Unverified.** The workflow was written without being run on GitHub's
+runners, because this fork has not been pushed. Treat the first run as a test
+of the workflow rather than of the code.
+
 ## Mutation results
 
 A suite that cannot fail is worse than no suite. The severings that prove each

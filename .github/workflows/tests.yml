@@ -1,0 +1,77 @@
+# Everything tests/check.sh runs, on every push and pull request.
+#
+# This fork's suite needs no board, no display server and no network, which is
+# what makes it a reasonable thing to run in CI at all -- the whole of
+# check.sh is about forty-five seconds once the toolchain is in place.
+#
+# Note on what this cannot prove: it was written and committed without being
+# run on GitHub's runners, because this fork has never been pushed. Treat the
+# first run as the test of the workflow rather than of the code.
+name: tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+  # Mutation testing only; see the job below for why it is not on every push.
+  schedule:
+    - cron: "37 5 * * 1"
+
+
+# A second push to the same branch makes the first run's answer worthless.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    # Qt comes from the binary cache, but a cold cache still has to fetch it.
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      # Separate from the test step so a cache miss or a broken flake reads as
+      # its own failure rather than as a failing test.
+      - name: Build the dev shell
+        run: nix develop --command true
+
+      # No separate build step: check.sh runs make clean and qmake for each
+      # suite itself, so anything built here would be thrown away.
+      #
+      # check.sh deliberately has no set -e: one failing suite must not stop
+      # the others, and its exit code is the verdict.
+      - name: tests/check.sh
+        run: nix develop --command bash tests/check.sh
+
+  # Mutation testing is fifteen rebuilds, which is the wrong trade for every
+  # push. It runs on a schedule and on request, and its job is to catch a
+  # check that has quietly stopped being able to fail.
+  mutate:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      - name: tests/mutate.py
+        run: |
+          nix develop --command bash -c '
+            . tests/qtenv.sh && qt_env_setup
+            ( cd tests/ui && qmake && make -j"$(nproc)" )
+            ./tests/mutate.py'
