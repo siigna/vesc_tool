@@ -22,19 +22,42 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
+QString TuningInsights::normalizeColumn(const QString &rawHeaderField)
+{
+    /*
+     * Two log dialects reach this feature, and their header fields are not
+     * shaped the same way.
+     *
+     * ESCargot Tool writes a bare name per field ("input_voltage"), one field
+     * per ';'. The package logger on the Express writes a descriptor instead
+     * ("Input Voltage:Input Voltage:V:2:0:0") whose first ':'-separated part
+     * is the name. Taking the part before the first ':' gives the name in
+     * both, since a bare name contains no colon.
+     */
+    return rawHeaderField.section(':', 0, 0).trimmed();
+}
+
 QStringList TuningInsights::allowedLogColumns()
 {
     /*
-     * 47 of the RT log's 50 columns, taken from the header
-     * vescinterface.cpp writes. The three absent ones are gnss_lat, gnss_lon
-     * and gnss_alt.
+     * The permitted column names, for both log dialects.
      *
-     * Written out rather than derived, so adding a column to the log does not
+     * Written out rather than derived, so adding a column to a log does not
      * silently add it here: a new field has to be put in this list on
      * purpose. That is the whole point of an allowlist, and the test in
      * tests/tuning fails if this becomes a blacklist.
+     *
+     * Every gnss_* field is absent, the whole family rather than the three
+     * that spell out a position. The header ESCargot Tool writes carries
+     * eight of them (gnss_posTime, gnss_lat, gnss_lon, gnss_alt, gnss_gVel,
+     * gnss_vVel, gnss_hAcc, gnss_vAcc) and the package logger carries five
+     * under different names (gnss_h_acc, gnss_h_vel). A list of the ones
+     * worth dropping is a list that has to be right twice; the allowlist only
+     * has to be right once. Ground speed is already in the payload as
+     * speed_meters_per_sec and kmh_vesc.
      */
     static const QStringList allowed = QStringList()
+        /* ESCargot Tool's own RT log: 46 of its 61 columns. */
         << "ms_today" << "input_voltage" << "temp_mos_max" << "temp_mos_1"
         << "temp_mos_2" << "temp_mos_3" << "temp_motor" << "current_motor"
         << "current_in" << "d_axis_current" << "q_axis_current" << "erpm"
@@ -45,8 +68,27 @@ QStringList TuningInsights::allowedLogColumns()
         << "watt_hours_charged_setup" << "battery_level" << "battery_wh_tot" << "current_in_setup"
         << "current_motor_setup" << "speed_meters_per_sec" << "tacho_meters" << "tacho_abs_meters"
         << "num_vescs" << "ms_today_imu" << "roll" << "pitch"
-        << "yaw" << "pas_cadence" << "pas_torque_nm" << "pas_rider_watts"
+        << "yaw"
+        /*
+         * Orientation rates, not position: useful for balance and vibration
+         * questions, and they say nothing about where the ride happened.
+         */
+        << "accX" << "accY" << "accZ" << "gyroX" << "gyroY" << "gyroZ"
+        /* The six fields this fork added. */
+        << "pas_cadence" << "pas_torque_nm" << "pas_rider_watts"
         << "pas_assist_watts" << "pas_output_rel" << "pas_flags"
+        /*
+         * The package logger's names, which overlap the above only in
+         * roll/pitch/yaw. 33 of its 38 columns.
+         */
+        << "Input Voltage" << "Current" << "Current In" << "Duty"
+        << "RPM" << "Temp Fet" << "Temp Motor" << "Batt"
+        << "kmh_vesc" << "fault" << "trip_vesc" << "trip_vesc_abs"
+        << "cnt_ah" << "cnt_wh" << "cnt_ah_chg" << "cnt_wh_chg"
+        << "ADC1" << "ADC2" << "iq" << "id"
+        << "vq" << "vd" << "iq-set" << "id-set"
+        << "iq-target" << "id-target" << "Fault" << "Power Factor"
+        << "t_day" << "t_day_pos"
         ;
     return allowed;
 }
@@ -171,9 +213,16 @@ QJsonObject TuningInsights::buildPayload(const QList<ConfigValue> &mcConf,
     QList<int> keep;
     QJsonArray outHeader;
     for (int i = 0; i < logHeader.size(); i++) {
-        if (allowed.contains(logHeader.at(i))) {
+        const QString name = normalizeColumn(logHeader.at(i));
+
+        if (allowed.contains(name)) {
             keep.append(i);
-            outHeader.append(logHeader.at(i));
+            /*
+             * The normalized name, not the raw field: the package logger's
+             * descriptor would otherwise carry its label and unit along, and
+             * the two dialects would not look alike to whatever reads this.
+             */
+            outHeader.append(name);
         }
     }
 

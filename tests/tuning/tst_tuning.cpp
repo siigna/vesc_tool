@@ -26,6 +26,8 @@
  */
 
 #include <QtTest>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -47,6 +49,81 @@ static ConfigValue cv(const QString &name, CFG_T type,
     return v;
 }
 
+
+/*
+ * A one-shot HTTP server on a loopback port. Not a mock of the client: a real
+ * socket, so the request is actually serialised, sent, and parsed back. It
+ * captures the bytes it received so the test can assert on what went out --
+ * including that the key did not.
+ */
+class StubServer: public QObject
+{
+    Q_OBJECT
+
+public:
+    StubServer(const QByteArray &body, int status = 200)
+    {
+        mBody = body;
+        mStatus = status;
+
+        connect(&mServer, &QTcpServer::newConnection, this, [this]() {
+            QTcpSocket *sock = mServer.nextPendingConnection();
+
+            connect(sock, &QTcpSocket::readyRead, this, [this, sock]() {
+                mRequest.append(sock->readAll());
+
+                /*
+                 * Wait for the whole request, not just the headers. Replying
+                 * as soon as the blank line arrives races the body: the first
+                 * version of this stub did exactly that and the assertion on
+                 * the model name failed against a request that had not
+                 * finished arriving.
+                 */
+                const int hdrEnd = mRequest.indexOf("\r\n\r\n");
+                if (hdrEnd < 0) {
+                    return;
+                }
+
+                const QByteArray hdrs = mRequest.left(hdrEnd).toLower();
+                int want = 0;
+                const int clPos = hdrs.indexOf("content-length:");
+                if (clPos >= 0) {
+                    want = hdrs.mid(clPos + 15,
+                                    hdrs.indexOf("\r\n", clPos) - clPos - 15)
+                            .trimmed().toInt();
+                }
+
+                if (mRequest.size() - (hdrEnd + 4) < want) {
+                    return;
+                }
+
+                const QByteArray reason = mStatus == 200 ? "OK" : "Bad Request";
+                QByteArray resp = "HTTP/1.1 " + QByteArray::number(mStatus)
+                        + " " + reason + "\r\n"
+                        "Content-Type: application/json\r\n"
+                        "Content-Length: " + QByteArray::number(mBody.size())
+                        + "\r\n"
+                        "Connection: close\r\n\r\n" + mBody;
+
+                sock->write(resp);
+                sock->flush();
+                sock->disconnectFromHost();
+            });
+        });
+
+        mServer.listen(QHostAddress::LocalHost, 0);
+    }
+
+    quint16 port() const { return mServer.serverPort(); }
+    QByteArray request() const { return mRequest; }
+
+private:
+    QTcpServer mServer;
+    QByteArray mBody;
+    QByteArray mRequest;
+    int mStatus;
+};
+
 class TuningTest: public QObject
 {
     Q_OBJECT
@@ -54,6 +131,7 @@ class TuningTest: public QObject
 private slots:
     void locationNeverLeaves();
     void allowlistNotBlacklist();
+    void packageLoggerDialect();
     void downsampleKeepsEnds();
     void downsampleHonoursCap();
     void configIsEnumeratedAndTyped();
@@ -66,6 +144,8 @@ private slots:
     void keyNeverAppearsInPayload();
     void customSpecParsesUrlWithPort();
     void badSpecExplainsItself();
+    void transportReachesAStubServer();
+    void transportReportsAServerError();
 };
 
 /* A header shaped like the real one, plus a column nobody has invented yet. */
@@ -125,10 +205,75 @@ void TuningTest::allowlistNotBlacklist()
     QVERIFY(!allowed.contains("home_address"));
     QVERIFY(!allowed.contains("gnss_lat"));
     QVERIFY(allowed.contains("erpm"));
+    /*
+     * The whole gnss_ family, under either dialect's spelling. The Tool's log
+     * has eight (gnss_posTime, gnss_lat, gnss_lon, gnss_alt, gnss_gVel,
+     * gnss_vVel, gnss_hAcc, gnss_vAcc) and the package logger spells two of
+     * its own (gnss_h_acc, gnss_h_vel), which is the reason none of them are
+     * enumerated as exclusions anywhere.
+     */
     QCOMPARE(allowed.filter(QRegularExpression("^gnss_")).size(), 0);
+    QVERIFY(!allowed.contains("gnss_hAcc"));
+    QVERIFY(!allowed.contains("gnss_h_vel"));
+    QVERIFY(!allowed.contains("gnss_posTime"));
 
-    // 47 of the RT log's 50 columns; the three absent are the gnss ones.
-    QCOMPARE(allowed.size(), 47);
+    /*
+     * 50 of the Tool log's 61 columns plus 33 of the package logger's 38.
+     * A count, so that a column added without a thought about what it
+     * discloses shows up here as a failure.
+     */
+    QCOMPARE(allowed.size(), 83);
+}
+
+void TuningTest::packageLoggerDialect()
+{
+    /*
+     * The logs on hand are the package logger's, whose header fields are
+     * "name:label:unit:dec:..." descriptors rather than bare names. Before
+     * normalizeColumn existed, every field failed the allowlist and the
+     * payload silently carried no log at all -- safe, and useless.
+     */
+    QCOMPARE(TuningInsights::normalizeColumn("Input Voltage:Input Voltage:V:2:0:0"),
+             QString("Input Voltage"));
+    QCOMPARE(TuningInsights::normalizeColumn("gnss_lat:gnss_lat::2:0:0"),
+             QString("gnss_lat"));
+    // A bare name has no colon, so the Tool's own dialect passes through.
+    QCOMPARE(TuningInsights::normalizeColumn("input_voltage"), QString("input_voltage"));
+
+    const QStringList header = QStringList()
+            << "Input Voltage:Input Voltage:V:2:0:0"
+            << "RPM:RPM::2:0:0"
+            << "kmh_vesc:Speed ESC:km/h:2:0:0"
+            << "t_day:Time:s:3:0:1"
+            << "gnss_lat:gnss_lat::2:0:0"
+            << "gnss_lon:gnss_lon::2:0:0"
+            << "gnss_alt:gnss_alt:m:2:0:0"
+            << "gnss_h_acc:gnss_h_acc:m:2:0:0"
+            << "gnss_h_vel:gnss_h_vel:m/s:2:0:0";
+
+    QList<QStringList> rows;
+    rows << (QStringList() << "50.2" << "1200" << "24.5" << "3600"
+                           << "57.70887" << "11.97456" << "12.0" << "3.5" << "6.8");
+
+    MC_VALUES rt;
+    const QJsonObject payload = TuningInsights::buildPayload(
+                QList<ConfigValue>(), QList<ConfigValue>(), rt, header, rows, 10, "test");
+    const QString json = QString::fromUtf8(QJsonDocument(payload).toJson());
+
+    // The log arrived, under normalized names rather than raw descriptors.
+    QVERIFY(json.contains("Input Voltage"));
+    QVERIFY(json.contains("kmh_vesc"));
+    QVERIFY(!json.contains("Speed ESC"));
+    QVERIFY(!json.contains("km/h"));
+
+    // and no position, including the two spellings only this dialect uses
+    QVERIFY(!json.contains("gnss_lat"));
+    QVERIFY(!json.contains("gnss_h_acc"));
+    QVERIFY(!json.contains("gnss_h_vel"));
+    QVERIFY(!json.contains("57.70887"));
+    QVERIFY(!json.contains("11.97456"));
+
+    QCOMPARE(payload["log"].toObject()["columns_dropped"].toInt(), 5);
 }
 
 void TuningTest::downsampleKeepsEnds()
@@ -362,6 +507,69 @@ void TuningTest::badSpecExplainsItself()
     err.clear();
     InsightsProvider::fromSpec("gemini:https://x:y", &err);
     QVERIFY(err.contains("anthropic"));                  // names the kinds
+}
+
+void TuningTest::transportReachesAStubServer()
+{
+    /*
+     * The whole send path over a real socket: request built, posted, reply
+     * parsed. A local server is the honest way to test this -- it is also
+     * exactly the shape of the ollama setup, which is the default provider.
+     */
+    StubServer stub("{\"choices\":[{\"message\":"
+                    "{\"content\":\"Motor current looks conservative.\"}}]}");
+    QVERIFY(stub.port() != 0);
+
+    QString err;
+    InsightsProvider::Config cfg = InsightsProvider::fromSpec(
+                QString("openai:http://127.0.0.1:%1:stub-model").arg(stub.port()),
+                &err);
+    QVERIFY2(err.isEmpty(), qPrintable(err));
+
+    QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+    QVERIFY(!prov.isNull());
+
+    TuningClient client;
+    const QString reply = client.send(prov.data(), "a prompt", 256, 5000, &err);
+
+    QVERIFY2(err.isEmpty(), qPrintable(err));
+    QCOMPARE(reply, QString("Motor current looks conservative."));
+
+    // It went where it said it would, in the dialect it said it would.
+    const QByteArray req = stub.request();
+    QVERIFY(req.startsWith("POST /v1/chat/completions"));
+    QVERIFY2(req.contains("stub-model"), req.constData());
+    QVERIFY(req.contains("a prompt"));
+
+    /*
+     * No key was set for this provider and none was invented. An empty
+     * Authorization header would be as much of a bug as a wrong one.
+     */
+    QVERIFY(!req.contains("Authorization"));
+}
+
+void TuningTest::transportReportsAServerError()
+{
+    /*
+     * A provider that answers 400 with an explanation. The explanation is
+     * worth more than the status code, so the body is parsed even on an error
+     * and the message reaches the user.
+     */
+    StubServer stub("{\"error\":{\"message\":\"model \\\"nope\\\" not found\"}}", 400);
+    QVERIFY(stub.port() != 0);
+
+    QString err;
+    InsightsProvider::Config cfg = InsightsProvider::fromSpec(
+                QString("openai:http://127.0.0.1:%1:nope").arg(stub.port()), &err);
+    QVERIFY2(err.isEmpty(), qPrintable(err));
+
+    QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+    TuningClient client;
+    const QString reply = client.send(prov.data(), "a prompt", 256, 5000, &err);
+
+    QVERIFY(reply.isEmpty());
+    QVERIFY(!err.isEmpty());
+    QVERIFY2(err.contains("not found"), qPrintable(err));
 }
 
 QTEST_GUILESS_MAIN(TuningTest)

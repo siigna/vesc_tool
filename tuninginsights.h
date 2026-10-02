@@ -74,6 +74,13 @@ public:
      * a special case. A ride log with coordinates is a record of where
      * somebody was and when.
      */
+    /*
+     * The column name from one header field, for either log dialect. See the
+     * definition: the Tool writes bare names, the package logger writes
+     * "name:label:unit:..." descriptors.
+     */
+    static QString normalizeColumn(const QString &rawHeaderField);
+
     static QStringList allowedLogColumns();
 
     /*

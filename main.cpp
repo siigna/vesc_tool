@@ -105,6 +105,7 @@ static void showHelp()
     qDebug() << "--canFwd [canId] : Can ID for CAN forwarding";
     qDebug() << "--tuningInsights : Connect, gather configuration and telemetry, and ask a model for tuning observations. Advisory only; nothing is applied.";
     qDebug() << "--dryRun : With --tuningInsights, print the exact payload and send nothing.";
+    qDebug() << "--insightsOffline : With --tuningInsights --dryRun, do not connect to a controller. Builds the payload from --insightsLog alone, so a log can be inspected without hardware.";
     qDebug() << "--insightsLog [path] : Include this RT log. Location columns (gnss_*) are never sent.";
     qDebug() << "--insightsProvider [id] : ollama (default), local, anthropic, openai, openrouter, or kind:baseUrl:model where kind is anthropic or openai.";
     qDebug() << "--insightsModel [id] : Override the provider's model.";
@@ -336,6 +337,7 @@ int main(int argc, char *argv[])
     int canFwd = -1;
     bool tuningInsights = false;
     bool insightsDryRun = false;
+    bool insightsOffline = false;
     QString insightsLogPath = "";
     QString insightsProviderSpec = "";
     QString insightsModel = "";
@@ -589,6 +591,11 @@ int main(int argc, char *argv[])
 
         if (str == "--dryRun") {
             insightsDryRun = true;
+            found = true;
+        }
+
+        if (str == "--insightsOffline") {
+            insightsOffline = true;
             found = true;
         }
 
@@ -1189,6 +1196,64 @@ int main(int argc, char *argv[])
             }
         }
     });
+
+    if (tuningInsights && insightsOffline) {
+        /*
+         * No controller, no network: the payload built from a log file alone.
+         *
+         * This exists so the redaction can be checked against a real log on a
+         * machine with no board attached -- which is the only way most people
+         * will ever confirm for themselves that their coordinates are not in
+         * there. It refuses to run without --dryRun, because an offline run
+         * has no configuration and no telemetry in it and is therefore not
+         * worth asking a model about.
+         */
+        if (!insightsDryRun) {
+            qCritical() << "--insightsOffline only makes sense with --dryRun:"
+                           "without a controller there is no configuration or"
+                           "telemetry to analyse.";
+            return -1;
+        }
+
+        if (insightsLogPath.isEmpty()) {
+            qCritical() << "--insightsOffline needs --insightsLog [path].";
+            return -1;
+        }
+
+        QFile lf(insightsLogPath);
+        if (!lf.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qCritical() << "Could not open" << insightsLogPath;
+            return -3;
+        }
+
+        QStringList logHeader;
+        QList<QStringList> logRows;
+        QTextStream ts(&lf);
+
+        if (!ts.atEnd()) {
+            logHeader = ts.readLine().split(";");
+        }
+        while (!ts.atEnd()) {
+            const QString line = ts.readLine();
+            if (!line.trimmed().isEmpty()) {
+                logRows.append(line.split(";"));
+            }
+        }
+
+        fprintf(stderr, "Read %d log rows, %d columns\n",
+                logRows.size(), logHeader.size());
+
+        MC_VALUES rtNone;
+        const QJsonObject payload = TuningInsights::buildPayload(
+                    QList<TuningInsights::ConfigValue>(),
+                    QList<TuningInsights::ConfigValue>(),
+                    rtNone, logHeader, logRows, insightsMaxRows,
+                    "offline, no controller");
+
+        printf("%s\n", QJsonDocument(payload)
+               .toJson(QJsonDocument::Indented).constData());
+        return 0;
+    }
 
     bool isMcConf = !getMcConfPath.isEmpty() || !setMcConfPath.isEmpty();
     bool isAppConf = !getAppConfPath.isEmpty() || !setAppConfPath.isEmpty();
