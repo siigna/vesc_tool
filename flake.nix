@@ -38,6 +38,29 @@
           default = selfPkgs.vesc-tool;
         };
 
+        # `nix develop`, which is also what tests/check.sh is run inside.
+        #
+        # Without this, `nix develop` fell back to the default package's build
+        # environment, which has the Qt modules but nothing else -- and in
+        # particular no xvfb-run, so the six pages that need an OpenGL context
+        # silently skipped on every run. run.sh reports that skip, but a skip
+        # is easy to read past.
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [ selfPkgs.vesc-tool ];
+
+          packages = with pkgs; [
+            # tests/ui/run.sh runs the GL tier under a real X server with
+            # Mesa's software rasteriser, because the offscreen platform
+            # reports no GL capability at all.
+            xvfb-run
+            mesa
+            libGL
+
+            # tests/mutate.py
+            python3
+          ];
+        };
+
         # For `nix fmt`
         formatter = treefmtEval.config.build.wrapper;
 

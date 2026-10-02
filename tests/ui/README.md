@@ -180,9 +180,15 @@ button is pressable with no controller attached.
 
 | tier | platform | what runs |
 |---|---|---|
-| default | `offscreen` | everything except the GL pages (58 checks) |
+| default | `offscreen` | everything except the GL pages (72 checks) |
 | `--light` | `offscreen` | the checks the theme can change (4) |
 | `--gl` | `xcb` under `xvfb`, `LIBGL_ALWAYS_SOFTWARE=1` | the 6 pages that need a context (8) |
+
+Naming a slot runs it in the default tier only, so a slot that lives in one of
+the other two needs its flag — `./run.sh --gl glPagesRender`,
+`./run.sh --light noMissingIconsOrColours` — or it skips, and a skip reads as a
+pass. `tests/mutate.py` passes the flag for any mutation that declares
+`tier:`.
 
 Three pages host a `QQuickWidget`, created by `setupUi` so it cannot be avoided
 by skipping `setVesc`, and three embed `Vesc3DView`, a `QOpenGLWidget`. The
@@ -193,11 +199,16 @@ would compare against baselines taken with a context and report a confusing
 mismatch for one page and a pass for the rest.
 
 The GL tier is skipped, not failed, when `xvfb-run` is unavailable — the rest
-of the suite is still worth running. To include it:
+of the suite is still worth running.
 
-```sh
-nix-shell -p xvfb-run --run ./tests/check.sh
-```
+**It was skipped on every run for the life of this suite.** `nix develop` had
+no `devShells.default`, so it fell back to the package's build environment,
+which carries the Qt modules and nothing else. Every GL row reported `SKIP`,
+`run.sh` printed its one-line notice, and six pages went untested while the
+table above said they did not. There is a `devShells.default` now with
+`xvfb-run`, `mesa` and `python3` in it, and mutation `13` renames a tab label
+on `PageImu` specifically so that something fails if this ever silently stops
+running again. The skip notice is also louder than it was.
 
 **Two things had to be fixed before those snapshots meant anything.** The Qt
 QML import paths were not set, so the engine reported
@@ -221,8 +232,31 @@ loaded — `Utility::getThemePath` sends every icon lookup to
 independent literal lists in `appstyle.cpp` and can drift apart. So the light
 run executes only the checks whose outcome the theme can alter.
 
-That tier pays for itself: deleting `res/+theme_light/icons/motor.png` from
-`res.qrc` leaves the dark run fully green and fails the light one.
+That tier pays for itself: deleting `res/+theme_light/icons/Upload-96.png` from
+`res.qrc` leaves the dark run fully green and fails the light one — mutation
+`15`, and `Upload-96.png` is the read button on every parameter editor, so
+every page asks for it.
+
+**The colour half of that claim was weaker than it reads**, which trying to
+write a mutation for it is what showed. `getAppQColor` answers an unknown name
+with red *and a debug message*, which is what the check watches for — but
+`Utility::mAppColors` is a single static map seeded with a built-in default for
+most names, and `setAppQColor` overwrites entries in it. So a colour dropped
+from one palette is not an unknown name: the lookup finds the seed value, logs
+nothing, and the page draws a dark-theme grey in light mode. Removing
+`disabledText` from the light palette was not caught by anything.
+
+`paletteCoversBothThemes` covers that gap by comparing the two sets of names
+in `appstyle.cpp` directly. It reads the source file, which is crude, and the
+alternative was no coverage: there is no API to enumerate what a palette
+defined, and once `initColors` has run a seed default is indistinguishable from
+a value a palette set deliberately.
+
+It found one immediately. `vescGreen` was defined in the dark palette only, in
+neither the light one nor the seed map, so in light mode it would have resolved
+to red — and it turned out to be dead, set and never read, with only
+`vescGreenMedium` and `vescGreenDark` actually used. Removed, which is what
+makes the invariant true rather than merely asserted.
 
 ## Updating baselines
 
@@ -280,6 +314,8 @@ These were each applied, run, and reverted; the first group now lives in
 | revert the welcome heading to the upstream name | **caught** — the `branding` stage of `tests/check.sh` |
 | add a nav row with no page behind it | **caught** — `mainWindowNavAndStackStayInStep` |
 | delete a light-theme icon from `res.qrc` | **caught by the light run only** — dark stayed green |
+| rename a tab label on `PageImu` | **caught by the GL tier only** — and proves that tier runs |
+| define a colour in one palette and not the other | **caught** — `paletteCoversBothThemes` |
 | save the source log instead of the filtered one | **caught** — `insightsSavesWhatWasSent`, gnss reappeared |
 | write the config in a form that cannot be loaded | **caught** — `insightsSavedConfigLoadsBackIn` |
 | set a label from `currentMSecsSinceEpoch()` on a timer | **caught** — `snapshotsAreStable` |

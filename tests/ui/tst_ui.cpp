@@ -83,6 +83,7 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QRegularExpression>
+#include <QSet>
 #include "vbytearray.h"
 
 #include "pages/pageapppas.h"
@@ -255,6 +256,7 @@ private slots:
     void glPagesRender();
 
     void noMissingIconsOrColours();
+    void paletteCoversBothThemes();
     void brandingIsOurs();
 
     void insightsPreviewShowsTheAnswerTab();
@@ -1678,6 +1680,84 @@ void UiTest::noMissingIconsOrColours()
     QVERIFY2(bad.isEmpty(), qPrintable("\n  " + bad.join("\n  ")));
 }
 
+void UiTest::paletteCoversBothThemes()
+{
+    /*
+     * The two palettes in appstyle.cpp are independent literal lists, and
+     * nothing makes them agree. A name dropped from one of them is not a miss:
+     * Utility::mAppColors is seeded with a built-in default for most names, so
+     * getAppQColor finds something, returns it, and logs nothing. The page
+     * then draws a dark-theme grey in light mode and looks merely a bit off.
+     *
+     * noMissingIconsOrColours cannot see this -- it watches for the "not found
+     * in standard colors" message, which only appears for a name that is in
+     * neither palette *and* not in the seed map. That is a much narrower claim
+     * than it looks, and the gap between the two is exactly where this kind of
+     * drift lives.
+     *
+     * So this compares the two sets by reading the source. Crude, and the only
+     * alternative on offer is no coverage: there is no API to enumerate what a
+     * palette defined, and after initColors has run the seed defaults are
+     * indistinguishable from values a palette set on purpose.
+     */
+    QFile f(QString(TESTS_UI_DIR) + "/../../appstyle.cpp");
+    QVERIFY2(f.open(QIODevice::ReadOnly | QIODevice::Text),
+             "cannot read appstyle.cpp; is TESTS_UI_DIR still right?");
+    const QString src = QString::fromUtf8(f.readAll());
+
+    const int start = src.indexOf("void VtAppStyle::initColors");
+    QVERIFY2(start >= 0, "initColors not found in appstyle.cpp");
+
+    const int split = src.indexOf("\n    } else {", start);
+    QVERIFY2(split > start, "the two palette branches are no longer an "
+                            "if/else in initColors; this test needs updating");
+
+    int end = src.indexOf("\n}", split);
+    QVERIFY(end > split);
+
+    const QRegularExpression re("setAppQColor\\s*\\(\\s*\"([^\"]+)\"");
+
+    auto namesIn = [&re](const QString &text) {
+        QSet<QString> out;
+        QRegularExpressionMatchIterator it = re.globalMatch(text);
+
+        while (it.hasNext()) {
+            out.insert(it.next().captured(1));
+        }
+
+        return out;
+    };
+
+    const QSet<QString> first = namesIn(src.mid(start, split - start));
+    const QSet<QString> second = namesIn(src.mid(split, end - split));
+
+    QVERIFY2(!first.isEmpty() && !second.isEmpty(),
+             "found no setAppQColor calls in one of the branches");
+
+    // Each difference is held in a named set first: calling begin() and end()
+    // on (first - second) directly takes iterators into two separate
+    // temporaries, which crashes rather than comparing anything.
+    const QSet<QString> firstOnly = first - second;
+    const QSet<QString> secondOnly = second - first;
+
+    QStringList onlyFirst = QStringList(firstOnly.values());
+    QStringList onlySecond = QStringList(secondOnly.values());
+    onlyFirst.sort();
+    onlySecond.sort();
+
+    QVERIFY2(onlyFirst.isEmpty() && onlySecond.isEmpty(),
+             qPrintable(QString("the two palettes define different colours. "
+                                "Only in the first branch: %1. Only in the "
+                                "second: %2. A name missing from one palette "
+                                "silently falls back to the seed default in "
+                                "utility.cpp, which is the other theme's "
+                                "value.")
+                        .arg(onlyFirst.isEmpty() ? QString("none")
+                                                 : onlyFirst.join(", "),
+                             onlySecond.isEmpty() ? QString("none")
+                                                  : onlySecond.join(", "))));
+}
+
 void UiTest::brandingIsOurs()
 {
     /*
@@ -2217,17 +2297,42 @@ int main(int argc, char *argv[])
 
     g_glMode = gl;
 
+    /*
+     * Both tiers run a fixed subset by default, because the rest of the suite
+     * has already run offscreen where it is much faster. A slot named on the
+     * command line overrides that subset, so a single check in one of these
+     * tiers can be run on its own -- which is what tests/mutate.py needs: it
+     * runs one test per mutation, and without this a GL-tier slot would skip
+     * and the mutation would read as uncaught.
+     */
+    const bool named = realArgc > 1;
+
     if (gl) {
-        // Only the pages that need a context; everything else already ran
-        // offscreen, where it is much faster.
         QStringList only;
-        only << QString::fromLocal8Bit(realArgv[0]) << "glPagesRender";
+        only << QString::fromLocal8Bit(realArgv[0]);
+
+        if (named) {
+            for (int i = 1; i < realArgc; i++) {
+                only << QString::fromLocal8Bit(realArgv[i]);
+            }
+        } else {
+            only << "glPagesRender";
+        }
+
         res = QTest::qExec(&tc, only);
     } else if (light) {
         // Only the checks whose outcome the theme can change.
         QStringList only;
-        only << QString::fromLocal8Bit(realArgv[0])
-             << "noMissingIconsOrColours" << "brandingIsOurs";
+        only << QString::fromLocal8Bit(realArgv[0]);
+
+        if (named) {
+            for (int i = 1; i < realArgc; i++) {
+                only << QString::fromLocal8Bit(realArgv[i]);
+            }
+        } else {
+            only << "noMissingIconsOrColours" << "brandingIsOurs";
+        }
+
         res = QTest::qExec(&tc, only);
     } else {
         res = QTest::qExec(&tc, realArgc, realArgv);

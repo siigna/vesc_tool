@@ -92,7 +92,6 @@ void VtAppStyle::initColors(bool isDark)
         Utility::setAppQColor("black", QColor(0,0,0));
         Utility::setAppQColor("brightHighlightActive", QColor(224,89,37));
         Utility::setAppQColor("brightHighlightInactive", QColor(224,89,37));
-        Utility::setAppQColor("vescGreen", QColor(13,177,75));
         Utility::setAppQColor("vescGreenDark", QColor(37,86,56));
         Utility::setAppQColor("vescGreenMedium", QColor(35,104,61));
         Utility::setAppQColor("vescBlue", QColor(0,160,227));

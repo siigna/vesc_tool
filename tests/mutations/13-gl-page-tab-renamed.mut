@@ -1,0 +1,15 @@
+file: pages/pageimu.ui
+suite: ui
+tier: gl
+test: glPagesRender
+why: PageImu embeds a Vesc3DView and cannot be built without an OpenGL
+     context, so only the GL tier can catch this. It is here to prove that
+     tier actually runs -- it skipped silently for the whole life of this
+     suite, because nothing in the dev shell provided xvfb-run and a skip is
+     easy to read past. A tab label rather than a widget name, because
+     renaming a widget breaks the generated ui_ header and the mutation would
+     only prove the compiler works
+--- from
+       <string>Accel/Gyro/Mag</string>
+--- to
+       <string>Accel/Gyro/Magnetometer</string>

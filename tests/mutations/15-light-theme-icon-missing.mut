@@ -1,0 +1,13 @@
+file: res.qrc
+suite: ui
+tier: light
+test: noMissingIconsOrColours
+why: Upload-96.png is the icon on every parameter editor's read button, so
+     every page asks for it. A light-theme variant nobody added looks
+     perfectly fine to anyone running the dark theme, which is what the light
+     tier exists for -- and it is also the exact failure that made
+     Utility::getIcon start warning at all
+--- from
+        <file>res/+theme_light/icons/Upload-96.png</file>
+--- to
+

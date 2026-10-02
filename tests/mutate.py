@@ -96,6 +96,10 @@ class Mutation:
         # than inferred: a pattern that silently starts matching a new site is
         # how a mutation stops meaning what it says.
         self.occurrences = int(fields.get("occurrences", "1"))
+        # Which tier of the suite the test lives in. A GL-tier slot named
+        # without this skips in the offscreen tier, which is not a failure, so
+        # the mutation would read as uncaught.
+        self.tier = fields.get("tier", "offscreen")
         self.why = fields.get("why", "")
 
     def target(self):
@@ -127,9 +131,15 @@ def build(suite):
     return r.returncode == 0, r.stderr.decode("utf-8", "replace")[-2000:]
 
 
-def run_test(suite, test):
+def run_test(suite, test, tier="offscreen"):
     d = os.path.join(ROOT, "tests", suite)
-    r = subprocess.run(["./run.sh", test], cwd=d,
+    argv = ["./run.sh"]
+
+    if tier in ("gl", "light"):
+        argv.append("--" + tier)
+
+    argv.append(test)
+    r = subprocess.run(argv, cwd=d,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out = r.stdout.decode("utf-8", "replace")
     failed = re.search(r"^FAIL!", out, flags=re.M) is not None
@@ -137,7 +147,10 @@ def run_test(suite, test):
     # would otherwise read as "the mutation was not caught".
     ran = re.search(r"^(PASS|FAIL!)\s+:\s+\w+::%s" % re.escape(test),
                     out, flags=re.M) is not None
-    return failed, ran, out
+    # A tier that could not run at all -- the GL tier without xvfb-run -- must
+    # not look like a test that passed.
+    skipped_tier = "were NOT tested" in out
+    return failed, ran and not skipped_tier, out
 
 
 def main():
@@ -150,7 +163,8 @@ def main():
 
     if "--list" in flags:
         for m in muts:
-            print("%-44s %s::%s" % (m.name, m.suite, m.test))
+            print("%-44s %s::%s%s" % (m.name, m.suite, m.test,
+                  "" if m.tier == "offscreen" else " [%s tier]" % m.tier))
             if m.why:
                 print("%-44s   %s" % ("", m.why))
         return 0
@@ -192,7 +206,7 @@ def main():
             sys.exit("tests/%s does not build as committed" % suite)
 
     for m in muts:
-        failed, ran, out = run_test(m.suite, m.test)
+        failed, ran, out = run_test(m.suite, m.test, m.tier)
         if failed or not ran:
             print(out[-1500:], file=sys.stderr)
             sys.exit("%s::%s is not green as committed (%s)"
@@ -232,7 +246,7 @@ def main():
             results.append((m, "DOES NOT BUILD", err.strip().splitlines()[-1]
                             if err.strip() else ""))
         else:
-            failed, ran, _out = run_test(m.suite, m.test)
+            failed, ran, _out = run_test(m.suite, m.test, m.tier)
             if not ran:
                 results.append((m, "TEST DID NOT RUN", m.test))
             elif failed:

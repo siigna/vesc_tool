@@ -1,0 +1,12 @@
+file: appstyle.cpp
+suite: ui
+test: paletteCoversBothThemes
+why: a colour defined in one palette and not the other does not report a miss
+     -- Utility::mAppColors is seeded with a default for most names, so
+     getAppQColor finds the other theme's value and logs nothing. This was
+     found by trying to write a light-tier mutation for
+     noMissingIconsOrColours and watching it not be caught
+--- from
+        Utility::setAppQColor("disabledText", QColor(110,110,110));
+--- to
+

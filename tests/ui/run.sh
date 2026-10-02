@@ -3,6 +3,14 @@
 #
 #   ./run.sh                 everything
 #   ./run.sh structure       one slot (any QTest filter works)
+#   ./run.sh --gl    [slot]  only the OpenGL tier
+#   ./run.sh --light [slot]  only the light-palette tier
+#
+# Naming a slot without a tier runs it in the offscreen tier only, so a slot
+# that lives in one of the other two needs the flag -- otherwise it skips and
+# reads as a pass. That is how the GL tier went unrun for the life of this
+# suite: nothing in the dev shell provided xvfb-run, every GL row reported
+# SKIP, and a skip is easy to read past.
 #
 # Plugin discovery is shared with the other suites -- see tests/qtenv.sh.
 
@@ -14,6 +22,12 @@ qt_env_setup || exit 2
 
 # The harness pins everything else itself, before the QApplication exists.
 export QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-offscreen}
+
+tier="all"
+case "${1:-}" in
+    --gl)    tier="gl";    shift ;;
+    --light) tier="light"; shift ;;
+esac
 
 if [ ! -x ./tst_ui ]; then
     echo "run.sh: ./tst_ui is not built. qmake && make -j8" >&2
@@ -46,16 +60,20 @@ run_tests() {
     fi
 }
 
+status=0
+
 # A hang must not read as a pass.
-run_tests timeout 300 ./tst_ui "$@"
-status=$?
+if [ "$tier" = "all" ]; then
+    run_tests timeout 300 ./tst_ui "$@"
+    status=$?
+fi
 
 # The light palette is a separate run: the colour tables for the two themes are
 # independent lists in appstyle.cpp, and icon lookups resolve to a different
 # directory, so a missing light-theme icon or colour is invisible to the dark
 # run. Skipped when the caller asked for specific tests.
-if [ $status -eq 0 ] && [ $# -eq 0 ]; then
-    run_tests timeout 300 ./tst_ui --light
+if [ $status -eq 0 ] && { [ "$tier" = "light" ] || { [ "$tier" = "all" ] && [ $# -eq 0 ]; }; }; then
+    run_tests timeout 300 ./tst_ui --light "$@"
     status=$?
 fi
 
@@ -64,7 +82,7 @@ fi
 # capability, so they run under a real X server with Mesa's software
 # rasteriser. Skipped, not failed, when xvfb-run is unavailable -- the rest of
 # the suite is still worth running.
-if [ $status -eq 0 ] && [ $# -eq 0 ]; then
+if [ $status -eq 0 ] && { [ "$tier" = "gl" ] || { [ "$tier" = "all" ] && [ $# -eq 0 ]; }; }; then
     if command -v xvfb-run >/dev/null 2>&1; then
         # QML2_IMPORT_PATH comes from qtenv.sh and has to survive into the
         # xvfb child: without it the QQuickWidget pages load no scene and the
@@ -73,10 +91,13 @@ if [ $status -eq 0 ] && [ $# -eq 0 ]; then
             QT_PLUGIN_PATH="$QT_PLUGIN_PATH" \
             QML2_IMPORT_PATH="${QML2_IMPORT_PATH:-}" \
             xvfb-run -a -s "-screen 0 1600x1200x24" \
-            timeout 300 ./tst_ui --gl
+            timeout 300 ./tst_ui --gl "$@"
         status=$?
     else
-        echo "  skipped: xvfb-run not found, so the 6 GL pages were not tested" >&2
+        # Not a failure, because the rest of the suite is still worth running
+        # -- but loud, because this skipped silently for a long time. xvfb-run
+        # is in the dev shell now; outside it, nix develop.
+        echo "  skipped: xvfb-run not found, so the 6 GL pages were NOT tested" >&2
     fi
 fi
 
