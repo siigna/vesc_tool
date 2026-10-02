@@ -2172,6 +2172,29 @@ int main(int argc, char *argv[])
             if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
                 qputenv("QT_QPA_PLATFORM", "offscreen");
             }
+
+            /*
+             * And Qt Quick must stop asking for an OpenGL context, or the
+             * whole point of --offscreen is lost on any machine without a GPU
+             * driver. MainWindow builds every page, three of which host a
+             * QQuickWidget, and the scene graph's default backend calls
+             * qFatal when it cannot get a context -- so the process aborts
+             * with SIGABRT before it can render the page that was asked for,
+             * whichever page that is.
+             *
+             * Found in a container, where it fails and a workstation with
+             * Mesa installed does not. Neither LIBGL_ALWAYS_SOFTWARE nor an
+             * Xvfb display helps, because it was never about having a display:
+             * the software scene graph is what avoids needing a context at
+             * all. QT_OPENGL=software is not the same thing and is worse --
+             * it starts, then writes a zero-byte PNG.
+             *
+             * Not forced if the caller has chosen a backend; they may be
+             * testing the real one deliberately.
+             */
+            if (qEnvironmentVariableIsEmpty("QT_QUICK_BACKEND")) {
+                qputenv("QT_QUICK_BACKEND", "software");
+            }
         }
 
         /*
