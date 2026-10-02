@@ -69,6 +69,20 @@ colour name comes back red. `Utility::getIcon` was made to warn for this;
 about box names this fork and carries the placeholder logo's CC BY-SA credit,
 and no page label calls this program by the upstream name.
 
+**`connectionTcpButtonsAreNotSwapped`** — on the TCP tab, connect is the
+*rightmost* of the two icons and disconnect sits to its left, which is the
+opposite of what most people assume; driving that page by mouse coordinates I
+clicked disconnect three times in a row while wondering why nothing connected.
+Checked by grid column, not pixel position: those buttons live on a tab that is
+not current, so nothing in that subtree has resolved geometry and every child
+reports the same x — a position check there compares two equal numbers and
+passes whichever way round they are.
+
+**`connectionDoesNotBindUntilAsked`** — building the page must not open a
+socket, verified by binding UDP 65109 exclusively afterwards, and
+`startDetection()` must then open it, so the move did not quietly disable the
+feature.
+
 **The `insightsSaves*` checks** — the saves, driven through
 `saveSentLogTo`/`saveBundleTo` rather than the buttons. Each slot's first
 statement was a modal file dialog, which made the writing untestable and
@@ -185,6 +199,8 @@ and reverted:
 | write the config in a form that cannot be loaded | **caught** — `insightsSavedConfigLoadsBackIn` |
 | set a label from `currentMSecsSinceEpoch()` on a timer | **caught** — `snapshotsAreStable` |
 | rename `accelPlot` on a GL page | **caught by the GL tier only** — the offscreen run skips it |
+| swap the TCP connect/disconnect columns | **caught** — `connectionTcpButtonsAreNotSwapped` |
+| bind UDP 65109 in `PageConnection`'s constructor again | **caught** — `connectionDoesNotBindUntilAsked` |
 | fill a combo from the host (serial ports) | **not a mutation** — found while generating baselines, see below |
 
 Three of those were *not* caught when first written, and the reasons are worth
@@ -220,6 +236,20 @@ list this machine's serial ports, so the first baselines for `PageEspProg` and
 machine, or on this one with the board unplugged. They are recorded as
 `"(filled from the host; not recorded)"` — a note rather than an omission, so
 the control is still known to exist and the reason is visible in the baseline.
+
+## A private network namespace
+
+`run.sh` runs the binary under `unshare -rn` when it can — unprivileged, via a
+user namespace — and brings loopback up inside it.
+
+Two reasons. UDP 65109 is then free, so the check that `PageConnection` does
+not bind it in its constructor actually runs instead of skipping past a copy of
+the program the developer happens to have open. And no device broadcast from
+the real network can reach that page and change its widget tree mid-run.
+
+Loopback has to be brought up by hand in the namespace or the transport test
+cannot reach its own stub server. Without `unshare`, everything still runs; the
+bind check skips with its reason.
 
 ## Hermeticity
 

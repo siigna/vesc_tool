@@ -144,6 +144,11 @@ private slots:
     void keyNeverAppearsInPayload();
     void customSpecParsesUrlWithPort();
     void badSpecExplainsItself();
+    void cutOffReplyBlamesTheCapNotTheDialect();
+    void truncatedAnswerSaysSo();
+    void reasoningIsSentOnlyWhenAsked();
+    void promptOverrideCannotDropTheData();
+
     void transportReachesAStubServer();
     void transportReportsAServerError();
 };
@@ -524,6 +529,167 @@ void TuningTest::badSpecExplainsItself()
     err.clear();
     InsightsProvider::fromSpec("gemini:https://x:y", &err);
     QVERIFY(err.contains("anthropic"));                  // names the kinds
+}
+
+void TuningTest::cutOffReplyBlamesTheCapNotTheDialect()
+{
+    /*
+     * A reasoning model spends the answer's token budget thinking first, and
+     * on a payload of this size it can spend all of it: measured with
+     * claude-sonnet-5 and 45 kB, 5000 completion tokens went to reasoning and
+     * the content came back empty, finish_reason "length".
+     *
+     * The parser used to call that a dialect mismatch, which sent the reader
+     * to check their base URL when the fix was to raise a number.
+     */
+    InsightsProvider::Config cfg;
+    cfg.kind = InsightsProvider::KindOpenAiCompatible;
+    cfg.baseUrl = "http://localhost:11434";
+    cfg.model = "test";
+    QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+
+    const QByteArray reasoned =
+            "{\"choices\":[{\"finish_reason\":\"length\","
+            "\"message\":{\"content\":\"\"}}],"
+            "\"usage\":{\"completion_tokens\":700,"
+            "\"completion_tokens_details\":{\"reasoning_tokens\":700}}}";
+
+    QString err;
+    QVERIFY(prov->parseReply(reasoned, &err).isEmpty());
+    QVERIFY2(err.contains("700"), qPrintable(err));
+    QVERIFY2(err.contains("reasoning"), qPrintable(err));
+    QVERIFY2(err.contains("--insightsMaxTokens"), qPrintable(err));
+    QVERIFY2(!err.contains("dialect"),
+             qPrintable("a cut-off answer must not be reported as a dialect "
+                        "mismatch: " + err));
+
+    // Cut off with no reasoning reported: still the cap, just without a figure.
+    const QByteArray plain =
+            "{\"choices\":[{\"finish_reason\":\"length\","
+            "\"message\":{\"content\":\"\"}}]}";
+    err.clear();
+    QVERIFY(prov->parseReply(plain, &err).isEmpty());
+    QVERIFY2(err.contains("--insightsMaxTokens"), qPrintable(err));
+
+    /*
+     * An empty answer that was NOT cut off is the case where blaming the
+     * dialect is right, so that message has to survive.
+     */
+    const QByteArray stopped =
+            "{\"choices\":[{\"finish_reason\":\"stop\","
+            "\"message\":{\"content\":\"\"}}]}";
+    err.clear();
+    QVERIFY(prov->parseReply(stopped, &err).isEmpty());
+    QVERIFY2(err.contains("dialect"), qPrintable(err));
+}
+
+void TuningTest::truncatedAnswerSaysSo()
+{
+    // Advice that stops mid-sentence must not look like advice that finished.
+    InsightsProvider::Config cfg;
+    cfg.kind = InsightsProvider::KindOpenAiCompatible;
+    cfg.baseUrl = "http://localhost:11434";
+    QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+
+    const QByteArray cut =
+            "{\"choices\":[{\"finish_reason\":\"length\","
+            "\"message\":{\"content\":\"Lower l_current_max to\"}}]}";
+
+    QString err;
+    const QString out = prov->parseReply(cut, &err);
+
+    QVERIFY2(err.isEmpty(), qPrintable(err));
+    QVERIFY(out.startsWith("Lower l_current_max to"));
+    QVERIFY2(out.contains("cut off"), qPrintable(out));
+}
+
+void TuningTest::reasoningIsSentOnlyWhenAsked()
+{
+    /*
+     * The field is OpenRouter's, and a strict server can reject a request
+     * carrying something it does not know, so the default wire format must be
+     * exactly what it was before the control existed.
+     */
+    InsightsProvider::Config cfg;
+    cfg.kind = InsightsProvider::KindOpenAiCompatible;
+    cfg.baseUrl = "http://localhost:11434";
+    cfg.model = "test";
+
+    {
+        QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+        const QJsonObject body = QJsonDocument::fromJson(
+                    prov->body("hello", 100)).object();
+        QVERIFY2(!body.contains("reasoning"),
+                 "a request must carry no reasoning field unless asked");
+    }
+
+    cfg.reasoning = "off";
+    {
+        QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+        const QJsonObject r = QJsonDocument::fromJson(
+                    prov->body("hello", 100)).object()["reasoning"].toObject();
+        QCOMPARE(r["enabled"].toBool(), false);
+    }
+
+    cfg.reasoning = "low";
+    {
+        QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+        const QJsonObject r = QJsonDocument::fromJson(
+                    prov->body("hello", 100)).object()["reasoning"].toObject();
+        QCOMPARE(r["effort"].toString(), QString("low"));
+    }
+
+    cfg.reasoning = "400";
+    {
+        QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+        const QJsonObject r = QJsonDocument::fromJson(
+                    prov->body("hello", 100)).object()["reasoning"].toObject();
+        QCOMPARE(r["max_tokens"].toInt(), 400);
+    }
+
+    // The Anthropic dialect does not take this field at all.
+    cfg.kind = InsightsProvider::KindAnthropic;
+    cfg.baseUrl = "https://api.anthropic.com";
+    cfg.reasoning = "low";
+    {
+        QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
+        const QJsonObject body = QJsonDocument::fromJson(
+                    prov->body("hello", 100)).object();
+        QVERIFY2(!body.contains("reasoning"),
+                 "the anthropic dialect must not carry an openai-only field");
+    }
+}
+
+void TuningTest::promptOverrideCannotDropTheData()
+{
+    /*
+     * The instructions are replaceable, the data is not: buildPrompt appends
+     * the payload itself, so a replaced prompt cannot omit it or substitute
+     * something else.
+     */
+    MC_VALUES rt;
+    const QJsonObject payload = TuningInsights::buildPayload(
+                QList<ConfigValue>(), QList<ConfigValue>(), rt,
+                testHeader(), testRows(10), 5, "test");
+
+    const QString custom = TuningInsights::buildPrompt(payload, "Only PAS.");
+
+    QVERIFY(custom.contains("Only PAS."));
+    QVERIFY2(!custom.contains("Give concrete tuning observations"),
+             "the default instructions must be replaced, not appended to");
+    QVERIFY2(custom.contains("Data:"), "the data section went missing");
+    QVERIFY2(custom.contains("input_voltage"), "the payload went missing");
+
+    // Empty means "use the built-in text", not "send no instructions".
+    const QString fallback = TuningInsights::buildPrompt(payload, "   ");
+    QVERIFY(fallback.contains("Give concrete tuning observations"));
+    QVERIFY(fallback.contains("Data:"));
+
+    // And the default is what --insightsPrintPrompt hands out.
+    QVERIFY(TuningInsights::defaultInstructions().contains(
+                "Give concrete tuning observations"));
+    QVERIFY2(TuningInsights::defaultInstructions().contains("mcconf_fields"),
+             "the instructions should point at the field notes in the payload");
 }
 
 void TuningTest::transportReachesAStubServer()

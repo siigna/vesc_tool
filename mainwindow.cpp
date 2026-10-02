@@ -1443,6 +1443,8 @@ void MainWindow::reloadPages()
 
     mPageConnection = new PageConnection(this);
     mPageConnection->setVesc(mVesc);
+    // The page no longer binds its broadcast listener in its constructor.
+    mPageConnection->startDetection();
     ui->pageWidget->addWidget(mPageConnection);
     addPageItem(tr("Connection"),  theme + "icons/Connected-96.png", "", true);
 

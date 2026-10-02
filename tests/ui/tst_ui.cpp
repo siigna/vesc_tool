@@ -55,6 +55,9 @@
 #include <QJsonParseError>
 #include <QFile>
 #include <QEventLoop>
+#include <QAbstractButton>
+#include <QGridLayout>
+#include <QUdpSocket>
 #include <QLabel>
 #include <QPushButton>
 
@@ -104,6 +107,7 @@
 #include "pages/pagelisp.h"
 #include "pages/pagecustomconfig.h"
 #include "pages/pageexperiments.h"
+#include "pages/pageconnection.h"
 #include "pages/pagemotorcomparison.h"
 #include "pages/pagewelcome.h"
 #include "pages/pagescripting.h"
@@ -144,6 +148,7 @@ enum PageId {
     Page_PageLisp,
     Page_PageCustomConfig,
     Page_PageExperiments,
+    Page_PageConnection,
 
     /* Need a real OpenGL context -- see the --gl tier. */
     Page_PageMotorComparison,
@@ -192,6 +197,13 @@ static QWidget *makePage(int id, VescInterface *vesc)
     case Page_PageLisp: { auto p = new PageLisp(); p->setVesc(vesc); return p; }
     case Page_PageCustomConfig: { auto p = new PageCustomConfig(); p->setVesc(vesc); p->setConfNum(0); return p; }
     case Page_PageExperiments: { auto p = new PageExperiments(); p->setVesc(vesc); return p; }
+    /*
+     * Built without startDetection(), which is the call that binds UDP 65109.
+     * That is the whole reason this page can be tested at all: before the bind
+     * moved out of the constructor, any other VESC Tool broadcasting on the
+     * LAN could add an entry to tcpDetectBox mid-test.
+     */
+    case Page_PageConnection: { auto p = new PageConnection(); p->setVesc(vesc); return p; }
     case Page_PageMotorComparison: { auto p = new PageMotorComparison(); p->setVesc(vesc); return p; }
     case Page_PageWelcome: { auto p = new PageWelcome(); p->setVesc(vesc); return p; }
     case Page_PageScripting: { auto p = new PageScripting(); p->setVesc(vesc); return p; }
@@ -226,6 +238,8 @@ private slots:
 
     void insightsPreviewShowsTheAnswerTab();
     void insightsInstructionsAreEditable();
+    void connectionTcpButtonsAreNotSwapped();
+    void connectionDoesNotBindUntilAsked();
     void insightsSavesWhatWasSent();
     void insightsSavedConfigLoadsBackIn();
 
@@ -281,6 +295,7 @@ void UiTest::structureMatchesBaseline_data()
     QTest::newRow("PageLisp") << QString("PageLisp") << int(Page_PageLisp);
     QTest::newRow("PageCustomConfig") << QString("PageCustomConfig") << int(Page_PageCustomConfig);
     QTest::newRow("PageExperiments") << QString("PageExperiments") << int(Page_PageExperiments);
+    QTest::newRow("PageConnection") << QString("PageConnection") << int(Page_PageConnection);
 }
 
 void UiTest::structureMatchesBaseline()
@@ -703,7 +718,7 @@ void UiTest::noMissingIconsOrColours()
      */
     QPixmapCache::clear();
 
-    for (int id = 0; id <= int(Page_PageExperiments); id++) {
+    for (int id = 0; id <= int(Page_PageConnection); id++) {
         QScopedPointer<QWidget> page(makePage(id, g_vesc));
         UiHarness::settle();
     }
@@ -749,7 +764,7 @@ void UiTest::brandingIsOurs()
     QVERIFY2(about.contains("CC BY-SA 3.0"), "placeholder logo licence is missing");
 
     // And no page may call this program by the upstream name.
-    for (int id = 0; id <= int(Page_PageExperiments); id++) {
+    for (int id = 0; id <= int(Page_PageConnection); id++) {
         QScopedPointer<QWidget> page(makePage(id, g_vesc));
         UiHarness::settle();
 
@@ -797,6 +812,111 @@ static QString writeSampleLog(const QString &dir)
     }
 
     return path;
+}
+
+void UiTest::connectionTcpButtonsAreNotSwapped()
+{
+    /*
+     * On the TCP tab the connect button is the rightmost of the two icons and
+     * disconnect sits to its left, which is the opposite of what most people
+     * assume. Driving this page by mouse coordinates, I clicked disconnect
+     * three times in a row while wondering why nothing connected.
+     *
+     * Checked by grid column rather than by pixel position: the buttons live
+     * on a tab that is not current, so nothing in that subtree has resolved
+     * geometry and every child reports the same x -- a position check there
+     * compares two equal numbers and passes regardless of the order. The
+     * column is what the designer actually set, and it is what a redesign
+     * would change.
+     */
+    QScopedPointer<QWidget> page(makePage(Page_PageConnection, g_vesc));
+    UiHarness::settle();
+
+    auto *conn = page->findChild<QAbstractButton*>("tcpConnectButton");
+    auto *disc = page->findChild<QAbstractButton*>("tcpDisconnectButton");
+    QVERIFY(conn);
+    QVERIFY(disc);
+
+    auto columnOf = [](QAbstractButton *b) {
+        auto *grid = qobject_cast<QGridLayout*>(b->parentWidget()->layout());
+
+        if (grid == nullptr) {
+            return -1;
+        }
+
+        for (int i = 0; i < grid->count(); i++) {
+            if (grid->itemAt(i)->widget() == b) {
+                int row = 0, col = 0, rowSpan = 0, colSpan = 0;
+                grid->getItemPosition(i, &row, &col, &rowSpan, &colSpan);
+                return col;
+            }
+        }
+
+        return -1;
+    };
+
+    const int c = columnOf(conn);
+    const int d = columnOf(disc);
+
+    QVERIFY2(c >= 0 && d >= 0,
+             "the TCP buttons are no longer in a grid; this check needs "
+             "rewriting rather than deleting");
+    QVERIFY2(c > d,
+             qPrintable(QString("connect is in column %1 and disconnect in "
+                                "column %2 -- they have been swapped, which "
+                                "changes what every existing user's muscle "
+                                "memory does").arg(c).arg(d)));
+
+    QVERIFY2(conn->isEnabled(), "connect must be available when disconnected");
+}
+
+void UiTest::connectionDoesNotBindUntilAsked()
+{
+    /*
+     * Building the page must not open a socket. It used to: the constructor
+     * called startServerBroadcast(65109), so merely creating the page listened
+     * on the network for the life of the program, and any other VESC Tool
+     * announcing itself added a row to tcpDetectBox -- which put this page
+     * beyond testing and is poor behaviour besides.
+     *
+     * Checked by binding the port exclusively. The page binds with
+     * ShareAddress, and an exclusive bind cannot coexist with it, so a
+     * successful bind here means nothing is listening.
+     */
+    const quint16 port = 65109;
+
+    {
+        // If something else on this machine already holds it -- a running
+        // VESC Tool, most likely -- this proves nothing either way.
+        QUdpSocket probe;
+        if (!probe.bind(QHostAddress::Any, port)) {
+            QSKIP("UDP 65109 is already in use on this machine");
+        }
+    }
+
+    QScopedPointer<QWidget> page(makePage(Page_PageConnection, g_vesc));
+    UiHarness::settle();
+    UiHarness::settleWithTimers();
+
+    QUdpSocket after;
+    QVERIFY2(after.bind(QHostAddress::Any, port),
+             "constructing PageConnection bound UDP 65109; the broadcast "
+             "listener belongs in startDetection(), not the constructor");
+    after.close();
+
+    /*
+     * And it does bind once asked, so the move did not simply disable the
+     * feature.
+     */
+    auto *conn = qobject_cast<PageConnection*>(page.data());
+    QVERIFY(conn);
+    conn->startDetection();
+    UiHarness::settle();
+
+    QUdpSocket blocked;
+    QVERIFY2(!blocked.bind(QHostAddress::Any, port,
+                           QAbstractSocket::DontShareAddress),
+             "startDetection() did not open the listener");
 }
 
 void UiTest::insightsSavesWhatWasSent()

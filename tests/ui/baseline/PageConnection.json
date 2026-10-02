@@ -1,0 +1,684 @@
+{
+    "page": "PageConnection",
+    "widget_count": 125,
+    "widgets": [
+        {
+            "class": "QSpinBox",
+            "enabled": false,
+            "name": "CANbusBitrateBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "CANbusConnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "CANbusDisconnectButton"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+            ],
+            "name": "CANbusInterfaceBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "CANbusScanButton",
+            "text": "Scan"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+            ],
+            "name": "CANbusTargetIdBox"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "addConnectedButton",
+            "text": "Add"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "addUuidButton",
+            "text": "Add UUID"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "autoConnectButton",
+            "text": "Autoconnect"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "bleConnectButton"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+            ],
+            "name": "bleDevBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "bleDisconnectButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "bleNameEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "bleScanButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "bleSetNameButton",
+            "text": "Set"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "canDefaultButton",
+            "text": "Manual"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+            ],
+            "name": "canFwdBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "canFwdButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "canRefreshButton",
+            "text": "Scan"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearPairedButton",
+            "text": "Clear"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "deletePairedButton",
+            "text": "Delete"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "CAN Forward"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "VESC Devices"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_3",
+            "text": "TCP Client"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_4",
+            "text": "UDP Client"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_5",
+            "text": "Login Details"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "helpButton"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "hubClientButton",
+            "text": "Client"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "hubDefaultButton"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "hubServerButton",
+            "text": "Server"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Address"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_10",
+            "text": "VESC ID"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_11",
+            "text": "Password"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "Port"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_3",
+            "text": "BLE Device"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_4",
+            "text": "Set Device Name"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_5",
+            "text": "VESC ID"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_6",
+            "text": "Interface"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_7",
+            "text": "Address"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_8",
+            "text": "Detected Devices"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_9",
+            "text": "Address"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "pairConnectedButton",
+            "text": "Pair"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "pairedListWidget"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": false,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "serialBaudBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "serialConnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "serialDisconnectButton"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": "(filled from the host; not recorded)",
+            "name": "serialPortBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "serialRefreshButton"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "statusLabel",
+            "text": "Not connected"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "(USB-)Serial",
+                "CAN bus",
+                "TCP",
+                "UDP",
+                "Bluetooth LE",
+                "TCP Hub"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_4"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_5"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_6"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "tcpConnectButton"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+            ],
+            "name": "tcpDetectBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "tcpDetectConnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "tcpDetectDisconnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "tcpDisconnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "tcpHubConnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "tcpHubDisconnectButton"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "tcpHubPortBox"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "tcpHubServerEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "tcpHubVescIdLineEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "tcpHubVescPasswordLineEdit"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "tcpPortBox"
+        },
+        {
+            "class": "QPlainTextEdit",
+            "enabled": true,
+            "name": "tcpServerAddressesEdit"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "tcpServerBox",
+            "text": "TCP Server"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "tcpServerBox_2",
+            "text": "UDP Server"
+        },
+        {
+            "class": "QPlainTextEdit",
+            "enabled": true,
+            "name": "tcpServerClientsEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "tcpServerEdit"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "tcpServerEnableBox",
+            "text": "Enable TCP Server"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "tcpServerPortBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "udpConnectButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "udpDisconnectButton"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "udpPortBox"
+        },
+        {
+            "class": "QPlainTextEdit",
+            "enabled": true,
+            "name": "udpServerAddressesEdit"
+        },
+        {
+            "class": "QPlainTextEdit",
+            "enabled": true,
+            "name": "udpServerClientsEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "udpServerEdit"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "udpServerEnableBox",
+            "text": "Enable UDP Server"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "udpServerPortBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "unpairButton",
+            "text": "Unpair"
+        }
+    ]
+}

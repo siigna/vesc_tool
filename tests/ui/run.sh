@@ -25,8 +25,29 @@ fi
 # file turns a broken page into the baseline.
 rm -rf actual
 
+# A private network namespace when one can be had, unprivileged via a user
+# namespace. Two reasons: UDP 65109 is then free, so the check that
+# PageConnection does not bind it in its constructor actually runs instead of
+# skipping past a VESC Tool the developer has open; and no device broadcast
+# from the LAN can reach the page and change its widget tree mid-run.
+#
+# Loopback has to be brought up by hand inside the namespace, or the transport
+# test cannot reach its own stub server.
+NETNS=""
+if unshare -rn true 2>/dev/null; then
+    NETNS="yes"
+fi
+
+run_tests() {
+    if [ -n "$NETNS" ]; then
+        unshare -rn bash -c 'ip link set lo up 2>/dev/null; exec "$@"' _ "$@"
+    else
+        "$@"
+    fi
+}
+
 # A hang must not read as a pass.
-timeout 300 ./tst_ui "$@"
+run_tests timeout 300 ./tst_ui "$@"
 status=$?
 
 # The light palette is a separate run: the colour tables for the two themes are
@@ -34,7 +55,7 @@ status=$?
 # directory, so a missing light-theme icon or colour is invisible to the dark
 # run. Skipped when the caller asked for specific tests.
 if [ $status -eq 0 ] && [ $# -eq 0 ]; then
-    timeout 300 ./tst_ui --light
+    run_tests timeout 300 ./tst_ui --light
     status=$?
 fi
 

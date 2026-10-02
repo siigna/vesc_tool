@@ -40,6 +40,13 @@ public:
     VescInterface *vesc() const;
     void setVesc(VescInterface *vesc);
 
+    /*
+     * Opens the UDP listener that finds devices announcing themselves on the
+     * network. Separate from the constructor so that building the page does
+     * not bind a socket -- see the comment on the definition.
+     */
+    void startDetection();
+
 private slots:
     void timerSlot();
     void bleScanDone(QVariantMap devs, bool done);

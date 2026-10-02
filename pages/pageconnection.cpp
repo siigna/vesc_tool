@@ -75,7 +75,6 @@ PageConnection::PageConnection(QWidget *parent) :
     ui->canFwdButton->setIcon(mycon);
 
     mUdpListen = new UdpServerSimple(this);
-    mUdpListen->startServerBroadcast(65109);
 
 #ifndef HAS_CANBUS
     ui->tabWidget->setTabVisible(1, false);
@@ -106,6 +105,26 @@ PageConnection::PageConnection(QWidget *parent) :
             }
         }
     });
+}
+
+void PageConnection::startDetection()
+{
+    /*
+     * The broadcast listener used to be opened by the constructor, which meant
+     * merely creating the page bound UDP 65109 -- with ShareAddress, so a
+     * second instance binds it too -- and any other copy of this program
+     * announcing itself on the network then added an entry to tcpDetectBox. A page that
+     * opens a socket before anybody has asked it to is awkward for more than
+     * testing: it listens on the network for the whole life of the program
+     * whether or not the connection page is ever opened.
+     *
+     * MainWindow calls this after construction. Calling it twice is harmless;
+     * startServerBroadcast closes the socket first.
+     */
+    if (mUdpListen != nullptr && !mUdpListen->startServerBroadcast(65109)) {
+        // The return value was discarded before, so a failure was silent.
+        qWarning() << "Could not listen for device broadcasts on UDP 65109";
+    }
 }
 
 PageConnection::~PageConnection()
