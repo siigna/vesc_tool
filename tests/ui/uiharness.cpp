@@ -138,6 +138,14 @@ void UiHarness::seedSettings()
     set.setValue("darkMode", true);
     set.setValue("useImperialUnits", false);
     set.setValue("app_scale_factor", 1.0);
+
+    /*
+     * Only needed once a test constructs MainWindow, and then it is essential:
+     * its startup checks open the StartupWizard modally when intro_done is
+     * falsy, and with no one to dismiss it the suite hung until the timeout.
+     */
+    set.setValue("intro_done", true);
+    set.setValue("introVersion", VT_INTRO_VERSION);
     set.sync();
 }
 

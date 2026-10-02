@@ -274,7 +274,7 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 anchors.fill: parent
                 wrapMode: Text.WordWrap
-                text: "You must finish the introduction in order to use VESC Tool."
+                text: "You must finish the introduction in order to use ESCargot Tool."
             }
         }
 

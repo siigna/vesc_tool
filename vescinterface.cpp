@@ -574,7 +574,7 @@ VescInterface::VescInterface(QObject *parent) : QObject(parent)
             emitMessageDialog("Deserializing " + configName + " configuration failed",
                               "Could not deserialize " + configName +
                               " configuration. This probably means "
-                              "that something is wrong with your firmware, or this VESC Tool version.",
+                              "that something is wrong with your firmware, or this ESCargot Tool version.",
                               false, false);
 #endif
         }
@@ -600,7 +600,7 @@ VescInterface::VescInterface(QObject *parent) : QObject(parent)
             emitMessageDialog("ESCargot Tool Test Version",
                               "Warning: This is a test version of ESCargot Tool. The included firmwares are NOT compatible with "
                               "released firmwares and should only be used with this test version. When using a release version "
-                              "of VESC Tool, the firmware must be upgraded even if the version number is the same.",
+                              "of ESCargot Tool, the firmware must be upgraded even if the version number is the same.",
                               false);
         }
     });
@@ -2582,7 +2582,7 @@ bool VescInterface::connectSerial(QString port, int baudrate)
     (void)baudrate;
     emit messageDialog(tr("Connect serial"),
                        tr("Serial port support is not enabled in this build "
-                          "of VESC Tool."),
+                          "of ESCargot Tool."),
                        false, false);
     return false;
 #endif
@@ -2702,7 +2702,7 @@ bool VescInterface::connectCANbus(QString backend, QString ifName, int bitrate)
     (void)bitrate;
     emit messageDialog(tr("Connect serial"),
                        tr("CAN bus support is not enabled in this build "
-                          "of VESC Tool."),
+                          "of ESCargot Tool."),
                        false, false);
     return false;
 #endif
@@ -3440,7 +3440,7 @@ void VescInterface::packetDataToSend(QByteArray &data)
 
         if (data.size() <= 6) { // Send packet in a single frame
             data.prepend(char(0)); // Process packet at receiver
-            data.prepend(char(254)); // VESC Tool sender ID
+            data.prepend(char(254)); // ESCargot Tool sender ID
 
             frame.setFrameId(uint32_t(target_id) |
                              uint32_t(CAN_PACKET_PROCESS_SHORT_BUFFER << 8));
@@ -3584,7 +3584,7 @@ void VescInterface::fwVersionReceived(FW_RX_PARAMS params)
         if (params.isPaired && !hasPairedUuid(mUuidStr)) {
             disconnectPort();
             emitMessageDialog("Pairing",
-                              "This device is not paired to your local version of VESC Tool. You can either "
+                              "This device is not paired to your local version of ESCargot Tool. You can either "
                               "add the UUID to the pairing list manually, or connect over USB and set the app "
                               "pairing flag to false for this VESC. Then you can pair to this version of VESC "
                               "tool, or leave the device unpaired.",
@@ -3604,7 +3604,7 @@ void VescInterface::fwVersionReceived(FW_RX_PARAMS params)
 
     if (fwPairs.isEmpty()) {
         emit messageDialog(tr("No Supported Firmwares"),
-                           tr("This version of VESC Tool does not seem to have any supported "
+                           tr("This version of ESCargot Tool does not seem to have any supported "
                               "firmwares. Something is probably wrong with the motor configuration "
                               "file."),
                            false, false);
@@ -3857,7 +3857,7 @@ void VescInterface::fwVersionReceived(FW_RX_PARAMS params)
         updateFwRx(true);
         if (!wasReceived) {
             emit messageDialog(tr("Warning"), tr("The connected device has newer firmware than this version of "
-                                                "VESC Tool supports. It is recommended that you update VESC "
+                                                "ESCargot Tool supports. It is recommended that you update VESC "
                                                 "Tool to the latest version. Alternatively, the firmware on "
                                                 "the connected device can be downgraded in the firmware page. "
                                                 "Until then, limited communication mode will be used."), false, false);
@@ -3943,7 +3943,7 @@ void VescInterface::fwVersionReceived(FW_RX_PARAMS params)
 
     if (params.isTestFw > 0 && !VT_IS_TEST_VERSION) {
         emitMessageDialog("Test Firmware",
-                          "The connected VESC-based device has test firmware and this is not a test build of VESC Tool. "
+                          "The connected VESC-based device has test firmware and this is not a test build of ESCargot Tool. "
                           "You should update the firmware urgently, this may not be a safe situation.",
                           false, false);
     }
@@ -4255,7 +4255,7 @@ void VescInterface::mcconfUpdated()
             if (mMcConfig->getConfigVersion() != VT_CONFIG_VERSION) {
                 emitMessageDialog("Configuration Loaded",
                                   "The loaded motor configuration file is from a different firmware and/or different "
-                                  "version of VESC Tool. If it does not work properly you should run the motor wizard "
+                                  "version of ESCargot Tool. If it does not work properly you should run the motor wizard "
                                   "again or re-measure the parameters manually.\n\n"
                                   ""
                                   "When updating firmware it is always best to reset to the default configuration and "

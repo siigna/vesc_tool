@@ -766,7 +766,7 @@ void PageLisp::on_helpButton_clicked()
                    "Ctrl + 'r'         : Run selected block in REPL<br>"
                    "Ctrl + Shift + 'd' : Duplicate current line<br>";
 
-    HelpDialog::showHelpMonospace(this, "VESC Tool Script Editor", html);
+    HelpDialog::showHelpMonospace(this, "ESCargot Tool Script Editor", html);
 }
 
 void PageLisp::on_replEdit_returnPressed()

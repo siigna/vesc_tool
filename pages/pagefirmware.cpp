@@ -536,7 +536,7 @@ void PageFirmware::uploadFw(bool allOverCan)
                 if (ui->hwList->count() == 0) {
                     QMessageBox::warning(this,
                                          tr("Upload Error"),
-                                         tr("This version of VESC Tool does not include any firmware "
+                                         tr("This version of ESCargot Tool does not include any firmware "
                                             "for your hardware version. You can either "
                                             "upload a custom file or look for a later version of VESC "
                                             "Tool that might support your hardware."));
@@ -584,7 +584,7 @@ void PageFirmware::uploadFw(bool allOverCan)
                 if (ui->blList->count() == 0) {
                     QMessageBox::warning(this,
                                          tr("Upload Error"),
-                                         tr("This version of VESC Tool does not include any bootloader "
+                                         tr("This version of ESCargot Tool does not include any bootloader "
                                             "for your hardware version."));
                 } else {
                     QMessageBox::warning(this,

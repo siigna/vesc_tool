@@ -61,6 +61,15 @@ rm -rf actual
 timeout 300 ./tst_ui "$@"
 status=$?
 
+# The light palette is a separate run: the colour tables for the two themes are
+# independent lists in appstyle.cpp, and icon lookups resolve to a different
+# directory, so a missing light-theme icon or colour is invisible to the dark
+# run. Skipped when the caller asked for specific tests.
+if [ $status -eq 0 ] && [ $# -eq 0 ]; then
+    timeout 300 ./tst_ui --light
+    status=$?
+fi
+
 if [ $status -eq 124 ]; then
     echo "FAILED: timed out after 300s" >&2
 fi

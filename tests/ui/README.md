@@ -56,10 +56,41 @@ colour name comes back red. `Utility::getIcon` was made to warn for this;
 about box names this fork and carries the placeholder logo's CC BY-SA credit,
 and no page label calls this program by the upstream name.
 
+**The `mainWindow*` checks** — the real window, built as the application builds
+it. `MainWindow::reloadPages` registers ~40 pages in one function and keeps the
+navigation list and the stacked widget in step **by convention only**; nothing
+in the code enforces it, and `on_pageList_currentRowChanged` does
+`setCurrentIndex(currentRow)`, so any drift opens the wrong screen for every
+page below it. Also that `openPage` — what `--showPage` uses — reaches the page
+it names, that an unknown name moves nothing, and that the custom-config rows
+are hidden with no board attached.
+
+These run **last**, and the window is created once and never destroyed. Both
+are deliberate: MainWindow's timer runs the startup checks, which end in
+`Utility::checkVersion` and a live network request, so nothing may turn the
+event loop after they run; and constructing three windows in one process
+segfaulted on teardown, because deletions queued through `deleteLater` with no
+loop to run them were executed against objects whose owners had gone.
+
 **The `insights*` checks** — the flows whose breakage would be silent: the
 default provider is the one that keeps data on this machine, a remote endpoint
 does not claim otherwise, a keyless provider does not invite a key, and neither
 button is pressable with no controller attached.
+
+## Both themes
+
+`run.sh` runs the binary twice: once dark, once with `--light`.
+
+The light run does **not** repeat the structure snapshots. Those record names,
+classes and text, none of which the theme changes, so a second set of baselines
+would be a copy of the first. What the theme does change is which files are
+loaded — `Utility::getThemePath` sends every icon lookup to
+`res/+theme_light` — and which colour names exist, because the two palettes are
+independent literal lists in `appstyle.cpp` and can drift apart. So the light
+run executes only the checks whose outcome the theme can alter.
+
+That tier pays for itself: deleting `res/+theme_light/icons/motor.png` from
+`res.qrc` leaves the dark run fully green and fails the light one.
 
 ## Updating baselines
 
@@ -84,6 +115,8 @@ and reverted:
 | delete both `updateParamDouble` calls in `parameditdouble.cpp` | **caught** — `editorWritesThroughToConfig` |
 | remove a colour the pages request from `appstyle.cpp` | **caught** — `noMissingIconsOrColours` |
 | revert the welcome heading to the upstream name | **caught** — the `branding` stage of `tests/check.sh` |
+| add a nav row with no page behind it | **caught** — `mainWindowNavAndStackStayInStep` |
+| delete a light-theme icon from `res.qrc` | **caught by the light run only** — dark stayed green |
 
 Three of those were *not* caught when first written, and the reasons are worth
 keeping:

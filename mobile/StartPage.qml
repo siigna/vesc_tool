@@ -553,7 +553,7 @@ Item {
             wrapMode: Text.WordWrap
             text:
                 "This will restore the configuration of the connected VESC, as well as the VESCs connected over CAN bus " +
-                "if a backup exists for their UUID in this instance of VESC Tool. If no backup is found for the UUID of " +
+                "if a backup exists for their UUID in this instance of ESCargot Tool. If no backup is found for the UUID of " +
                 "the VESCs nothing will be changed. Continue?"
         }
 

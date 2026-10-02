@@ -157,7 +157,7 @@ void BoardSetupWindow::timerSlot()
         }
     }
 
-    // Read configurations if they haven't been read since starting VESC Tool
+    // Read configurations if they haven't been read since starting ESCargot Tool
 
 
 

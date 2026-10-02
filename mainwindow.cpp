@@ -698,7 +698,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
                     this,
                     tr("Unsaved LispBM Tabs"),
                     tr("There are unsaved LispBM tabs open. Do you want to close "
-                       "VESC Tool without saving them?"),
+                       "ESCargot Tool without saving them?"),
                     QMessageBox::Yes | QMessageBox::Cancel
                     );
 
@@ -712,7 +712,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
                     this,
                     tr("Unsaved Qml-Tabs"),
                     tr("There are unsaved Qml-tabs open. Do you want to close "
-                       "VESC Tool without saving them?"),
+                       "ESCargot Tool without saving them?"),
                     QMessageBox::Yes | QMessageBox::Cancel
                     );
 
@@ -861,7 +861,7 @@ void MainWindow::timerSlot()
     static int disconected_cnt = 0;
     disconected_cnt++;
 
-    // Read configurations if they haven't been read since starting VESC Tool
+    // Read configurations if they haven't been read since starting ESCargot Tool
     if (mVesc->isPortConnected()) {
         static int conf_cnt = 0;
         disconected_cnt = 0;
@@ -971,8 +971,8 @@ void MainWindow::timerSlot()
         if (!mSettings.value("intro_done").toBool()) {
             QMessageBox::critical(this,
                                   tr("Warning"),
-                                  tr("You have not finished the VESC Tool introduction. You must do that "
-                                     "in order to use VESC Tool."));
+                                  tr("You have not finished the ESCargot Tool introduction. You must do that "
+                                     "in order to use ESCargot Tool."));
             QCoreApplication::quit();
         }
 
@@ -2099,7 +2099,7 @@ void MainWindow::on_actionClearConfigurationBackups_triggered()
     reply = QMessageBox::warning(this,
                                  tr("Warning"),
                                  tr("This is going to remove all configuration backups for "
-                                    "this instance of VESC Tool. Continue?"),
+                                    "this instance of ESCargot Tool. Continue?"),
                                  QMessageBox::Yes | QMessageBox::Cancel);
 
     if (reply == QMessageBox::Yes) {

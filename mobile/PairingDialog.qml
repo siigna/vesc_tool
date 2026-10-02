@@ -68,7 +68,7 @@ Item {
                 id: text
                 Layout.fillWidth: true
                 color: Utility.getAppHexColor("lightText")
-                text: qsTr("These are the VESCs paired to this instance of VESC Tool.")
+                text: qsTr("These are the VESCs paired to this instance of ESCargot Tool.")
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
@@ -277,7 +277,7 @@ Item {
             verticalAlignment: Text.AlignVCenter
             anchors.fill: parent
             wrapMode: Text.WordWrap
-            text: "This is going to pair the connected VESC with this instance of VESC Tool. VESC Tool instances " +
+            text: "This is going to pair the connected VESC with this instance of ESCargot Tool. ESCargot Tool instances " +
                   "that are not paired with this VESC will not be able to connect over bluetooth any more. Continue?"
         }
 
@@ -289,7 +289,7 @@ Item {
             if (Utility.waitSignal(mCommands, "2ackReceived(QString)", 2000)) {
                 VescIf.emitMessageDialog("Pairing Successful!",
                                          "Pairing is done! Please note the UUID if this VESC (or take a screenshot) in order " +
-                                         "to add it to VESC Tool instances that are not paired in the future. The UUID is:\n" +
+                                         "to add it to ESCargot Tool instances that are not paired in the future. The UUID is:\n" +
                                          VescIf.getConnectedUuid(),
                                          true, false)
             }

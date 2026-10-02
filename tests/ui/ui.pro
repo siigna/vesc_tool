@@ -20,7 +20,12 @@ TOP = $$PWD/../..
 
 include($$TOP/app.pri)
 
-INCLUDEPATH += $$TOP
+# Deliberately prepended, not appended. qmarkdowntextedit ships its own
+# mainwindow.h and its .pri puts that directory on the include path, so
+# `#include "mainwindow.h"` resolved to a vendored demo app's class and the
+# compiler reported MainWindow as having no openPage. The application only
+# avoids this because -I. happens to come first there.
+INCLUDEPATH = $$TOP $$INCLUDEPATH
 
 # So the suite can find its baselines no matter where it is run from.
 DEFINES += TESTS_UI_DIR=\\\"$$PWD\\\"

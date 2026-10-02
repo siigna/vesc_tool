@@ -202,14 +202,14 @@ void Preferences::closeEvent(QCloseEvent *event)
 {
     if (Utility::isDarkMode() != mLastIsDark) {
         mVesc->emitMessageDialog("Theme Changed",
-                                 "Please restart VESC Tool for the theme changes to take effect.",
+                                 "Please restart ESCargot Tool for the theme changes to take effect.",
                                  false, false);
     }
 
     if (!Utility::almostEqual(mLastScaling,
                               mSettings.value("app_scale_factor", 1.0).toDouble(), 0.001)) {
         mVesc->emitMessageDialog("Scaling Changed",
-                                 "Please restart VESC Tool for the scaling change to take effect.",
+                                 "Please restart ESCargot Tool for the scaling change to take effect.",
                                  false, false);
     }
 

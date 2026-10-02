@@ -83,9 +83,18 @@ stage "branding (no upstream product name in display strings)"
            | grep -vE '/maddy/|/qmarkdowntextedit/|/QCodeEditor/|/build/|/obj/' \
            | grep -vE '^\./utility\.cpp:|^\./tests/' || true)
 
-    lits=$(grep -rn '"VESC Tool"' \
-             --include='*.cpp' --include='*.h' --include='*.qml' \
-             . 2>/dev/null | grep -vE 'appstyle\.cpp|/build/|/obj/' || true)
+    # Any occurrence of the bare name, not just an exact "VESC Tool" literal:
+    # the first version of this rule missed
+    # tr("You have not finished the VESC Tool introduction...") because the
+    # name was in the middle of a longer string. The GPL headers every file
+    # inherited are excluded by their own wording.
+    lits=$(grep -rn 'VESC Tool' \
+             --include='*.cpp' --include='*.h' --include='*.ui' \
+             --include='*.qml' --include='*.xml' \
+             . 2>/dev/null \
+           | grep -vE '/maddy/|/qmarkdowntextedit/|/QCodeEditor/|/build/|/obj/' \
+           | grep -vE 'part of VESC Tool|VESC Tool is free software|VESC Tool is distributed' \
+           | grep -vE '^\./appstyle\.cpp:|^\./utility\.cpp:|^\./tests/' || true)
 
     if [ -n "$hits$lits" ]; then
         printf '%s\n' "$hits" "$lits" | sed '/^$/d' | sed 's/^/  /'

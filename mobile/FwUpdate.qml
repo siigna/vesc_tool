@@ -772,7 +772,7 @@ Item {
             if (fwItems.rowCount() === 0) {
                 VescIf.emitMessageDialog(
                             "Upload Error",
-                            "This version of VESC Tool does not include any firmware " +
+                            "This version of ESCargot Tool does not include any firmware " +
                             "for your hardware version. You can either " +
                             "upload a custom file or look for a later version of VESC " +
                             "Tool that might support your hardware.",
@@ -826,7 +826,7 @@ Item {
             if (blItems.rowCount() === 0) {
                 VescIf.emitMessageDialog(
                             "Upload Error",
-                            "This version of VESC Tool does not include any bootloader " +
+                            "This version of ESCargot Tool does not include any bootloader " +
                             "for your hardware version.",
                             false)
                 return;
@@ -848,7 +848,7 @@ Item {
             if (archFwItems.rowCount() === 0) {
                 VescIf.emitMessageDialog(
                             "Upload Error",
-                            "This version of VESC Tool does not include the selected firmware " +
+                            "This version of ESCargot Tool does not include the selected firmware " +
                             "for your hardware version. You can try to update the archive and see " +
                             "if it has been added since your last update.",
                             false)

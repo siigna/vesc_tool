@@ -195,7 +195,7 @@ AppFirmwarePage::AppFirmwarePage(VescInterface *vesc, QWidget *parent)
 
     setTitle(tr("Update Firmware"));
     setSubTitle(tr("You need to update the firmware on the VESC in order "
-                   "to use it with this version of VESC Tool."));
+                   "to use it with this version of ESCargot Tool."));
 
     mLabel = new QLabel(tr("Your VESC (or one of the VESCs on the CAN-bus) has old firmware, "
                            "and needs to be updated. After that, "

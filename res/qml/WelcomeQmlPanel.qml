@@ -475,8 +475,8 @@ Item {
                 wrapMode: Text.WordWrap
                 text:
                     "The hardware you are connecting to contains code that will alter the " +
-                    "user interface of VESC Tool. This code has not been verified by the " +
-                    "authors of VESC Tool and could contain bugs and security problems. \n\n" +
+                    "user interface of ESCargot Tool. This code has not been verified by the " +
+                    "authors of ESCargot Tool and could contain bugs and security problems. \n\n" +
                     "Do you want to load this custom user interface?"
             }
 

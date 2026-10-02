@@ -842,7 +842,7 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About VESC Tool</string>
+    <string>About ESCargot Tool</string>
    </property>
   </action>
   <action name="actionKeyboardControl">
@@ -1006,7 +1006,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionVESCToolChangelog">
    <property name="text">
-    <string>VESC Tool Changelog</string>
+    <string>ESCargot Tool Changelog</string>
    </property>
   </action>
   <action name="actionTerminalDRVResetLatchedFaults">

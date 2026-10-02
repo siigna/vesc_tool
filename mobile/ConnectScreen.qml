@@ -865,7 +865,7 @@ Item {
         onRejected: {
             VescIf.emitMessageDialog(
                         "Location Permission",
-                        "VESC Tool cannot scan for bluetoot devices or log data with location information without the " +
+                        "ESCargot Tool cannot scan for bluetoot devices or log data with location information without the " +
                         "the location permission. Please accept the request in order to use these features.",
                         false, false)
         }
@@ -878,14 +878,14 @@ Item {
             anchors.fill: parent
             wrapMode: Text.WordWrap
             text:
-                "VESC Tool needs to access the location of your device to scan for " +
+                "ESCargot Tool needs to access the location of your device to scan for " +
                 "Bluetooth devices as well as for recording your location when doing " +
                 "realtime data logging.\n\n" +
 
-                "In order to keep logging when VESC Tool is in the background and/or when the " +
+                "In order to keep logging when ESCargot Tool is in the background and/or when the " +
                 "screen is off, the permission to log data in the background is also required. " +
                 "Otherwise the logs will only get location information together with the motor " +
-                "data when the screen is on and VESC Tool is in the foreground."
+                "data when the screen is on and ESCargot Tool is in the foreground."
         }
     }
 }

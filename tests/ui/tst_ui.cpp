@@ -38,6 +38,7 @@
  */
 
 #include <QtTest>
+#include <QVector>
 #include <QApplication>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -51,6 +52,10 @@
 #include <QLabel>
 #include <QPushButton>
 
+#include "mainwindow.h"
+#include "widgets/pagelistitem.h"
+#include <QListWidget>
+#include <QStackedWidget>
 #include "uiharness.h"
 #include "utility.h"
 #include "tuninginsights.h"
@@ -170,6 +175,16 @@ private slots:
     void insightsEndpointFollowsProvider();
     void insightsKeylessProviderNeedsNoKey();
     void insightsButtonsNeedAController();
+
+    /*
+     * Last on purpose. These build the real MainWindow, whose timer runs the
+     * startup checks -- which end in Utility::checkVersion, a live network
+     * request. Nothing turns the event loop after them, so that timer never
+     * fires and the suite stays offline.
+     */
+    void mainWindowNavAndStackStayInStep();
+    void mainWindowOpensPagesByName();
+    void mainWindowHidesWhatNeedsAConnection();
 };
 
 void UiTest::structureMatchesBaseline_data()
@@ -552,6 +567,134 @@ void UiTest::brandingIsOurs()
     }
 }
 
+/*
+ * MainWindow builds all ~40 pages in one 200-line function and keeps the
+ * navigation list and the stacked widget in step by convention only -- nothing
+ * in the code enforces it. These construct the real window.
+ *
+ * Deliberately without turning the event loop: MainWindow's startup checks run
+ * from its timer and end in Utility::checkVersion, which makes a live network
+ * request. Not processing events keeps the suite offline, and the pages are all
+ * built in the constructor anyway.
+ */
+/*
+ * One window, shared by the tests below and deliberately never destroyed.
+ *
+ * Constructing and destroying three of them in one process segfaulted after
+ * the third: MainWindow's teardown drops widgets through deleteLater, and with
+ * no event loop turning (which is what keeps the startup checks, and their
+ * live network request, from running) those deletions queue up and are then
+ * run against objects whose owners have gone. Leaking one window avoids the
+ * teardown entirely and is honest about what is being tested, which is the
+ * window as built, not its destructor.
+ */
+static MainWindow *sharedWindow()
+{
+    static MainWindow *w = nullptr;
+
+    if (w == nullptr) {
+        w = new MainWindow;
+    }
+
+    return w;
+}
+
+static QListWidget *navOf(MainWindow *w)
+{
+    return w->findChild<QListWidget*>("pageList");
+}
+
+void UiTest::mainWindowNavAndStackStayInStep()
+{
+    MainWindow *w = sharedWindow();
+
+    QListWidget *nav = navOf(w);
+    QStackedWidget *stack = w->findChild<QStackedWidget*>("pageWidget");
+    QVERIFY(nav);
+    QVERIFY(stack);
+
+    QVERIFY2(nav->count() > 30,
+             qPrintable(QString("only %1 navigation rows").arg(nav->count())));
+
+    /*
+     * on_pageList_currentRowChanged does setCurrentIndex(currentRow), so a row
+     * and its page must share an index. If they ever drift, every page below
+     * the drift opens the wrong screen.
+     */
+    QCOMPARE(nav->count(), stack->count());
+
+    // Every row must carry a PageListItem, since that is what names it.
+    for (int i = 0; i < nav->count(); i++) {
+        PageListItem *item =
+                qobject_cast<PageListItem*>(nav->itemWidget(nav->item(i)));
+        QVERIFY2(item != nullptr,
+                 qPrintable(QString("row %1 has no PageListItem").arg(i)));
+        QVERIFY2(!item->name().isEmpty(),
+                 qPrintable(QString("row %1 has no name").arg(i)));
+    }
+}
+
+void UiTest::mainWindowOpensPagesByName()
+{
+    MainWindow *w = sharedWindow();
+
+    QListWidget *nav = navOf(w);
+    QStackedWidget *stack = w->findChild<QStackedWidget*>("pageWidget");
+    QVERIFY(nav);
+    QVERIFY(stack);
+
+    /*
+     * openPage is what --showPage uses, and it is the only reproducible way to
+     * reach a page: driving the navigation list by mouse coordinates is not,
+     * because the scroll does not always land on the same row.
+     */
+    w->openPage("Tuning Insights");
+    QVERIFY2(qobject_cast<PageTuningInsights*>(stack->currentWidget()) != nullptr,
+             qPrintable(QString("Tuning Insights opened %1")
+                        .arg(stack->currentWidget() == nullptr ? "nothing"
+                             : stack->currentWidget()->metaObject()->className())));
+
+    w->openPage("FOC");
+    QVERIFY2(qobject_cast<PageFoc*>(stack->currentWidget()) != nullptr,
+             "FOC did not open PageFoc");
+
+    // A name that does not exist must not move the selection.
+    const int before = nav->currentRow();
+    w->openPage("No Such Page");
+    QCOMPARE(nav->currentRow(), before);
+}
+
+void UiTest::mainWindowHidesWhatNeedsAConnection()
+{
+    MainWindow *w = sharedWindow();
+    QListWidget *nav = navOf(w);
+    QVERIFY(nav);
+
+    /*
+     * The custom configuration pages are registered hidden and only revealed
+     * for hardware that reports having them. Unconnected, they must not be in
+     * the list -- their page still exists in the stack, which is why the
+     * count check above compares against the stack and not against what is
+     * visible.
+     */
+    int hiddenConfigRows = 0;
+
+    for (int i = 0; i < nav->count(); i++) {
+        PageListItem *item =
+                qobject_cast<PageListItem*>(nav->itemWidget(nav->item(i)));
+
+        if (item != nullptr && item->name().startsWith("Config")) {
+            QVERIFY2(nav->item(i)->isHidden(),
+                     qPrintable(QString("%1 is visible with no board")
+                                .arg(item->name())));
+            hiddenConfigRows++;
+        }
+    }
+
+    QVERIFY2(hiddenConfigRows > 0,
+             "found no custom-config rows at all; the registration changed");
+}
+
 void UiTest::insightsPreviewShowsTheAnswerTab()
 {
     QScopedPointer<QWidget> page(makePage(Page_PageTuningInsights, g_vesc));
@@ -619,6 +762,34 @@ void UiTest::insightsInstructionsAreEditable()
 int main(int argc, char *argv[])
 {
     /*
+     * --light runs with the light palette instead of the dark one.
+     *
+     * Not the structure snapshots: those record names, classes and text, none
+     * of which the theme changes, so a second set of baselines would be a copy
+     * of the first. What the theme does change is which files get loaded --
+     * Utility::getThemePath sends every icon lookup to res/+theme_light -- and
+     * which colour names exist, since the two palettes are independent literal
+     * lists in appstyle.cpp and can drift apart. So the light run executes the
+     * checks that notice a missing icon or an unknown colour.
+     *
+     * The flag is stripped before qExec, which rejects options it does not
+     * know.
+     */
+    bool light = false;
+    QVector<char*> args;
+
+    for (int i = 0; i < argc; i++) {
+        if (qstrcmp(argv[i], "--light") == 0) {
+            light = true;
+        } else {
+            args.append(argv[i]);
+        }
+    }
+
+    int realArgc = args.size();
+    char **realArgv = args.data();
+
+    /*
      * Order matters, and is the reason this is not QTEST_MAIN: pinEnvironment
      * has to run before the QApplication reads the locale, the scale factor or
      * any XDG path.
@@ -627,16 +798,26 @@ int main(int argc, char *argv[])
     VtAppStyle::initIdentity();
     UiHarness::seedSettings();
 
-    QApplication app(argc, argv);
+    QApplication app(realArgc, realArgv);
 
-    VtAppStyle::initColors(true);
+    VtAppStyle::initColors(!light);
     VtAppStyle::registerFonts();
-    VtAppStyle::applyStyle(&app, true);
+    VtAppStyle::applyStyle(&app, !light);
 
     g_vesc = UiHarness::makeVesc();
 
     UiTest tc;
-    const int res = QTest::qExec(&tc, argc, argv);
+    int res = 0;
+
+    if (light) {
+        // Only the checks whose outcome the theme can change.
+        QStringList only;
+        only << QString::fromLocal8Bit(realArgv[0])
+             << "noMissingIconsOrColours" << "brandingIsOurs";
+        res = QTest::qExec(&tc, only);
+    } else {
+        res = QTest::qExec(&tc, realArgc, realArgv);
+    }
 
     delete g_vesc;
     return res;
