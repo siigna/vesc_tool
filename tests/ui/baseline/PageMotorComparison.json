@@ -1,0 +1,985 @@
+{
+    "page": "PageMotorComparison",
+    "widget_count": 177,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "autoscaleButton"
+        },
+        {
+            "class": "QFrame",
+            "enabled": true,
+            "name": "buttonFrame"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "compAEdit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "compBEdit"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Motor A"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "Motor Configuration"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_4",
+            "text": "Motor Configuration"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Export"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "m1ConfChooseButton"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "m1ConfFileButton",
+            "text": "File"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "m1ConfFileEdit"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "m1ConfLocalButton",
+            "text": "Local"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m1FwBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m1GearEfficiencyBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m1GearingBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "m1LoadConfButton"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m1MaxRpmBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m1MotorNumBox"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "m1MtpaBox",
+            "text": "MTPA"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)"
+            ],
+            "enabled": true,
+            "name": "m1PlotTable",
+            "rows": 30
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "m1SetupGearingButton"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m1TempIncBox"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "m2Box",
+            "text": "Motor B"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "m2ConfChooseButton"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "m2ConfFileButton",
+            "text": "File"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "m2ConfFileEdit"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "m2ConfLocalButton",
+            "text": "Local"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m2FwBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m2GearEfficiencyBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m2GearingBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "m2LoadConfButton"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m2MaxRpmBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m2MotorNumBox"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "m2MtpaBox",
+            "text": "MTPA"
+        },
+        {
+            "class": "QTableWidget",
+            "editors": [
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)",
+                "(none)"
+            ],
+            "enabled": true,
+            "name": "m2PlotTable",
+            "rows": 30
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "m2SetupGearingButton"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "m2TempIncBox"
+        },
+        {
+            "class": "QCustomPlot",
+            "enabled": true,
+            "name": "plot"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "pointsBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "qmlChooseButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qmlFileEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "qmlRunButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "qmlStopButton"
+        },
+        {
+            "class": "QQuickWidget",
+            "enabled": true,
+            "name": "qmlWidget"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": false,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": false,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": false,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": false,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": false,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "qt_spinbox_lineedit"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "rescaleButton"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "saveHeightBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "savePlotPdfButton",
+            "text": "PDF"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "savePlotPngButton",
+            "text": "PNG"
+        },
+        {
+            "class": "QSpinBox",
+            "enabled": true,
+            "name": "saveWidthBox"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "scatterPlotBox",
+            "text": "ScatterPlot"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter_2"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter_3"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Custom",
+                "Custom"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": false,
+            "name": "testExpBaseTorqueBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": false,
+            "name": "testExpBox"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "testLiveUpdateBox",
+            "text": "Live Update"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "testModeExpButton",
+            "text": "Exp"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "testModeRpmButton",
+            "text": "RPM"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "testModeRpmPowerButton",
+            "text": "RPM/Power"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "testModeTorqueButton",
+            "text": "Torque"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "testModeVBFWButton",
+            "text": "VB+FW"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "testModeVBRPMButton",
+            "text": "VB+RPM"
+        },
+        {
+            "class": "QRadioButton",
+            "enabled": true,
+            "name": "testModeVbusButton",
+            "text": "VBus"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "testNegativeBox",
+            "text": "Negative"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": false,
+            "name": "testPowerBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "testRpmBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": false,
+            "name": "testRpmStartBox"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "testRunButton",
+            "text": "Run"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": true,
+            "name": "testTorqueBox"
+        },
+        {
+            "class": "QDoubleSpinBox",
+            "enabled": false,
+            "name": "testVbusBox"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "titleEdit"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomHButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "zoomVButton"
+        }
+    ]
+}

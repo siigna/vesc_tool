@@ -1,0 +1,91 @@
+{
+    "page": "PageWelcome",
+    "widget_count": 15,
+    "widgets": [
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "autoConnectButton",
+            "text": "AutoConnect"
+        },
+        {
+            "class": "ImageWidget",
+            "enabled": true,
+            "name": "bgWidget"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Quick Configuration"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "invertDirButton",
+            "text": "Invert Motor Directions"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "<html><head/><body><p align=\"center\"><span style=\" font-size:20pt;\">Welcome to </span><span style=\" font-size:20pt; font-weight:600;\">ESCargot Tool</span></p><p align=\"center\"><span style=\" font-size:14pt;\">To get started, you can use the </span><span style=\" font-size:14pt; font-style:italic;\">Setup Wizards</span><span style=\" font-size:14pt;\"> to configure the motor and app settings respectively. Otherwise, you can connect to your VESC in the </span><span style=\" font-size:14pt; font-style:italic;\">Connection</span><span style=\" font-size:14pt;\"> page and go through the motor and app configuration pages manually.</span></p></body></html>"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "multiSettingButton",
+            "text": "Multi Settings"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "nrfPairButton",
+            "text": "NRF Quick Pair"
+        },
+        {
+            "class": "QQuickWidget",
+            "enabled": true,
+            "name": "qmlWidget"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "setupBluetoothButton",
+            "text": "Setup Bluetooth Module"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "wizardAppButton",
+            "text": "Setup Input"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "wizardFocSimpleButton",
+            "text": "Setup Motors FOC"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "wizardIMUButton",
+            "text": "Setup IMU"
+        }
+    ]
+}

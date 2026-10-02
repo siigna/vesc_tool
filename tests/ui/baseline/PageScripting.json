@@ -1,0 +1,496 @@
+{
+    "page": "PageScripting",
+    "widget_count": 90,
+    "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": false,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "calcSizeButton",
+            "text": "Calculate Size"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearConsoleButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearRecentButton",
+            "text": "Clear"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "clearUploadTextButton"
+        },
+        {
+            "class": "QCodeEditor",
+            "enabled": true,
+            "name": "codeEdit"
+        },
+        {
+            "class": "VTextBrowser",
+            "enabled": true,
+            "name": "debugEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "eraseOnlyButton",
+            "text": "Erase Only"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "exampleFilterClearButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "exampleFilterEdit"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "exampleList"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "exportCArrayAppButton",
+            "text": "Export Array App"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "exportCArrayHwButton",
+            "text": "Export Array HW"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "fileChangeIgnoreButton",
+            "text": "Ignore"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "fileChangedLabel",
+            "text": "This file has been changed on the filesystem."
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "fileChangedReloadButton",
+            "text": "Reload"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "fileChangedWidget"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "fileNowLabel"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "fileTabs",
+            "tabs": [
+                "main"
+            ]
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "fullscreenButton",
+            "text": "Fullscreen"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox",
+            "text": "Export C Array"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_2",
+            "text": "Connected VESC"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "groupBox_3",
+            "text": "QML Upload"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "helpButton",
+            "text": "Help"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label",
+            "text": "Filter"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "label_2",
+            "text": "Filter"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "layoutWidget"
+        },
+        {
+            "class": "ScriptEditor",
+            "enabled": true,
+            "name": "mainEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openExampleButton",
+            "text": "Open"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openFileButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openQmluiAppButton",
+            "text": "Open Qmlui App"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openQmluiHwButton",
+            "text": "Open Qmlui HW"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "openRecentButton",
+            "text": "Open"
+        },
+        {
+            "class": "QQuickWidget",
+            "enabled": true,
+            "name": "qmlWidget"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QSplitterHandle",
+            "enabled": true,
+            "name": "qt_splithandle_"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "recentFilterClearButton"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "recentFilterEdit"
+        },
+        {
+            "class": "QListWidget",
+            "enabled": true,
+            "name": "recentList"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "refreshButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "reloadAndRunButton",
+            "text": "Reload && Run"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "removeSelectedButton",
+            "text": "Remove"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replaceAllButton",
+            "text": "Replace All"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "replaceEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "replaceThisButton",
+            "text": "Replace"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "runButton",
+            "text": "Run"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "runWindowButton",
+            "text": "Window"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveAsButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveButton"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "searchCaseSensitiveBox",
+            "text": "Case Sensitive"
+        },
+        {
+            "class": "QLineEdit",
+            "enabled": true,
+            "name": "searchEdit"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchHideButton"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchNextButton",
+            "text": "Next"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "searchPrevButton",
+            "text": "Previous"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "searchWidget"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter"
+        },
+        {
+            "class": "QSplitter",
+            "enabled": true,
+            "name": "splitter_2"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "stopButton",
+            "text": "Stop"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabWidget",
+            "tabs": [
+                "Console",
+                "Recent",
+                "Examples",
+                "Tools"
+            ]
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_2"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_3"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "tab_4"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "uploadButton",
+            "text": "Erase && Upload"
+        },
+        {
+            "class": "QCheckBox",
+            "enabled": true,
+            "name": "uploadFullscreenBox",
+            "text": "Fullscreen"
+        },
+        {
+            "class": "QPlainTextEdit",
+            "enabled": true,
+            "name": "uploadTextEdit"
+        }
+    ]
+}

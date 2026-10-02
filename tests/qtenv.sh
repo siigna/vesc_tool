@@ -42,5 +42,31 @@ qt_env_setup() {
         fi
     done
 
+    qt_qml_setup "$ver"
+
     return 0
+}
+
+# QML imports, for the pages that host a QQuickWidget. Without these the engine
+# reports `module "QtQuick.Controls" is not installed` and the scene never
+# loads, so a snapshot of such a page records an empty view and looks fine.
+#
+# Every module that provides qml/ contributes, across several packages, some of
+# them -bin outputs and some not -- so this globs rather than assuming a shape.
+qt_qml_setup() {
+    local ver="$1" d path=""
+
+    for d in /nix/store/*-qt*-"$ver"*/lib/qt-"$ver"/qml \
+             /nix/store/*-qtpositioning-*/lib/qt-"$ver"/qml; do
+        if [ -d "$d" ]; then
+            case ":$path:" in
+                *":$d:"*) ;;
+                *) path="${path:+$path:}$d" ;;
+            esac
+        fi
+    done
+
+    if [ -n "$path" ]; then
+        export QML2_IMPORT_PATH="${QML2_IMPORT_PATH:+$QML2_IMPORT_PATH:}$path"
+    fi
 }

@@ -66,6 +66,7 @@
 #include "utility.h"
 #include "tuninginsights.h"
 #include "appstyle.h"
+#include "appregister.h"
 #include "configparams.h"
 #include "vescinterface.h"
 #include "widgets/paramtable.h"
@@ -103,6 +104,12 @@
 #include "pages/pagelisp.h"
 #include "pages/pagecustomconfig.h"
 #include "pages/pageexperiments.h"
+#include "pages/pagemotorcomparison.h"
+#include "pages/pagewelcome.h"
+#include "pages/pagescripting.h"
+#include "pages/pageappimu.h"
+#include "pages/pageimu.h"
+#include "pages/pageloganalysis.h"
 
 enum PageId {
     Page_PageAppPas,
@@ -136,10 +143,19 @@ enum PageId {
     Page_PageVescPackage,
     Page_PageLisp,
     Page_PageCustomConfig,
-    Page_PageExperiments
+    Page_PageExperiments,
+
+    /* Need a real OpenGL context -- see the --gl tier. */
+    Page_PageMotorComparison,
+    Page_PageWelcome,
+    Page_PageScripting,
+    Page_PageAppImu,
+    Page_PageImu,
+    Page_PageLogAnalysis
 };
 
 static VescInterface *g_vesc = nullptr;
+static bool g_glMode = false;
 
 static QWidget *makePage(int id, VescInterface *vesc)
 {
@@ -176,6 +192,12 @@ static QWidget *makePage(int id, VescInterface *vesc)
     case Page_PageLisp: { auto p = new PageLisp(); p->setVesc(vesc); return p; }
     case Page_PageCustomConfig: { auto p = new PageCustomConfig(); p->setVesc(vesc); p->setConfNum(0); return p; }
     case Page_PageExperiments: { auto p = new PageExperiments(); p->setVesc(vesc); return p; }
+    case Page_PageMotorComparison: { auto p = new PageMotorComparison(); p->setVesc(vesc); return p; }
+    case Page_PageWelcome: { auto p = new PageWelcome(); p->setVesc(vesc); return p; }
+    case Page_PageScripting: { auto p = new PageScripting(); p->setVesc(vesc); return p; }
+    case Page_PageAppImu: { auto p = new PageAppImu(); p->setVesc(vesc); return p; }
+    case Page_PageImu: { auto p = new PageImu(); p->setVesc(vesc); return p; }
+    case Page_PageLogAnalysis: { auto p = new PageLogAnalysis(); p->setVesc(vesc); return p; }
     }
     return nullptr;
 }
@@ -195,6 +217,9 @@ private slots:
 
     void snapshotsAreStable_data();
     void snapshotsAreStable();
+
+    void glPagesRender_data();
+    void glPagesRender();
 
     void noMissingIconsOrColours();
     void brandingIsOurs();
@@ -601,6 +626,57 @@ void UiTest::snapshotsAreStable()
             }
         }
     }
+}
+
+void UiTest::glPagesRender_data()
+{
+    QTest::addColumn<QString>("name");
+    QTest::addColumn<int>("id");
+
+    /*
+     * The pages that cannot be built without an OpenGL context: three host a
+     * QQuickWidget, created by setupUi so it cannot be avoided by skipping
+     * setVesc, and three embed Vesc3DView, which is a QOpenGLWidget. The
+     * offscreen platform reports no GL capability, so these run in their own
+     * tier under xvfb with a software rasteriser -- see run.sh.
+     */
+    QTest::newRow("PageMotorComparison") << QString("PageMotorComparison") << int(Page_PageMotorComparison);
+    QTest::newRow("PageWelcome") << QString("PageWelcome") << int(Page_PageWelcome);
+    QTest::newRow("PageScripting") << QString("PageScripting") << int(Page_PageScripting);
+    QTest::newRow("PageAppImu") << QString("PageAppImu") << int(Page_PageAppImu);
+    QTest::newRow("PageImu") << QString("PageImu") << int(Page_PageImu);
+    QTest::newRow("PageLogAnalysis") << QString("PageLogAnalysis") << int(Page_PageLogAnalysis);
+}
+
+void UiTest::glPagesRender()
+{
+    QFETCH(QString, name);
+    QFETCH(int, id);
+
+    /*
+     * Skipped rather than silently passing when there is no context. Under the
+     * offscreen platform most of these still build a widget tree -- the QML
+     * engine just never loads a scene -- so they would compare against
+     * baselines taken with a real context and report a confusing mismatch for
+     * one page and a pass for the others.
+     */
+    if (!g_glMode) {
+        QSKIP("needs an OpenGL context; run with --gl under xvfb");
+    }
+
+    QScopedPointer<QWidget> page(makePage(id, g_vesc));
+    QVERIFY2(!page.isNull(), qPrintable(name));
+
+    UiHarness::settle();
+    UiHarness::settleWithTimers();
+
+    const QJsonObject snap = UiHarness::describe(page.data(), name);
+    QVERIFY2(snap["widget_count"].toInt() > 0,
+             qPrintable(name + " produced no named widgets"));
+
+    QString detail;
+    const bool ok = UiHarness::matchesBaseline(snap, name, &detail);
+    QVERIFY2(ok, qPrintable(name + ": " + detail));
 }
 
 void UiTest::noMissingIconsOrColours()
@@ -1031,11 +1107,14 @@ int main(int argc, char *argv[])
      * know.
      */
     bool light = false;
+    bool gl = false;
     QVector<char*> args;
 
     for (int i = 0; i < argc; i++) {
         if (qstrcmp(argv[i], "--light") == 0) {
             light = true;
+        } else if (qstrcmp(argv[i], "--gl") == 0) {
+            gl = true;
         } else {
             args.append(argv[i]);
         }
@@ -1055,6 +1134,14 @@ int main(int argc, char *argv[])
 
     QApplication app(realArgc, realArgv);
 
+    /*
+     * The same QML types the application registers. Without these the engine
+     * reports Vedder.vesc.utility as not installed and a QQuickWidget page
+     * loads no scene at all, which a snapshot cannot tell from a page that
+     * simply has little on it.
+     */
+    VtApp::registerTypes();
+
     VtAppStyle::initColors(!light);
     VtAppStyle::registerFonts();
     VtAppStyle::applyStyle(&app, !light);
@@ -1064,7 +1151,15 @@ int main(int argc, char *argv[])
     UiTest tc;
     int res = 0;
 
-    if (light) {
+    g_glMode = gl;
+
+    if (gl) {
+        // Only the pages that need a context; everything else already ran
+        // offscreen, where it is much faster.
+        QStringList only;
+        only << QString::fromLocal8Bit(realArgv[0]) << "glPagesRender";
+        res = QTest::qExec(&tc, only);
+    } else if (light) {
         // Only the checks whose outcome the theme can change.
         QStringList only;
         only << QString::fromLocal8Bit(realArgv[0])

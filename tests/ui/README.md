@@ -106,6 +106,41 @@ default provider is the one that keeps data on this machine, a remote endpoint
 does not claim otherwise, a keyless provider does not invite a key, and neither
 button is pressable with no controller attached.
 
+## Three tiers
+
+`run.sh` runs the binary three times.
+
+| tier | platform | what runs |
+|---|---|---|
+| default | `offscreen` | everything except the GL pages (58 checks) |
+| `--light` | `offscreen` | the checks the theme can change (4) |
+| `--gl` | `xcb` under `xvfb`, `LIBGL_ALWAYS_SOFTWARE=1` | the 6 pages that need a context (8) |
+
+Three pages host a `QQuickWidget`, created by `setupUi` so it cannot be avoided
+by skipping `setVesc`, and three embed `Vesc3DView`, a `QOpenGLWidget`. The
+offscreen platform reports no GL capability, so they get a real X server and
+Mesa's software rasteriser. Under the default tier they **skip** with a reason
+rather than pass: offscreen still builds most of their widget trees, so they
+would compare against baselines taken with a context and report a confusing
+mismatch for one page and a pass for the rest.
+
+The GL tier is skipped, not failed, when `xvfb-run` is unavailable — the rest
+of the suite is still worth running. To include it:
+
+```sh
+nix-shell -p xvfb-run --run ./tests/check.sh
+```
+
+**Two things had to be fixed before those snapshots meant anything.** The Qt
+QML import paths were not set, so the engine reported
+`module "QtQuick.Controls" is not installed` and loaded no scene; `qtenv.sh`
+now assembles `QML2_IMPORT_PATH` from every package that ships a `qml/`
+directory. And `Vedder.vesc.utility` — the program's *own* QML module — was
+registered inside `main.cpp`, which a test binary never runs, so those
+registrations moved to `appregister.cpp` and both the application and the tests
+call them. Until both were done, `PageWelcome`'s snapshot recorded an empty
+view and looked perfectly healthy.
+
 ## Both themes
 
 `run.sh` runs the binary twice: once dark, once with `--light`.
@@ -149,6 +184,7 @@ and reverted:
 | save the source log instead of the filtered one | **caught** — `insightsSavesWhatWasSent`, gnss reappeared |
 | write the config in a form that cannot be loaded | **caught** — `insightsSavedConfigLoadsBackIn` |
 | set a label from `currentMSecsSinceEpoch()` on a timer | **caught** — `snapshotsAreStable` |
+| rename `accelPlot` on a GL page | **caught by the GL tier only** — the offscreen run skips it |
 | fill a combo from the host (serial ports) | **not a mutation** — found while generating baselines, see below |
 
 Three of those were *not* caught when first written, and the reasons are worth

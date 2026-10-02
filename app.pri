@@ -158,6 +158,7 @@ build_mobile {
 }
 
 SOURCES += \
+    $$PWD/appregister.cpp \
     $$PWD/appstyle.cpp \
     $$PWD/bleuartdummy.cpp \
     $$PWD/codeloader.cpp \
@@ -186,7 +187,8 @@ SOURCES += \
     $$PWD/tcpserversimple.cpp \
     $$PWD/hexfile.cpp
 
-HEADERS  += $$PWD/appstyle.h \
+HEADERS  += $$PWD/appregister.h \
+    $$PWD/appstyle.h \
     $$PWD/mainwindow.h \
     $$PWD/bleuartdummy.h \
     $$PWD/codeloader.h \
