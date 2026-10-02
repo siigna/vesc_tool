@@ -235,7 +235,7 @@ QString Utility::vescToolChangeLog()
 
 QString Utility::aboutText()
 {
-    return tr("<b>VESC® Tool %1</b><br>"
+    return tr("<b>ESCargot Tool %1</b><br>"
           #if VT_IS_TEST_VERSION
               "Test Version %2<br>"
           #endif
@@ -253,9 +253,16 @@ QString Utility::aboutText()
           #elif defined(VER_FREE)
               "Free of Charge Version<br>"
           #endif
-              "&copy; Benjamin Vedder 2016 - 2026<br>"
-              "<a href=\"mailto:benjamin@vedder.se\">benjamin@vedder.se</a><br>"
-              "<a href=\"https://vesc-project.com/\">https://vesc-project.com/</a>")
+              "&copy; Stephen Bouche 2026<br>"
+              "A fork of VESC&reg; Tool, &copy; Benjamin Vedder 2016 - 2026.<br>"
+              "VESC&reg; is a registered trademark of Benjamin Vedder. This "
+              "project is not affiliated with or endorsed by him.<br>"
+              "<a href=\"https://vesc-project.com/\">https://vesc-project.com/</a><br>"
+              "<br>"
+              "Placeholder logo: photograph of a Roman snail by Geierunited, "
+              "<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC BY-SA 3.0</a>, "
+              "cropped and scaled &mdash; "
+              "<a href=\"https://commons.wikimedia.org/w/index.php?curid=95926\">source</a>.")
             .arg(QString::number(VT_VERSION, 'f', 2))
         #if VT_IS_TEST_VERSION
             .arg(QString::number(VT_IS_TEST_VERSION))
@@ -2422,7 +2429,17 @@ QPixmap Utility::getIcon(QString path)
 
     QPixmap pm;
     if (!QPixmapCache::find(path, &pm)) {
-        pm.load(getThemePath() + path);
+        if (!pm.load(getThemePath() + path)) {
+            /*
+             * A missing icon used to be completely silent: the null pixmap was
+             * cached and the caller drew nothing. A light-theme variant that
+             * was never added therefore looked fine to everyone running the
+             * dark theme. Saying so is what lets a test catch it -- see
+             * noMissingIconsOrColours in tests/ui.
+             */
+            qWarning() << "icon not found:" << (getThemePath() + path);
+        }
+
         QPixmapCache::insert(path, pm);
     }
 

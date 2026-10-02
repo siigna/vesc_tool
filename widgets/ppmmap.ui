@@ -178,7 +178,7 @@
            <string>VESC Tool preview with the current settings.</string>
           </property>
           <property name="text">
-           <string>VESC Tool</string>
+           <string>ESCargot Tool</string>
           </property>
          </widget>
         </item>

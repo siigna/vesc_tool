@@ -125,7 +125,7 @@ VescInterface::VescInterface(QObject *parent) : QObject(parent)
             if (powerMgr.isValid()) {
                 jint levelAndFlags = QAndroidJniObject::getStaticField<jint>(
                             "android/os/PowerManager","PARTIAL_WAKE_LOCK");
-                QAndroidJniObject tag = QAndroidJniObject::fromString( "VESC Tool" );
+                QAndroidJniObject tag = QAndroidJniObject::fromString( "ESCargot Tool" );
                 mWakeLock = powerMgr.callObjectMethod("newWakeLock",
                                                        "(ILjava/lang/String;)Landroid/os/PowerManager$WakeLock;",
                                                        levelAndFlags,tag.object<jstring>());
@@ -597,8 +597,8 @@ VescInterface::VescInterface(QObject *parent) : QObject(parent)
 #if VT_IS_TEST_VERSION
     QTimer::singleShot(1000, [this]() {
         if (!mIgnoreTestVersion) {
-            emitMessageDialog("VESC Tool Test Version",
-                              "Warning: This is a test version of VESC Tool. The included firmwares are NOT compatible with "
+            emitMessageDialog("ESCargot Tool Test Version",
+                              "Warning: This is a test version of ESCargot Tool. The included firmwares are NOT compatible with "
                               "released firmwares and should only be used with this test version. When using a release version "
                               "of VESC Tool, the firmware must be upgraded even if the version number is the same.",
                               false);

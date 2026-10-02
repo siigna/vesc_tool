@@ -168,7 +168,7 @@ FirmwarePage::FirmwarePage(VescInterface *vesc, QWidget *parent)
 
     setTitle(tr("Update Firmware"));
     setSubTitle(tr("You need to update the firmware on the VESC in order "
-                   "to use it with this version of VESC Tool."));
+                   "to use it with this version of ESCargot Tool."));
 
     mPageFirmware = new PageFirmware;
     mPageFirmware->setVesc(mVesc);

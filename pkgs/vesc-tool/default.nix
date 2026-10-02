@@ -25,7 +25,7 @@ let
   );
   iconPath =
     {
-      "original" = "res/version/neutral_v.svg";
+      "original" = "res/version/escargot_v.svg";
       "free" = "res/version/free_v.svg";
       "copper" = "res/version/copper_v.svg";
       "bronze" = "res/version/bronze_v.svg";

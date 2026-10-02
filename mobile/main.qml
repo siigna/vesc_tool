@@ -41,7 +41,7 @@ ApplicationWindow {
     visible: true
     width: 500
     height: 850
-    title: qsTr("VESC Tool")
+    title: qsTr("ESCargot Tool")
 
     // Full screen iPhone X workaround:
     property int notchLeft: 0

@@ -1,8 +1,18 @@
+<!--
+    Branding for this fork. The marks here are ESCargot's, not VESC's: the
+    VESC name and logo are Benjamin Vedder's trademarks and this project is
+    not endorsed by him, so it must not present his logo as its own identity.
+    The upstream tier artwork is still in res/version/ but is no longer
+    referenced by the build.
+
+    The snail is a placeholder under CC BY-SA 3.0 and requires attribution:
+    see ATTRIBUTION.md. A commissioned logo replaces it.
+-->
 <RCC>
     <qresource prefix="/">
-        <file alias="res/logo.png">res/version/original_vesc_tool.png</file>
-        <file alias="res/+theme_light/icon.svg">res/+theme_light/version/original_v.svg</file>
-        <file alias="res/+theme_light/logo.png">res/+theme_light/version/original_vesc_tool.png</file>
-        <file alias="res/icon.svg">res/version/original_v.svg</file>
+        <file alias="res/logo.png">res/version/escargot_tool.png</file>
+        <file alias="res/icon.svg">res/version/escargot_v.svg</file>
+        <file alias="res/+theme_light/logo.png">res/+theme_light/version/escargot_tool.png</file>
+        <file alias="res/+theme_light/icon.svg">res/+theme_light/version/escargot_v.svg</file>
     </qresource>
 </RCC>

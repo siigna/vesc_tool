@@ -565,7 +565,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateAppToUse();
 
     ui->leftSplitter->setSizes(QList<int>({1000, 80}));
-    mPageDebugPrint->printConsole("VESC® Tool " + mVersion + " started<br>");
+    mPageDebugPrint->printConsole("ESCargot Tool " + mVersion + " started<br>");
 
     setAcceptDrops(true);
 }
@@ -1299,7 +1299,7 @@ void MainWindow::on_actionLaunchMobileTool_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::about(this, "VESC Tool", Utility::aboutText());
+    QMessageBox::about(this, "ESCargot Tool", Utility::aboutText());
 }
 
 void MainWindow::on_actionLibrariesUsed_triggered()
@@ -2027,7 +2027,7 @@ void MainWindow::on_actionWarrantyStatement_triggered()
 
 void MainWindow::on_actionVESCToolChangelog_triggered()
 {
-    HelpDialog::showHelp(this, "VESC® Tool Changelog", Utility::vescToolChangeLog());
+    HelpDialog::showHelp(this, "ESCargot Tool Changelog", Utility::vescToolChangeLog());
 }
 
 void MainWindow::on_actionFirmwareChangelog_triggered()
