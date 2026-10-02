@@ -10,6 +10,12 @@
   </property>
   <layout class="QVBoxLayout" name="outerLayout">
    <item>
+    <widget class="QTabWidget" name="tabs">
+     <property name="currentIndex"><number>0</number></property>
+     <widget class="QWidget" name="setupTab">
+      <attribute name="title"><string>Setup</string></attribute>
+      <layout class="QVBoxLayout" name="setupLayout">
+   <item>
     <widget class="QGroupBox" name="providerGroup">
      <property name="title"><string>Provider</string></property>
      <layout class="QGridLayout" name="providerLayout">
@@ -29,6 +35,18 @@
       <item row="0" column="3">
        <widget class="QLineEdit" name="modelEdit"/>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="reasoningLabel">
+        <property name="text"><string>Thinking</string></property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="reasoningBox">
+        <property name="toolTip">
+         <string>A reasoning model spends the answer's token budget thinking first, and on a large payload it can spend all of it. "Off" is the predictable choice.</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0" colspan="4">
        <widget class="QLabel" name="endpointLabel">
         <property name="text"><string>Endpoint:</string></property>
@@ -37,7 +55,7 @@
         </property>
        </widget>
       </item>
-     </layout>
+         </layout>
     </widget>
    </item>
    <item>
@@ -73,7 +91,7 @@
         <property name="placeholderText"><string>Leave empty for a server that needs no key</string></property>
        </widget>
       </item>
-     </layout>
+         </layout>
     </widget>
    </item>
    <item>
@@ -106,7 +124,7 @@
         <property name="wordWrap"><bool>true</bool></property>
        </widget>
       </item>
-     </layout>
+         </layout>
     </widget>
    </item>
    <item>
@@ -157,7 +175,31 @@
         <property name="wordWrap"><bool>true</bool></property>
        </widget>
       </item>
-     </layout>
+         </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="promptGroup">
+     <property name="title"><string>Instructions to the model</string></property>
+     <property name="checkable"><bool>true</bool></property>
+     <property name="checked"><bool>false</bool></property>
+     <property name="toolTip">
+      <string>What the model is asked to do with the data. Tick to edit; left alone, the built-in text is used.</string>
+     </property>
+     <layout class="QVBoxLayout" name="promptLayout">
+      <item>
+       <widget class="QPlainTextEdit" name="promptEdit">
+        <property name="minimumSize">
+         <size><width>0</width><height>90</height></size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="promptResetButton">
+        <property name="text"><string>Restore default instructions</string></property>
+       </widget>
+      </item>
+         </layout>
     </widget>
    </item>
    <item>
@@ -185,17 +227,57 @@
        </property>
       </spacer>
      </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QPlainTextEdit" name="replyEdit">
-     <property name="readOnly"><bool>true</bool></property>
-     <property name="minimumSize">
-      <size><width>0</width><height>260</height></size>
-     </property>
-     <property name="plainText">
-      <string>Advisory only. Nothing on this page writes a configuration value; any change is yours to make on the page that owns the setting.</string>
-     </property>
+      </layout>
+      </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="answerTab">
+      <attribute name="title"><string>Answer</string></attribute>
+      <layout class="QVBoxLayout" name="answerLayout">
+       <item>
+        <widget class="QTextBrowser" name="answerView">
+         <property name="openExternalLinks"><bool>false</bool></property>
+         <property name="html">
+          <string>Advisory only. Nothing on this page writes a configuration value; any change is yours to make on the page that owns the setting.</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="saveLayout">
+         <item>
+          <widget class="QPushButton" name="saveAnswerButton">
+           <property name="text"><string>Save answer</string></property>
+           <property name="toolTip"><string>The reply as Markdown, exactly as it arrived.</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="saveConfigButton">
+           <property name="text"><string>Save config</string></property>
+           <property name="toolTip"><string>The motor and app configuration as XML, in the same format this program loads, so it can be restored.</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="saveLogButton">
+           <property name="text"><string>Save log sent</string></property>
+           <property name="toolTip"><string>Only the rows and columns that were actually sent, in the package logger's CSV format.</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="saveBundleButton">
+           <property name="text"><string>Save bundle</string></property>
+           <property name="toolTip"><string>All of the above plus the exact payload, into one directory.</string></property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="saveSpacer">
+           <property name="orientation"><enum>Qt::Horizontal</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>

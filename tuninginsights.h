@@ -49,6 +49,17 @@ public:
      */
     struct ConfigValue {
         QString name;
+
+        /*
+         * The human label and unit from the shipped parameter XML, so the
+         * reader does not have to guess what foc_sl_erpm or l_abs_current_max
+         * mean. Both are static metadata from the configuration definition,
+         * not anything a user typed -- the rule that free text cannot reach a
+         * payload still holds.
+         */
+        QString label;
+        QString unit;
+
         CFG_T type = CFG_T_UNDEFINED;
         double valDouble = 0.0;
         int valInt = 0;
@@ -100,13 +111,32 @@ public:
                                     const QString &fwInfo);
 
     // The instruction sent with the payload.
-    static QString buildPrompt(const QJsonObject &payload);
+    /*
+     * The built-in instruction text, so the GUI can show it for editing and a
+     * caller can tell whether it has been changed.
+     */
+    static QString defaultInstructions();
+
+    /*
+     * The instructions followed by the payload. An empty `instructions` uses
+     * defaultInstructions(). The payload is always appended here, so replacing
+     * the instructions cannot drop the data or substitute different data.
+     */
+    static QString buildPrompt(const QJsonObject &payload,
+                               const QString &instructions = QString());
 
     // Row indices kept when downsampling n rows to at most maxRows.
     static QList<int> sampleIndices(int n, int maxRows);
 
 private:
     static QJsonObject configToJson(const QList<ConfigValue> &conf);
+
+    /*
+     * name -> "Label (unit)" for the fields that have one, sent beside the
+     * values so a parameter name does not have to be interpreted from the
+     * identifier alone.
+     */
+    static QJsonObject configNotes(const QList<ConfigValue> &conf);
     static QJsonObject rtToJson(const MC_VALUES &rt);
 };
 

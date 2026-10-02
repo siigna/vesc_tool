@@ -49,6 +49,30 @@ public:
     VescInterface *vesc() const;
     void setVesc(VescInterface *vesc);
 
+    /*
+     * Pre-fills the controls from the command line, so a configured page can
+     * be opened in one command -- which is what makes a screenshot of a real
+     * analysis reproducible instead of a sequence of guessed mouse clicks.
+     * An empty argument leaves that control alone.
+     */
+    void applyCliDefaults(const QString &provider, const QString &model,
+                          const QString &keyEnv, const QString &logPath,
+                          bool logOnSd);
+
+    /*
+     * How long an answer may be, and how long to wait for it. The reply length
+     * is what the wait is mostly made of -- a model writing 2000 tokens of
+     * prose takes about a minute however fast the link is -- so this is the
+     * one knob that actually shortens it.
+     */
+    void setLimits(int maxTokens, int timeoutMs, int maxRows);
+
+    // Replaces the instruction text. Empty restores the built-in one.
+    void setInstructions(const QString &text);
+
+    // "", "off", "low", "medium", "high" or a token count.
+    void setReasoning(const QString &mode);
+
 private slots:
     void on_providerBox_currentIndexChanged(int index);
     void on_logBrowseButton_clicked();
@@ -56,10 +80,27 @@ private slots:
     void on_analyseButton_clicked();
     void on_copyButton_clicked();
     void on_keySaveButton_clicked();
+    void on_promptResetButton_clicked();
+    void on_saveAnswerButton_clicked();
+    void on_saveConfigButton_clicked();
+    void on_saveLogButton_clicked();
+    void on_saveBundleButton_clicked();
 
 private:
     Ui::PageTuningInsights *ui;
     VescInterface *mVesc;
+
+    int mMaxTokens = 2048;
+    int mTimeoutMs = 120000;
+    int mMaxRows = 0;
+
+    /*
+     * What was last sent and what came back, kept so the save buttons write
+     * the thing that was actually used rather than rebuilding it and hoping
+     * it comes out the same.
+     */
+    QJsonObject mLastPayload;
+    QString mLastAnswer;
 
     /* The provider as the controls currently describe it. */
     InsightsProvider::Config currentConfig() const;
@@ -71,6 +112,21 @@ private:
     QJsonObject buildPayload(QString *err);
 
     void updateEndpointLabel();
+
+    // The instruction text in force: the box when enabled, else the default.
+    QString instructions() const;
+
+    // Shows text in the Answer tab: Markdown rendered, anything else verbatim.
+    void showAnswer(const QString &markdown, bool isMarkdown);
+
+    /*
+     * The log exactly as it was sent, rebuilt from the payload rather than
+     * from the source file, so what is saved is what left the machine --
+     * filtered columns and sampled rows included.
+     */
+    QString sentLogCsv() const;
+
+    bool haveResult(const char *what);
     void loadLog(QStringList &header, QList<QStringList> &rows, QString *err);
 
 };

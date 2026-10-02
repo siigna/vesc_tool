@@ -37,6 +37,28 @@ QString TuningInsights::normalizeColumn(const QString &rawHeaderField)
     return rawHeaderField.section(':', 0, 0).trimmed();
 }
 
+static QString columnNote(const QString &rawHeaderField)
+{
+    /*
+     * "name:label:unit:decimals:..." -> "label (unit)". A bare name, which is
+     * what this program's own logs carry, has no label and yields nothing.
+     */
+    const QStringList f = rawHeaderField.split(':');
+
+    if (f.size() < 2) {
+        return QString();
+    }
+
+    const QString label = f.at(1).trimmed();
+    const QString unit = f.size() > 2 ? f.at(2).trimmed() : QString();
+
+    if (label.isEmpty()) {
+        return QString();
+    }
+
+    return unit.isEmpty() ? label : QString("%1 (%2)").arg(label, unit);
+}
+
 QStringList TuningInsights::allowedLogColumns()
 {
     /*
@@ -88,7 +110,13 @@ QStringList TuningInsights::allowedLogColumns()
         << "ADC1" << "ADC2" << "iq" << "id"
         << "vq" << "vd" << "iq-set" << "id-set"
         << "iq-target" << "id-target" << "Fault" << "Power Factor"
-        << "t_day" << "t_day_pos"
+        /*
+         * t_day_pos -- the time of the GNSS fix -- is deliberately absent.
+         * It carries no tuning information, and its label ("Time GNSS")
+         * reintroduced the word gnss into a payload that is otherwise free of
+         * it, which made the simple "no gnss anywhere" check stop holding.
+         */
+        << "t_day"
         ;
     return allowed;
 }
@@ -124,6 +152,23 @@ QList<int> TuningInsights::sampleIndices(int n, int maxRows)
         }
     }
     out.append(n - 1);
+    return out;
+}
+
+QJsonObject TuningInsights::configNotes(const QList<ConfigValue> &conf)
+{
+    QJsonObject out;
+
+    for (const ConfigValue &p: conf) {
+        if (p.label.trimmed().isEmpty()) {
+            continue;
+        }
+
+        out[p.name] = p.unit.isEmpty()
+                ? p.label
+                : QString("%1 (%2)").arg(p.label, p.unit);
+    }
+
     return out;
 }
 
@@ -202,6 +247,14 @@ QJsonObject TuningInsights::buildPayload(const QList<ConfigValue> &mcConf,
     }
     payload["mcconf"] = configToJson(mcConf);
     payload["appconf"] = configToJson(appConf);
+
+    /*
+     * What the names mean, taken from the configuration definition rather
+     * than written out here, so they cannot drift from the parameters the
+     * firmware actually has.
+     */
+    payload["mcconf_fields"] = configNotes(mcConf);
+    payload["appconf_fields"] = configNotes(appConf);
     payload["realtime"] = rtToJson(rt);
 
     if (logHeader.isEmpty() || logRows.isEmpty()) {
@@ -211,12 +264,14 @@ QJsonObject TuningInsights::buildPayload(const QList<ConfigValue> &mcConf,
     // Which header positions survive the allowlist.
     const QStringList allowed = allowedLogColumns();
     QList<int> keep;
+    QStringList colNotes;
     QJsonArray outHeader;
     for (int i = 0; i < logHeader.size(); i++) {
         const QString name = normalizeColumn(logHeader.at(i));
 
         if (allowed.contains(name)) {
             keep.append(i);
+            colNotes.append(columnNote(logHeader.at(i)));
             /*
              * The normalized name, not the raw field: the package logger's
              * descriptor would otherwise carry its label and unit along, and
@@ -243,6 +298,22 @@ QJsonObject TuningInsights::buildPayload(const QList<ConfigValue> &mcConf,
 
     QJsonObject log;
     log["columns"] = outHeader;
+
+    /*
+     * The package logger's header already carries a label and a unit per
+     * column ("Input Voltage:Input Voltage:V:2:0:0"), which normalizeColumn
+     * throws away to get the name. They are worth keeping: "cnt_ah" and "iq"
+     * mean nothing on their own.
+     */
+    QJsonObject notes;
+    for (int i = 0; i < outHeader.size() && i < colNotes.size(); i++) {
+        if (!colNotes.at(i).isEmpty()) {
+            notes[outHeader.at(i).toString()] = colNotes.at(i);
+        }
+    }
+    if (!notes.isEmpty()) {
+        log["column_fields"] = notes;
+    }
     log["rows"] = outRows;
     log["rows_total"] = logRows.size();
     log["rows_sent"] = outRows.size();
@@ -252,8 +323,14 @@ QJsonObject TuningInsights::buildPayload(const QList<ConfigValue> &mcConf,
     return payload;
 }
 
-QString TuningInsights::buildPrompt(const QJsonObject &payload)
+QString TuningInsights::defaultInstructions()
 {
+    /*
+     * Exposed rather than buried in buildPrompt so the page can show it in an
+     * editable box. A prompt that decides what advice you get about your own
+     * hardware should be visible and changeable, not a constant somebody has
+     * to read the source to discover.
+     */
     QString out;
 
     out += "You are reviewing the configuration and telemetry of a brushless "
@@ -269,6 +346,31 @@ QString TuningInsights::buildPrompt(const QJsonObject &payload)
            "anything that could damage hardware or be unsafe to ride.\n\n";
     out += "Note the log has had its location columns removed before being "
            "sent, so do not ask about route, terrain or elevation.\n\n";
+    out += "The payload tells you what the fields mean, so do not guess from "
+           "the identifiers: mcconf_fields and appconf_fields give a label "
+           "and unit for each configuration parameter, and log.column_fields "
+           "does the same for the log columns. Where a field has no entry "
+           "there, say so rather than assuming what it measures. Currents are "
+           "amps and voltages are volts unless a unit says otherwise; iq and "
+           "id are the torque- and flux-axis currents, vq and vd the matching "
+           "voltages, and erpm is electrical RPM, which is mechanical RPM "
+           "times the pole pairs.\n\n";
+
+    return out;
+}
+
+QString TuningInsights::buildPrompt(const QJsonObject &payload,
+                                    const QString &instructions)
+{
+    /*
+     * The data is appended by this function and not by the caller, so a
+     * replaced instruction text cannot accidentally drop it -- or smuggle a
+     * different payload in beside it.
+     */
+    QString out = instructions.trimmed().isEmpty()
+            ? defaultInstructions()
+            : instructions.trimmed() + "\n\n";
+
     out += "Data:\n";
     out += QString::fromUtf8(QJsonDocument(payload).toJson(QJsonDocument::Indented));
 

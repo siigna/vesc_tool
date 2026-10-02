@@ -39,6 +39,13 @@ QList<TuningInsights::ConfigValue> extract(ConfigParams *conf)
 
         TuningInsights::ConfigValue v;
         v.name = name;
+        /*
+         * longName and suffix come from the shipped parameter XML -- the same
+         * label and unit the editor shows -- so the names in the payload are
+         * not bare identifiers nobody can interpret.
+         */
+        v.label = p->longName;
+        v.unit = p->suffix.trimmed();
         v.type = p->type;
         v.valDouble = p->valDouble;
         v.valInt = p->valInt;

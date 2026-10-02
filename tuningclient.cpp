@@ -19,6 +19,7 @@
 
 #include "tuningclient.h"
 
+#include <QElapsedTimer>
 #include <QEventLoop>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -97,7 +98,34 @@ QString TuningClient::send(InsightsProvider *provider, const QString &prompt,
 
     QNetworkAccessManager manager;
     QNetworkRequest req = provider->request(resolveKey(provider->config()));
-    QNetworkReply *reply = manager.post(req, provider->body(prompt, maxTokens));
+    const QByteArray payload = provider->body(prompt, maxTokens);
+
+    /*
+     * Progress on stderr, because this call blocks for as long as the provider
+     * takes to write its answer -- tens of seconds is normal -- and a silent
+     * terminal is indistinguishable from a hang. Never the key: only the
+     * endpoint, the sizes and the elapsed time.
+     */
+    fprintf(stderr, "insights: POST %s, %.1f kB, model %s, up to %d tokens\n",
+            provider->endpoint().toLocal8Bit().constData(),
+            payload.size() / 1024.0,
+            provider->config().model.toLocal8Bit().constData(),
+            maxTokens);
+    fflush(stderr);
+
+    QElapsedTimer clock;
+    clock.start();
+
+    QNetworkReply *reply = manager.post(req, payload);
+
+    // One line per second, so the wait is visibly progressing.
+    QTimer tick;
+    connect(&tick, &QTimer::timeout, [&clock]() {
+        fprintf(stderr, "\rinsights: waiting on provider, %.0fs",
+                clock.elapsed() / 1000.0);
+        fflush(stderr);
+    });
+    tick.start(1000);
 
     /*
      * Blocking, matching how codeloader.cpp fetches the package archive. A
@@ -120,8 +148,16 @@ QString TuningClient::send(InsightsProvider *provider, const QString &prompt,
     timer.start(timeoutMs);
     loop.exec();
     timer.stop();
+    tick.stop();
+
+    const qint64 elapsedMs = clock.elapsed();
 
     const QByteArray body = reply->readAll();
+
+    fprintf(stderr, "\rinsights: %.1f kB reply in %.1fs%-20s\n",
+            body.size() / 1024.0, elapsedMs / 1000.0, " ");
+    fflush(stderr);
+
     const QNetworkReply::NetworkError netErr = reply->error();
     const int status = reply->attribute(
                 QNetworkRequest::HttpStatusCodeAttribute).toInt();

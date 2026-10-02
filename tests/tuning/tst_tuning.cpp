@@ -218,11 +218,11 @@ void TuningTest::allowlistNotBlacklist()
     QVERIFY(!allowed.contains("gnss_posTime"));
 
     /*
-     * 50 of the Tool log's 61 columns plus 33 of the package logger's 38.
+     * 50 of the Tool log's 61 columns plus 32 of the package logger's 38.
      * A count, so that a column added without a thought about what it
      * discloses shows up here as a failure.
      */
-    QCOMPARE(allowed.size(), 83);
+    QCOMPARE(allowed.size(), 82);
 }
 
 void TuningTest::packageLoggerDialect()
@@ -263,8 +263,25 @@ void TuningTest::packageLoggerDialect()
     // The log arrived, under normalized names rather than raw descriptors.
     QVERIFY(json.contains("Input Voltage"));
     QVERIFY(json.contains("kmh_vesc"));
-    QVERIFY(!json.contains("Speed ESC"));
-    QVERIFY(!json.contains("km/h"));
+
+    /*
+     * The label and unit from the descriptor are now sent as well, in
+     * log.column_fields, because "cnt_ah" and "iq" mean nothing on their own.
+     * They are static metadata from the logger's own header, not anything a
+     * user typed. The column names themselves stay normalized.
+     */
+    const QJsonObject notes =
+            payload["log"].toObject()["column_fields"].toObject();
+    QCOMPARE(notes["kmh_vesc"].toString(), QString("Speed ESC (km/h)"));
+    QVERIFY(!notes.contains("gnss_lat"));
+
+    /*
+     * And no label may reintroduce location. t_day_pos is excluded from the
+     * allowlist precisely because its label is "Time GNSS", which would put
+     * that word back into a payload that is otherwise free of it.
+     */
+    QVERIFY(!json.contains("gnss"));
+    QVERIFY(!json.contains("GNSS"));
 
     // and no position, including the two spellings only this dialect uses
     QVERIFY(!json.contains("gnss_lat"));

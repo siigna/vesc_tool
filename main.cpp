@@ -31,6 +31,8 @@
 #include "configparam.h"
 #include "utility.h"
 #include "appstyle.h"
+#include <QAbstractButton>
+#include <QElapsedTimer>
 #include "heatshrink/heatshrinkif.h"
 #include "minimp3/qminimp3.h"
 
@@ -89,6 +91,15 @@ static void showHelp()
     qDebug() << "--useBoardSetupWindow : Start board setup window instead of the main UI";
     qDebug() << "--xmlConfToCode [xml-file] : Generate C code from XML configuration file (the files are saved in the same directory as the XML)";
     qDebug() << "--vescPort [port] : VESC Port for commands that connect, e.g. /dev/ttyACM0. If this command is left out autoconnect will be used.";
+    qDebug() << "--insightsReasoning [off|low|medium|high|N] : Thinking budget for a reasoning model. A large payload can otherwise consume the whole token cap before any answer. OpenAI-compatible providers only.";
+    qDebug() << "--insightsPrompt [text] : Replace the instructions sent with the data. The data itself is always appended, so this cannot drop it.";
+    qDebug() << "--insightsPromptFile [path] : The same, read from a file.";
+    qDebug() << "--insightsPrintPrompt : Print the built-in instructions and exit, so they can be edited and passed back.";
+    qDebug() << "--insightsMaxTokens [n] : Cap the length of the answer (default 2048). The reply length is most of the wait, so this is the knob that shortens it.";
+    qDebug() << "--insightsTimeout [ms] : Give up on the provider after this long (default 120000).";
+    qDebug() << "--screenshotClick [objectName] : Press this control before capturing, e.g. analyseButton. For documenting a page in a finished state.";
+    qDebug() << "--screenshot [file] : Render the window to a PNG and exit. Implies --offscreen unless a platform is already chosen, so no display is needed.";
+    qDebug() << "--screenshotSize [WxH] : Window size for --screenshot, e.g. 1280x800. Defaults to the remembered size.";
     qDebug() << "--showPage [name] : Open the window on this page, e.g. \"Tuning Insights\". With --vescTcp it also connects first.";
     qDebug() << "--vescTcp [host:port] : Connect over TCP instead of serial, e.g. 172.31.5.34:65102. Port defaults to 65102.";
     qDebug() << "--vescBaud [rate] : Serial rate for --vescPort, e.g. 921600. Defaults to the rate last connected at.";
@@ -241,6 +252,9 @@ int main(int argc, char *argv[])
     QString xmlCodePath = "";
     QString vescPort = "";
     QString showPageName = "";
+    QString screenshotPath = "";
+    QString screenshotClick = "";
+    QSize screenshotSize;
     QString vescTcpHost = "";
     int vescTcpPort = 65102;
     int vescBaud = 0;
@@ -272,6 +286,11 @@ int main(int argc, char *argv[])
     QString listSdPath = "";
     QString insightsLogSdPath = "";
     QString insightsKeyEnv = "";
+    QString insightsReasoning = "";
+    QString insightsPrompt = "";
+    bool insightsPrintPrompt = false;
+    int insightsMaxTokens = 0;   // 0 = leave the default
+    int insightsTimeoutMs = 0;
     QString fileForSdOut = "";
     QString lispPackIn = "";
     QString lispPackOut = "";
@@ -464,6 +483,121 @@ int main(int argc, char *argv[])
             } else {
                 i++;
                 qCritical() << "No port specified";
+                return 1;
+            }
+        }
+
+        if (str == "--insightsReasoning") {
+            if ((i + 1) < args.size()) {
+                i++;
+                insightsReasoning = args.at(i);
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
+        }
+
+        if (str == "--insightsPrintPrompt") {
+            insightsPrintPrompt = true;
+            found = true;
+        }
+
+        if (str == "--insightsPrompt" || str == "--insightsPromptFile") {
+            if ((i + 1) < args.size()) {
+                i++;
+
+                if (str == "--insightsPrompt") {
+                    insightsPrompt = args.at(i);
+                } else {
+                    QFile pf(args.at(i));
+
+                    if (!pf.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                        qCritical() << "Could not read" << args.at(i);
+                        return 1;
+                    }
+
+                    insightsPrompt = QString::fromUtf8(pf.readAll());
+                }
+
+                if (insightsPrompt.trimmed().isEmpty()) {
+                    qCritical() << str << "was empty; leave it out to use the "
+                                          "built-in instructions";
+                    return 1;
+                }
+
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
+        }
+
+        if (str == "--insightsMaxTokens" || str == "--insightsTimeout") {
+            if ((i + 1) < args.size()) {
+                i++;
+                const int v = args.at(i).toInt();
+
+                if (v <= 0) {
+                    qCritical() << str << "wants a positive number";
+                    return 1;
+                }
+
+                if (str == "--insightsMaxTokens") {
+                    insightsMaxTokens = v;
+                } else {
+                    insightsTimeoutMs = v;
+                }
+
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
+        }
+
+        if (str == "--screenshotClick") {
+            if ((i + 1) < args.size()) {
+                i++;
+                screenshotClick = args.at(i);
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
+        }
+
+        if (str == "--screenshot") {
+            if ((i + 1) < args.size()) {
+                i++;
+                screenshotPath = args.at(i);
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
+        }
+
+        if (str == "--screenshotSize") {
+            if ((i + 1) < args.size()) {
+                i++;
+                const QStringList wh = args.at(i).split("x", QString::SkipEmptyParts);
+
+                if (wh.size() != 2) {
+                    qCritical() << "--screenshotSize wants WxH, e.g. 1280x800";
+                    return 1;
+                }
+
+                screenshotSize = QSize(wh.at(0).toInt(), wh.at(1).toInt());
+
+                if (screenshotSize.width() <= 0 || screenshotSize.height() <= 0) {
+                    qCritical() << "--screenshotSize wants positive numbers";
+                    return 1;
+                }
+
+                found = true;
+            } else {
+                showHelp();
                 return 1;
             }
         }
@@ -1179,6 +1313,14 @@ int main(int argc, char *argv[])
         }
     });
 
+    if (insightsPrintPrompt) {
+        // So the default can be seen, edited and handed back with
+        // --insightsPromptFile, rather than read out of the source.
+        printf("%s", TuningInsights::defaultInstructions()
+               .toUtf8().constData());
+        return 0;
+    }
+
     if (tuningInsights && insightsOffline) {
         /*
          * No controller, no network: the payload built from a log file alone.
@@ -1801,6 +1943,10 @@ int main(int argc, char *argv[])
                                         cfg.keyEnvVar = insightsKeyEnv;
                                     }
 
+                                    if (!insightsReasoning.isEmpty()) {
+                                        cfg.reasoning = insightsReasoning;
+                                    }
+
                                     QScopedPointer<InsightsProvider> prov(
                                                 InsightsProvider::create(cfg));
                                     qDebug() << "Sending to"
@@ -1810,8 +1956,13 @@ int main(int argc, char *argv[])
                                     TuningClient client;
                                     const QString text = client.send(
                                                 prov.data(),
-                                                TuningInsights::buildPrompt(payload),
-                                                4096, 120000, &err);
+                                                TuningInsights::buildPrompt(
+                                                    payload, insightsPrompt),
+                                                insightsMaxTokens > 0
+                                                    ? insightsMaxTokens : 4096,
+                                                insightsTimeoutMs > 0
+                                                    ? insightsTimeoutMs : 120000,
+                                                &err);
 
                                     if (text.isEmpty()) {
                                         qCritical() << err.toLocal8Bit().constData();
@@ -2029,6 +2180,35 @@ int main(int argc, char *argv[])
     } else if (downloadPackageArchive) {
         return 0;
     } else {
+        /*
+         * --offscreen only ever reached the QCoreApplication branches, each of
+         * which constructs an application that loads no QPA plugin at all, so
+         * the flag did nothing. Here is the one place it means something.
+         *
+         * A screenshot implies it: rendering the window needs no display, and
+         * requiring one is what made capturing a page a six-minute exercise in
+         * Xvfb and synthetic mouse clicks.
+         */
+        if (offscreen || !screenshotPath.isEmpty()) {
+            if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+                qputenv("QT_QPA_PLATFORM", "offscreen");
+            }
+        }
+
+        /*
+         * Without a display there is nothing to press OK with, and a modal
+         * dialog's own event loop then blocks everything behind it for good.
+         * This is not hypothetical: connecting to a board raises the
+         * "firmware update available" box, which wedged a screenshot run
+         * until it was killed -- the connection had succeeded and the capture
+         * never happened.
+         *
+         * So in screenshot mode every modal that appears is closed as it
+         * arrives. Only in screenshot mode: a person at a window should see
+         * their dialogs.
+         */
+        const bool autoDismissDialogs = !screenshotPath.isEmpty();
+
         QApplication *a = new QApplication(argc, argv);
         app = a;
 
@@ -2132,7 +2312,26 @@ int main(int argc, char *argv[])
             w = new MainWindow;
             w->show();
 
-            if (!vescTcpHost.isEmpty() || !showPageName.isEmpty()) {
+            if (!screenshotSize.isEmpty()) {
+                w->resize(screenshotSize);
+            }
+
+            if (autoDismissDialogs) {
+                QTimer *dismiss = new QTimer(w);
+
+                QObject::connect(dismiss, &QTimer::timeout, []() {
+                    if (QWidget *m = QApplication::activeModalWidget()) {
+                        qWarning() << "screenshot: dismissing modal"
+                                   << m->windowTitle();
+                        m->close();
+                    }
+                });
+
+                dismiss->start(250);
+            }
+
+            if (!vescTcpHost.isEmpty() || !showPageName.isEmpty() ||
+                    !screenshotPath.isEmpty()) {
                 /*
                  * Connect and deep-link after the window is up, so the pages
                  * that only exist once a board has answered are present
@@ -2142,9 +2341,29 @@ int main(int argc, char *argv[])
                 int port = vescTcpPort;
                 int can = canFwd;
                 QString page = showPageName;
+                QString shot = screenshotPath;
+                QString click = screenshotClick;
+                QString provSpec = insightsProviderSpec;
+                QString provModel = insightsModel;
+                QString provKeyEnv = insightsKeyEnv;
+                QString provLog = insightsLogPath.isEmpty()
+                        ? insightsLogSdPath : insightsLogPath;
+                bool provLogOnSd = !insightsLogSdPath.isEmpty();
+                int maxTok = insightsMaxTokens;
+                int timeoutMs = insightsTimeoutMs;
+                int maxRows = insightsMaxRows;
+                QString prompt = insightsPrompt;
+                QString reasoning = insightsReasoning;
                 MainWindow *mw = w;
 
-                QTimer::singleShot(500, [mw, host, port, can, page]() {
+                QTimer::singleShot(500, [mw, host, port, can, page, shot, click,
+                                         provSpec, provModel, provKeyEnv,
+                                         provLog, provLogOnSd, maxTok,
+                                         timeoutMs, maxRows, prompt,
+                                         reasoning]() {
+                    QElapsedTimer stage;
+                    stage.start();
+
                     if (!host.isEmpty()) {
                         VescInterface *vi = mw->vesc();
 
@@ -2164,11 +2383,92 @@ int main(int argc, char *argv[])
                                 vi->commands()->setSendCan(true, can);
                                 Utility::sleepWithEventLoop(500);
                             }
+
+                            fprintf(stderr, "stage: connected in %.1fs\n",
+                                    stage.restart() / 1000.0);
                         }
                     }
 
                     if (!page.isEmpty()) {
                         mw->openPage(page);
+                    }
+
+                    /*
+                     * The insights flags double as the GUI page's initial
+                     * state, so the same options describe a headless run and a
+                     * screenshot of the page doing the same thing.
+                     */
+                    if (!provSpec.isEmpty() || !provModel.isEmpty() ||
+                            !provKeyEnv.isEmpty() || !provLog.isEmpty() ||
+                            !prompt.isEmpty() || maxRows > 0 ||
+                            !reasoning.isEmpty()) {
+                        if (auto *ti = mw->findChild<PageTuningInsights*>()) {
+                            ti->setLimits(maxTok, timeoutMs, maxRows);
+                            ti->setInstructions(prompt);
+                            ti->setReasoning(reasoning);
+                            ti->applyCliDefaults(provSpec, provModel,
+                                                 provKeyEnv, provLog,
+                                                 provLogOnSd);
+                        }
+                    }
+
+                    if (!click.isEmpty()) {
+                        /*
+                         * Pressed, not synthesised through the window system.
+                         * The analysis runs on this thread, so by the time
+                         * click() returns the reply is already on the page and
+                         * the capture below needs no guess at how long to wait
+                         * -- which is what made the previous attempt at this
+                         * screenshot a five-minute fixed sleep.
+                         */
+                        auto *b = mw->findChild<QAbstractButton*>(click);
+
+                        if (b == nullptr) {
+                            qCritical() << "No control named" << click;
+                            QCoreApplication::exit(-61);
+                            return;
+                        }
+
+                        if (!b->isEnabled()) {
+                            qCritical() << click << "is disabled; nothing to press";
+                            QCoreApplication::exit(-62);
+                            return;
+                        }
+
+                        fprintf(stderr, "stage: pressing %s\n",
+                                click.toLocal8Bit().constData());
+                        fflush(stderr);
+
+                        b->click();
+                        Utility::sleepWithEventLoop(200);
+
+                        fprintf(stderr, "stage: %s finished in %.1fs\n",
+                                click.toLocal8Bit().constData(),
+                                stage.restart() / 1000.0);
+                    }
+
+                    if (!shot.isEmpty()) {
+                        /*
+                         * Two turns of the event loop after switching pages,
+                         * so deferred layout work has run -- several pages
+                         * finish building through a zero timer.
+                         */
+                        Utility::sleepWithEventLoop(300);
+
+                        const QPixmap pm = mw->grab();
+
+                        if (pm.isNull() || !pm.save(shot, "PNG")) {
+                            qCritical() << "Could not write" << shot;
+                            QCoreApplication::exit(-60);
+                            return;
+                        }
+
+                        fprintf(stderr, "stage: captured in %.1fs\n",
+                                stage.elapsed() / 1000.0);
+                        printf("wrote %s (%dx%d)\n",
+                               shot.toLocal8Bit().constData(),
+                               pm.width(), pm.height());
+                        QCoreApplication::quit();
                     }
                 });
             }

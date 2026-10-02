@@ -1,12 +1,32 @@
 {
     "page": "PageTuningInsights",
-    "widget_count": 34,
+    "widget_count": 62,
     "widgets": [
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollLeftButton"
+        },
+        {
+            "class": "QToolButton",
+            "enabled": true,
+            "name": "ScrollRightButton"
+        },
         {
             "class": "QPushButton",
             "enabled": false,
             "name": "analyseButton",
             "text": "Analyse"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "answerTab"
+        },
+        {
+            "class": "QTextBrowser",
+            "enabled": true,
+            "name": "answerView"
         },
         {
             "class": "QLineEdit",
@@ -144,6 +164,23 @@
             "text": "Preview payload"
         },
         {
+            "class": "QPlainTextEdit",
+            "enabled": false,
+            "name": "promptEdit"
+        },
+        {
+            "class": "QGroupBox",
+            "enabled": true,
+            "name": "promptGroup",
+            "text": "Instructions to the model"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": false,
+            "name": "promptResetButton",
+            "text": "Restore default instructions"
+        },
+        {
             "class": "QComboBox",
             "enabled": true,
             "items": [
@@ -176,7 +213,67 @@
         {
             "class": "QWidget",
             "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": false,
+            "name": "qt_scrollarea_hcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
             "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": false,
+            "name": "qt_scrollarea_vcontainer"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": false,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "qt_scrollarea_viewport"
         },
         {
             "class": "QWidget",
@@ -189,21 +286,82 @@
             "name": "qt_spinbox_lineedit"
         },
         {
+            "class": "QStackedWidget",
+            "enabled": true,
+            "name": "qt_tabwidget_stackedwidget"
+        },
+        {
+            "class": "QTabBar",
+            "enabled": true,
+            "name": "qt_tabwidget_tabbar"
+        },
+        {
+            "class": "QComboBox",
+            "enabled": true,
+            "items": [
+                "Provider default",
+                "Off",
+                "Low",
+                "Medium",
+                "High"
+            ],
+            "name": "reasoningBox"
+        },
+        {
+            "class": "QLabel",
+            "enabled": true,
+            "name": "reasoningLabel",
+            "text": "Thinking"
+        },
+        {
             "class": "QLabel",
             "enabled": true,
             "name": "redactionLabel",
             "text": "Location is never included: log columns pass an allowlist, so a column this build does not know is left out rather than sent. Preview payload shows the exact bytes before anything leaves this machine."
         },
         {
-            "class": "QPlainTextEdit",
+            "class": "QPushButton",
             "enabled": true,
-            "name": "replyEdit"
+            "name": "saveAnswerButton",
+            "text": "Save answer"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveBundleButton",
+            "text": "Save bundle"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveConfigButton",
+            "text": "Save config"
+        },
+        {
+            "class": "QPushButton",
+            "enabled": true,
+            "name": "saveLogButton",
+            "text": "Save log sent"
         },
         {
             "class": "QCheckBox",
             "enabled": true,
             "name": "sdBox",
             "text": "On SD card"
+        },
+        {
+            "class": "QWidget",
+            "enabled": true,
+            "name": "setupTab"
+        },
+        {
+            "class": "QTabWidget",
+            "enabled": true,
+            "name": "tabs",
+            "tabs": [
+                "Setup",
+                "Answer"
+            ]
         }
     ]
 }

@@ -24,6 +24,8 @@
 #include <QClipboard>
 #include <QFile>
 #include <QFileDialog>
+#include <QRegularExpression>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QScopedPointer>
 #include <QSettings>
@@ -47,6 +49,17 @@ PageTuningInsights::PageTuningInsights(QWidget *parent) :
     }
     ui->providerBox->addItem(tr("Custom"), "");
 
+    /*
+     * Default to no thinking budget being sent at all, which leaves the
+     * request exactly as it was before this control existed -- local servers
+     * and plain OpenAI do not expect the field.
+     */
+    ui->reasoningBox->addItem(tr("Provider default"), QString());
+    ui->reasoningBox->addItem(tr("Off"), QString("off"));
+    ui->reasoningBox->addItem(tr("Low"), QString("low"));
+    ui->reasoningBox->addItem(tr("Medium"), QString("medium"));
+    ui->reasoningBox->addItem(tr("High"), QString("high"));
+
     ui->kindBox->addItem("openai", int(InsightsProvider::KindOpenAiCompatible));
     ui->kindBox->addItem("anthropic", int(InsightsProvider::KindAnthropic));
 
@@ -66,6 +79,12 @@ PageTuningInsights::PageTuningInsights(QWidget *parent) :
             this, [this]() { updateEndpointLabel(); });
     connect(ui->kindBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, [this]() { updateEndpointLabel(); });
+
+    /*
+     * Shown, not hidden. The box starts holding the real default text so it
+     * can be read and edited; unticked, that text is what gets used.
+     */
+    ui->promptEdit->setPlainText(TuningInsights::defaultInstructions());
 
     updateEndpointLabel();
 }
@@ -98,6 +117,115 @@ void PageTuningInsights::setVesc(VescInterface *vesc)
     updateEndpointLabel();
 }
 
+QString PageTuningInsights::instructions() const
+{
+    if (ui->promptGroup->isChecked()) {
+        return ui->promptEdit->toPlainText();
+    }
+
+    return QString();   // buildPrompt substitutes the built-in text
+}
+
+void PageTuningInsights::setInstructions(const QString &text)
+{
+    if (text.trimmed().isEmpty()) {
+        ui->promptEdit->setPlainText(TuningInsights::defaultInstructions());
+        ui->promptGroup->setChecked(false);
+        return;
+    }
+
+    ui->promptEdit->setPlainText(text);
+    ui->promptGroup->setChecked(true);
+}
+
+void PageTuningInsights::on_promptResetButton_clicked()
+{
+    ui->promptEdit->setPlainText(TuningInsights::defaultInstructions());
+}
+
+void PageTuningInsights::setReasoning(const QString &mode)
+{
+    const int ix = ui->reasoningBox->findData(mode);
+
+    if (ix >= 0) {
+        ui->reasoningBox->setCurrentIndex(ix);
+    } else if (!mode.isEmpty()) {
+        // A token count rather than one of the named levels.
+        ui->reasoningBox->addItem(mode, mode);
+        ui->reasoningBox->setCurrentIndex(ui->reasoningBox->count() - 1);
+    }
+}
+
+void PageTuningInsights::setLimits(int maxTokens, int timeoutMs, int maxRows)
+{
+    if (maxRows > 0) {
+        mMaxRows = maxRows;
+    }
+
+    if (maxTokens > 0) {
+        mMaxTokens = maxTokens;
+    }
+
+    if (timeoutMs > 0) {
+        mTimeoutMs = timeoutMs;
+    }
+}
+
+void PageTuningInsights::applyCliDefaults(const QString &provider,
+                                          const QString &model,
+                                          const QString &keyEnv,
+                                          const QString &logPath,
+                                          bool logOnSd)
+{
+    if (!provider.isEmpty()) {
+        const int ix = ui->providerBox->findData(provider);
+
+        if (ix >= 0) {
+            ui->providerBox->setCurrentIndex(ix);
+        } else {
+            /*
+             * Not a preset, so treat it as a "kind:baseUrl:model" spec and
+             * drive the Custom entry with it.
+             */
+            QString err;
+            const InsightsProvider::Config cfg =
+                    InsightsProvider::fromSpec(provider, &err);
+
+            if (err.isEmpty()) {
+                ui->providerBox->setCurrentIndex(
+                            ui->providerBox->count() - 1);   // Custom
+                ui->kindBox->setCurrentIndex(
+                            ui->kindBox->findData(int(cfg.kind)));
+                ui->baseUrlEdit->setText(cfg.baseUrl);
+                ui->modelEdit->setText(cfg.model);
+            } else {
+                showAnswer(err, false);
+            }
+        }
+    }
+
+    if (!model.isEmpty()) {
+        ui->modelEdit->setText(model);
+    }
+
+    if (!keyEnv.isEmpty()) {
+        ui->keyEnvEdit->setText(keyEnv);
+    }
+
+    if (!logPath.isEmpty()) {
+        ui->logEdit->setText(logPath);
+        ui->sdBox->setChecked(logOnSd);
+    }
+
+    if (mMaxRows > 0) {
+        // --insightsMaxRows reached the headless path but not this spin box,
+        // so a screenshot showed 200 while the payload had been built with 60.
+        ui->maxRowsBox->setValue(mMaxRows);
+    }
+
+    updateEndpointLabel();
+}
+
 InsightsProvider::Config PageTuningInsights::currentConfig() const
 {
     const QString id = ui->providerBox->currentData().toString();
@@ -116,6 +244,8 @@ InsightsProvider::Config PageTuningInsights::currentConfig() const
     if (!model.isEmpty()) {
         cfg.model = model;
     }
+
+    cfg.reasoning = ui->reasoningBox->currentData().toString();
 
     return cfg;
 }
@@ -329,14 +459,16 @@ void PageTuningInsights::on_previewButton_clicked()
     const QJsonObject payload = buildPayload(&err);
 
     if (!err.isEmpty()) {
-        ui->replyEdit->setPlainText(err);
+        showAnswer(err, false);
         return;
     }
 
-    // The exact bytes, and nothing is sent.
-    ui->replyEdit->setPlainText(
-                QString::fromUtf8(QJsonDocument(payload)
-                                  .toJson(QJsonDocument::Indented)));
+    mLastPayload = payload;
+
+    // The exact bytes, and nothing is sent. Not Markdown, so not rendered.
+    showAnswer(QString::fromUtf8(QJsonDocument(payload)
+                                 .toJson(QJsonDocument::Indented)), false);
+    ui->tabs->setCurrentWidget(ui->answerTab);
 }
 
 void PageTuningInsights::on_analyseButton_clicked()
@@ -345,38 +477,291 @@ void PageTuningInsights::on_analyseButton_clicked()
     QString err = TuningClient::preflight(cfg);
 
     if (!err.isEmpty()) {
-        ui->replyEdit->setPlainText(err);
+        showAnswer(err, false);
         return;
     }
 
     const QJsonObject payload = buildPayload(&err);
     if (!err.isEmpty()) {
-        ui->replyEdit->setPlainText(err);
+        showAnswer(err, false);
         return;
     }
 
+    mLastPayload = payload;
+
     QScopedPointer<InsightsProvider> prov(InsightsProvider::create(cfg));
     if (prov.isNull()) {
-        ui->replyEdit->setPlainText(tr("No provider"));
+        showAnswer(tr("No provider"), false);
         return;
     }
 
     ui->analyseButton->setEnabled(false);
-    ui->replyEdit->setPlainText(tr("Asking %1...").arg(prov->endpoint()));
+    showAnswer(tr("Asking %1...").arg(prov->endpoint()), false);
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     TuningClient client;
     const QString reply = client.send(prov.data(),
-                                      TuningInsights::buildPrompt(payload),
-                                      2048, 120000, &err);
+                                      TuningInsights::buildPrompt(payload, instructions()),
+                                      mMaxTokens, mTimeoutMs, &err);
 
     QApplication::restoreOverrideCursor();
     ui->analyseButton->setEnabled(true);
 
-    ui->replyEdit->setPlainText(err.isEmpty() ? reply : err);
+    if (err.isEmpty()) {
+        mLastAnswer = reply;
+        showAnswer(reply, true);
+    } else {
+        mLastAnswer.clear();
+        showAnswer(err, false);
+
+        // Also on stderr, so a headless or scripted run is not silent about it.
+        qWarning() << "insights:" << err.toLocal8Bit().constData();
+    }
+
+    /*
+     * Switch to the answer tab either way. The setup is what you were looking
+     * at while configuring; once Analyse has been pressed, the result -- an
+     * answer or the reason there is none -- is what you want to see. Leaving
+     * the user on the setup tab after a failure makes it look as though
+     * nothing happened at all.
+     */
+    ui->tabs->setCurrentWidget(ui->answerTab);
 }
 
 void PageTuningInsights::on_copyButton_clicked()
 {
-    QApplication::clipboard()->setText(ui->replyEdit->toPlainText());
+    // The Markdown, not the rendered HTML: what you paste should be the text.
+    QApplication::clipboard()->setText(
+                mLastAnswer.isEmpty() ? ui->answerView->toPlainText()
+                                      : mLastAnswer);
+}
+
+static QString renderAnswer(const QString &md)
+{
+    /*
+     * Markdown reads an underscore as emphasis, so every parameter name in the
+     * answer came out mangled: si_battery_cells rendered as si<em>battery</em>
+     * cells, l_current_max as l<em>current</em>max. Naming parameters is the
+     * whole point of the answer, so that made it unreadable and uncopyable.
+     *
+     * Each underscore inside a snake_case word is swapped for a sentinel
+     * before conversion and restored afterwards, which puts the character out
+     * of maddy's reach whatever else it is nested in. Two earlier attempts
+     * were worse: backticks around the name were still eaten inside a **bold**
+     * run, and skipping text between backticks broke on a reply with an odd
+     * number of them -- half the document then went unmasked. Masking inside a
+     * code span changes nothing, since the underscore is literal there
+     * already, so this simply does not special-case them.
+     */
+    static const QRegularExpression ident(
+                "\\b[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+\\b");
+    const QChar sentinel(0x0001);
+
+    QString masked;
+    int last = 0;
+
+    auto it = ident.globalMatch(md);
+    while (it.hasNext()) {
+        const QRegularExpressionMatch m = it.next();
+        masked += md.mid(last, m.capturedStart() - last);
+        masked += QString(m.captured()).replace('_', sentinel);
+        last = m.capturedEnd();
+    }
+
+    masked += md.mid(last);
+
+    // Utility::md2html is the same maddy pass the rest of the app uses.
+    return Utility::md2html(masked).replace(sentinel, '_');
+}
+
+void PageTuningInsights::showAnswer(const QString &text, bool isMarkdown)
+{
+    if (isMarkdown) {
+        // Utility::md2html is the same maddy pass the rest of the app uses.
+        ui->answerView->setHtml(renderAnswer(text));
+    } else {
+        ui->answerView->setPlainText(text);
+    }
+}
+
+bool PageTuningInsights::haveResult(const char *what)
+{
+    if (mLastPayload.isEmpty()) {
+        showAnswer(tr("Nothing to save yet: press Preview payload or Analyse "
+                      "first (%1).").arg(what), false);
+        return false;
+    }
+
+    return true;
+}
+
+QString PageTuningInsights::sentLogCsv() const
+{
+    const QJsonObject log = mLastPayload["log"].toObject();
+    const QJsonArray cols = log["columns"].toArray();
+    const QJsonArray rows = log["rows"].toArray();
+
+    if (cols.isEmpty()) {
+        return QString();
+    }
+
+    /*
+     * The package logger's shape -- ';' between fields, and each header field
+     * a "name:label:unit:decimals:..." descriptor -- so the file reads back
+     * into the same tools that produced the original.
+     */
+    QStringList head;
+    for (const QJsonValue &c: cols) {
+        const QString name = c.toString();
+        head << QString("%1:%1::2:0:0").arg(name);
+    }
+
+    QString out = head.join(";") + "\n";
+
+    for (const QJsonValue &r: rows) {
+        QStringList f;
+        for (const QJsonValue &v: r.toArray()) {
+            f << v.toString();
+        }
+        out += f.join(";") + "\n";
+    }
+
+    return out;
+}
+
+static bool writeTextFile(const QString &path, const QString &text)
+{
+    QFile f(path);
+
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return false;
+    }
+
+    return f.write(text.toUtf8()) == text.toUtf8().size();
+}
+
+void PageTuningInsights::on_saveAnswerButton_clicked()
+{
+    if (mLastAnswer.isEmpty()) {
+        showAnswer(tr("No answer to save yet."), false);
+        return;
+    }
+
+    const QString path = QFileDialog::getSaveFileName(
+                this, tr("Save answer"), "tuning-answer.md",
+                tr("Markdown (*.md);;All files (*)"));
+
+    if (path.isEmpty()) {
+        return;
+    }
+
+    if (!writeTextFile(path, mLastAnswer)) {
+        showAnswer(tr("Could not write %1").arg(path), false);
+    }
+}
+
+void PageTuningInsights::on_saveConfigButton_clicked()
+{
+    if (!mVesc) {
+        showAnswer(tr("Not connected."), false);
+        return;
+    }
+
+    const QString dir = QFileDialog::getExistingDirectory(
+                this, tr("Where to save the configuration"));
+
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    /*
+     * The same XML this program writes for --getMcConf and reads back for
+     * --setMcConf, so these are restorable rather than a private format.
+     */
+    const bool okMc = mVesc->mcConfig()->saveXml(
+                dir + "/mcconf.xml", "MCConfiguration");
+    const bool okApp = mVesc->appConfig()->saveXml(
+                dir + "/appconf.xml", "APPConfiguration");
+
+    if (!okMc || !okApp) {
+        showAnswer(tr("Could not write the configuration to %1").arg(dir),
+                   false);
+    }
+}
+
+void PageTuningInsights::on_saveLogButton_clicked()
+{
+    if (!haveResult("log")) {
+        return;
+    }
+
+    const QString csv = sentLogCsv();
+
+    if (csv.isEmpty()) {
+        showAnswer(tr("No log was included in what was sent."), false);
+        return;
+    }
+
+    const QString path = QFileDialog::getSaveFileName(
+                this, tr("Save the log that was sent"), "sent-log.csv",
+                tr("CSV (*.csv);;All files (*)"));
+
+    if (path.isEmpty()) {
+        return;
+    }
+
+    if (!writeTextFile(path, csv)) {
+        showAnswer(tr("Could not write %1").arg(path), false);
+    }
+}
+
+void PageTuningInsights::on_saveBundleButton_clicked()
+{
+    if (!haveResult("bundle")) {
+        return;
+    }
+
+    const QString dir = QFileDialog::getExistingDirectory(
+                this, tr("Where to save the bundle"));
+
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    /*
+     * A directory rather than an archive: this program has no zip writer, and
+     * four files somebody can open is more useful than one they cannot.
+     */
+    QStringList failed;
+
+    if (!writeTextFile(dir + "/payload.json",
+                       QString::fromUtf8(QJsonDocument(mLastPayload)
+                                         .toJson(QJsonDocument::Indented)))) {
+        failed << "payload.json";
+    }
+
+    if (!mLastAnswer.isEmpty() &&
+            !writeTextFile(dir + "/answer.md", mLastAnswer)) {
+        failed << "answer.md";
+    }
+
+    const QString csv = sentLogCsv();
+    if (!csv.isEmpty() && !writeTextFile(dir + "/sent-log.csv", csv)) {
+        failed << "sent-log.csv";
+    }
+
+    if (mVesc) {
+        if (!mVesc->mcConfig()->saveXml(dir + "/mcconf.xml",
+                                        "MCConfiguration")) {
+            failed << "mcconf.xml";
+        }
+        if (!mVesc->appConfig()->saveXml(dir + "/appconf.xml",
+                                         "APPConfiguration")) {
+            failed << "appconf.xml";
+        }
+    }
+
+    if (!failed.isEmpty()) {
+        showAnswer(tr("Could not write: %1").arg(failed.join(", ")), false);
+    }
 }

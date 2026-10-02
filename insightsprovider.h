@@ -54,6 +54,18 @@ public:
         QString model;
         QString keyEnvVar;      // empty: this provider needs no key
 
+        /*
+         * Thinking budget, for the OpenAI-compatible dialect only. Empty sends
+         * nothing, which is what a plain OpenAI server or a local model wants.
+         *
+         * "off" | "low" | "medium" | "high" | a token count. This exists
+         * because a reasoning model spends the same max_tokens budget thinking
+         * before it answers, and on a payload this size it can spend all of
+         * it: measured with claude-sonnet-5 and a 45 kB payload, 5000 tokens
+         * went to reasoning and the answer came back empty.
+         */
+        QString reasoning;
+
         bool needsKey() const { return !keyEnvVar.isEmpty(); }
         bool isLocal() const;   // loopback host, so nothing leaves the machine
     };

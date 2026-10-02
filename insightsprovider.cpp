@@ -105,7 +105,13 @@ QList<InsightsProvider::Config> InsightsProvider::presets()
     openrouter.kind = KindOpenAiCompatible;
     openrouter.id = "openrouter";
     openrouter.baseUrl = "https://openrouter.ai/api";
-    openrouter.model = "anthropic/claude-sonnet-4.5";
+    /*
+     * Verified against openrouter's own model list rather than guessed.
+     * anthropic/claude-opus-5 is a one-flag swap and took the same wall time
+     * in testing, but it is a reasoning model and needs a token cap large
+     * enough to cover its thinking as well as its answer.
+     */
+    openrouter.model = "anthropic/claude-sonnet-5";
     openrouter.keyEnvVar = "OPENROUTER_API_KEY";
     out.append(openrouter);
 
@@ -316,6 +322,27 @@ QByteArray OpenAiCompatProvider::body(const QString &prompt,
     root["messages"] = messages;
     root["stream"] = false;
 
+    /*
+     * Only sent when asked for. An unrecognised field is a risk with a strict
+     * server, and a local model has no thinking budget to configure, so the
+     * default wire format is unchanged.
+     */
+    if (!mCfg.reasoning.isEmpty()) {
+        QJsonObject r;
+        bool isCount = false;
+        const int count = mCfg.reasoning.toInt(&isCount);
+
+        if (isCount) {
+            r["max_tokens"] = count;
+        } else if (mCfg.reasoning.compare("off", Qt::CaseInsensitive) == 0) {
+            r["enabled"] = false;
+        } else {
+            r["effort"] = mCfg.reasoning.toLower();
+        }
+
+        root["reasoning"] = r;
+    }
+
     return QJsonDocument(root).toJson(QJsonDocument::Compact);
 }
 
@@ -356,11 +383,55 @@ QString OpenAiCompatProvider::parseReply(const QByteArray &in,
         return QString();
     }
 
-    const QString out = choices.at(0).toObject()["message"]
-            .toObject()["content"].toString();
+    const QJsonObject choice = choices.at(0).toObject();
+    const QString out = choice["message"].toObject()["content"].toString();
+    const QString finish = choice["finish_reason"].toString();
 
     if (out.isEmpty() && err != nullptr) {
-        *err = "The reply carried no text. If the endpoint is not the one this dialect expects, it can answer 200 in a shape this cannot read -- check the provider kind against the base URL.";
+        /*
+         * An empty answer has two very different causes, and saying the wrong
+         * one sends the reader to the wrong place.
+         *
+         * A reasoning model spends the same token budget on thinking first, so
+         * too small a cap returns finish_reason "length" with every completion
+         * token consumed and nothing left to say: measured with
+         * anthropic/claude-opus-5 at a 700-token cap, 700 reasoning tokens and
+         * an empty content field. That is not a dialect mismatch, which is
+         * what this used to claim.
+         */
+        const QJsonObject usage = root["usage"].toObject();
+        const int reasoning = usage["completion_tokens_details"].toObject()
+                ["reasoning_tokens"].toInt();
+
+        if (finish == "length") {
+            if (reasoning > 0) {
+                *err = QString("The answer was cut off before any text: all "
+                               "%1 tokens went to the model's reasoning. Raise "
+                               "the token cap (--insightsMaxTokens), which has "
+                               "to cover the thinking as well as the answer.")
+                        .arg(reasoning);
+            } else {
+                *err = "The answer was cut off before any text. Raise the "
+                       "token cap (--insightsMaxTokens).";
+            }
+        } else {
+            *err = QString("The reply carried no text (finish_reason \"%1\"). "
+                           "If the endpoint is not the one this dialect "
+                           "expects it can answer 200 in a shape this cannot "
+                           "read -- check the provider kind against the base "
+                           "URL.").arg(finish.isEmpty() ? "none" : finish);
+        }
+        return QString();
     }
+
+    /*
+     * Truncated but non-empty: worth saying, because advice that stops
+     * mid-sentence should not look like advice that finished.
+     */
+    if (finish == "length") {
+        return out + QStringLiteral("\n\n[cut off at the token cap; raise "
+                                    "--insightsMaxTokens for the rest]");
+    }
+
     return out;
 }
