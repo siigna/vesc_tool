@@ -56,6 +56,7 @@
 #include "pages/pageappnunchuk.h"
 #include "pages/pageappnrf.h"
 #include "pages/pageapppas.h"
+#include "pages/pagetuninginsights.h"
 #include "pages/pagegpd.h"
 #include "pages/pageexperiments.h"
 #include "pages/pageimu.h"
@@ -225,6 +226,7 @@ private:
     PageCanAnalyzer *mPageCanAnalyzer;
     PageTerminal *mPageTerminal;
     PageAppPas *mPageAppPas;
+    PageTuningInsights *mPageTuningInsights;
     PageSwdProg *mPageSwdProg;
     PageAppImu *mPageAppImu;
     PageLogAnalysis *mPageLogAnalysis;

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PageTuningInsights</class>
+ <widget class="QWidget" name="PageTuningInsights">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>760</width><height>720</height></rect>
+  </property>
+  <property name="windowTitle">
+   <string>Tuning Insights</string>
+  </property>
+  <layout class="QVBoxLayout" name="outerLayout">
+   <item>
+    <widget class="QGroupBox" name="providerGroup">
+     <property name="title"><string>Provider</string></property>
+     <layout class="QGridLayout" name="providerLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="providerLabel">
+        <property name="text"><string>Provider</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="providerBox"/>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="modelLabel">
+        <property name="text"><string>Model</string></property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLineEdit" name="modelEdit"/>
+      </item>
+      <item row="1" column="0" colspan="4">
+       <widget class="QLabel" name="endpointLabel">
+        <property name="text"><string>Endpoint:</string></property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="customGroup">
+     <property name="title"><string>Custom provider</string></property>
+     <property name="visible"><bool>false</bool></property>
+     <layout class="QGridLayout" name="customLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="kindLabel">
+        <property name="text"><string>Dialect</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="kindBox"/>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="baseUrlLabel">
+        <property name="text"><string>Base URL</string></property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLineEdit" name="baseUrlEdit">
+        <property name="placeholderText"><string>http://localhost:11434</string></property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="keyEnvLabel">
+        <property name="text"><string>Key variable</string></property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="3">
+       <widget class="QLineEdit" name="keyEnvEdit">
+        <property name="placeholderText"><string>Leave empty for a server that needs no key</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="keyGroup">
+     <property name="title"><string>API key</string></property>
+     <layout class="QGridLayout" name="keyLayout">
+      <item row="0" column="0" colspan="3">
+       <widget class="QLabel" name="keyStatusLabel">
+        <property name="text"><string>Key:</string></property>
+        <property name="wordWrap"><bool>true</bool></property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLineEdit" name="keyEdit">
+        <property name="echoMode"><enum>QLineEdit::Password</enum></property>
+        <property name="placeholderText"><string>Optional: store a key for this provider</string></property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="keySaveButton">
+        <property name="text"><string>Save key</string></property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="3">
+       <widget class="QLabel" name="keyWarnLabel">
+        <property name="text"><string>A key saved here is written in plain text to this application's settings, which anything running as you can read. An environment variable is preferred: it is read first and is never written to disk by this page.</string></property>
+        <property name="wordWrap"><bool>true</bool></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="dataGroup">
+     <property name="title"><string>What is sent</string></property>
+     <layout class="QGridLayout" name="dataLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="logLabel">
+        <property name="text"><string>Log file</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="logEdit">
+        <property name="placeholderText"><string>Optional: a CSV log to include</string></property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="logBrowseButton">
+        <property name="text"><string>Browse</string></property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="maxRowsLabel">
+        <property name="text"><string>Log rows</string></property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="maxRowsBox">
+        <property name="minimum"><number>10</number></property>
+        <property name="maximum"><number>5000</number></property>
+        <property name="value"><number>200</number></property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="3">
+       <widget class="QLabel" name="redactionLabel">
+        <property name="text"><string>Location is never included. Log columns are filtered by an allowlist, so a column this build does not know about is left out rather than sent. Press Preview payload to see the exact bytes before anything leaves this machine.</string></property>
+        <property name="wordWrap"><bool>true</bool></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <widget class="QPushButton" name="previewButton">
+       <property name="text"><string>Preview payload</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="analyseButton">
+       <property name="text"><string>Analyse</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="copyButton">
+       <property name="text"><string>Copy</string></property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="buttonSpacer">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="sizeHint" stdset="0">
+        <size><width>40</width><height>20</height></size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="replyEdit">
+     <property name="readOnly"><bool>true</bool></property>
+     <property name="plainText">
+      <string>Advisory only. Nothing on this page writes a configuration value; any change is yours to make on the page that owns the setting.</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

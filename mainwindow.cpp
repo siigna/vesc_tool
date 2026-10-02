@@ -1652,6 +1652,12 @@ void MainWindow::reloadPages()
     addPageItem(tr("Motor Analysis"),  theme + "icons/motor.png", "", false, true);
     mPageNameIdList.insert("motor_comparison", ui->pageList->count() - 1);
 
+    mPageTuningInsights = new PageTuningInsights(this);
+    mPageTuningInsights->setVesc(mVesc);
+    ui->pageWidget->addWidget(mPageTuningInsights);
+    addPageItem(tr("Tuning Insights"),  theme + "icons/About-96.png", "", false, true);
+    mPageNameIdList.insert("tuning_insights", ui->pageList->count() - 1);
+
     VTextBrowser *vt = new VTextBrowser(this);
     ConfigParam *p = mVesc->infoConfig()->getParam("dev_tools_description");
     if (p) {

@@ -1,5 +1,6 @@
 FORMS += \
     $$PWD/pageapppas.ui \
+    $$PWD/pagetuninginsights.ui \
     $$PWD/pagebms.ui \
     $$PWD/pagecananalyzer.ui \
     $$PWD/pageconnection.ui \
@@ -41,6 +42,7 @@ FORMS += \
 
 HEADERS += \
     $$PWD/pageapppas.h \
+    $$PWD/pagetuninginsights.h \
     $$PWD/pagebms.h \
     $$PWD/pagecananalyzer.h \
     $$PWD/pageconnection.h \
@@ -82,6 +84,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/pageapppas.cpp \
+    $$PWD/pagetuninginsights.cpp \
     $$PWD/pagebms.cpp \
     $$PWD/pagecananalyzer.cpp \
     $$PWD/pageconnection.cpp \
