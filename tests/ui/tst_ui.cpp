@@ -74,6 +74,14 @@
 #include "vescinterface.h"
 #include "widgets/paramtable.h"
 #include "widgets/parameditdouble.h"
+#include "widgets/parameditint.h"
+#include "widgets/parameditbool.h"
+#include "widgets/parameditenum.h"
+#include "widgets/parameditbitfield.h"
+#include "widgets/parameditstring.h"
+#include <QSpinBox>
+#include <QCheckBox>
+#include <QLineEdit>
 
 #include "pages/pageapppas.h"
 #include "pages/pageappadc.h"
@@ -225,6 +233,11 @@ private slots:
     void paramPagesAreNotEmpty();
     void paramEditorKeepsItsValue();
     void editorWritesThroughToConfig();
+    void editorIntWritesThroughToConfig();
+    void editorBoolWritesThroughToConfig();
+    void editorEnumWritesThroughToConfig();
+    void editorBitfieldWritesThroughToConfig();
+    void editorStringWritesThroughToConfig();
     void configChangeReachesEditor();
 
     void snapshotsAreStable_data();
@@ -525,6 +538,441 @@ void UiTest::editorWritesThroughToConfig()
                         .arg(changed.first())
                         .arg(conf->getParamDouble(changed.first()))
                         .arg(target)));
+}
+
+/* ---- Round-trip for the other five editor types --------------------------
+ *
+ * editorWritesThroughToConfig above covers ParamEditDouble, on one page. The
+ * other five editors each have their own updateParam* call site, and each can
+ * be severed on its own, so a passing double says nothing about them. This is
+ * the backwards-compatibility claim in full: driving a control has to reach
+ * the ConfigParams that gets written to a controller.
+ *
+ * Each test walks the parameter pages, takes the first editor of its type that
+ * can actually be moved, and asserts three things: that exactly one parameter
+ * changed, that it is the one the editor is named for, and that it holds the
+ * value the editor was set to. "Exactly one" is the part that is easy to leave
+ * out -- an editor that writes the right name and also disturbs a neighbour
+ * would otherwise pass.
+ */
+
+static QVariant paramValue(ConfigParams *conf, const QString &name)
+{
+    ConfigParam *p = conf->getParam(name);
+
+    if (p == nullptr) {
+        return QVariant();
+    }
+
+    switch (p->type) {
+    case CFG_T_DOUBLE:   return QVariant(conf->getParamDouble(name));
+    case CFG_T_INT:      return QVariant(conf->getParamInt(name));
+    case CFG_T_BITFIELD: return QVariant(conf->getParamInt(name));
+    case CFG_T_ENUM:     return QVariant(conf->getParamEnum(name));
+    case CFG_T_BOOL:     return QVariant(conf->getParamBool(name));
+    case CFG_T_QSTRING:  return QVariant(conf->getParamQString(name));
+    default:             return QVariant();
+    }
+}
+
+static QHash<QString, QVariant> confSnapshot(ConfigParams *conf)
+{
+    QHash<QString, QVariant> out;
+
+    for (const QString &n: conf->getParamOrder()) {
+        const QVariant v = paramValue(conf, n);
+
+        if (v.isValid()) {
+            out.insert(n, v);
+        }
+    }
+
+    return out;
+}
+
+static bool sameValue(const QVariant &a, const QVariant &b)
+{
+    if (a.type() == QVariant::Double || b.type() == QVariant::Double) {
+        return qAbs(a.toDouble() - b.toDouble()) < 1e-9;
+    }
+
+    return a == b;
+}
+
+/*
+ * The config that holds this parameter, or null if neither does -- or if both
+ * do, since then "exactly one parameter changed" cannot be attributed and the
+ * candidate is skipped rather than guessed at.
+ */
+static ConfigParams *confOwning(const QString &name)
+{
+    ConfigParams *app = g_vesc->appConfig();
+    ConfigParams *mc = g_vesc->mcConfig();
+    // hasParam, not getParam: getParam qWarns on a miss, and probing two
+    // configs for every candidate would log a warning per editor.
+    const bool inApp = app->hasParam(name);
+    const bool inMc = mc->hasParam(name);
+
+    if (inApp && inMc) {
+        return nullptr;
+    }
+
+    return inApp ? app : (inMc ? mc : nullptr);
+}
+
+static ConfigParams *otherConf(ConfigParams *conf)
+{
+    return conf == g_vesc->appConfig() ? g_vesc->mcConfig() : g_vesc->appConfig();
+}
+
+struct RoundTrip {
+    QString param;
+    ConfigParams *conf = nullptr;
+    QVariant expect;
+    QString how;
+};
+
+static const QVector<int> &paramPageIds()
+{
+    static const QVector<int> ids = {
+        Page_PageAppGeneral, Page_PageAppAdc, Page_PageAppPas, Page_PageAppPpm,
+        Page_PageAppUart, Page_PageAppNrf, Page_PageAppNunchuk, Page_PageAppImu,
+        Page_PageAppSettings, Page_PageMotor, Page_PageMotorSettings,
+        Page_PageMotorInfo, Page_PageFoc, Page_PageBldc, Page_PageDc,
+        Page_PageControllers,
+    };
+
+    return ids;
+}
+
+static QString describeDiff(ConfigParams *conf,
+                            const QHash<QString, QVariant> &before,
+                            QStringList *changed)
+{
+    const QHash<QString, QVariant> after = confSnapshot(conf);
+
+    for (auto it = after.constBegin(); it != after.constEnd(); ++it) {
+        if (!sameValue(it.value(), before.value(it.key()))) {
+            *changed << it.key();
+        }
+    }
+
+    changed->sort();
+    return QString();
+}
+
+/*
+ * Walks the parameter pages and hands every editor of type T to plan(), which
+ * either declines the candidate and touches nothing, or fills in the expected
+ * result and drives the editor. The page stays alive across the call, and the
+ * before-state is taken after the page has settled -- several editors write
+ * their starting value back through setConfig(), so a snapshot taken any
+ * earlier would record that as a change.
+ *
+ * Returns an empty string on success, otherwise what went wrong.
+ */
+static QString withWhere(const QString &err, const QString &where)
+{
+    if (err.isEmpty() || where.isEmpty()) {
+        return err;
+    }
+
+    return QString("%1 [%2]").arg(err, where);
+}
+
+template <typename T, typename Plan>
+static QString roundTripOnFirstEditor(Plan plan, QString *where)
+{
+    QStringList declined;
+
+    for (int id: paramPageIds()) {
+        QScopedPointer<QWidget> page(makePage(id, g_vesc));
+
+        if (page.isNull()) {
+            continue;
+        }
+
+        UiHarness::settle();
+
+        for (T *ed: page->template findChildren<T*>()) {
+            RoundTrip rt;
+            rt.param = ed->name();
+
+            if (rt.param.isEmpty()) {
+                continue;
+            }
+
+            rt.conf = confOwning(rt.param);
+
+            if (rt.conf == nullptr) {
+                declined << rt.param + " (no single owning config)";
+                continue;
+            }
+
+            ConfigParams *other = otherConf(rt.conf);
+            const QHash<QString, QVariant> before = confSnapshot(rt.conf);
+            const QHash<QString, QVariant> otherBefore = confSnapshot(other);
+
+            if (!plan(ed, &rt)) {
+                declined << rt.param;
+                continue;
+            }
+
+            UiHarness::settle();
+
+            if (where != nullptr) {
+                *where = QString("%1 on %2").arg(rt.param,
+                        QString::fromLatin1(page->metaObject()->className()));
+            }
+
+            QStringList changed;
+            QStringList otherChanged;
+            describeDiff(rt.conf, before, &changed);
+            describeDiff(other, otherBefore, &otherChanged);
+
+            if (!otherChanged.isEmpty()) {
+                return QString("driving %1 also changed the other config: %2")
+                        .arg(rt.param, otherChanged.join(", "));
+            }
+
+            if (changed.size() != 1) {
+                return QString("driving %1 (%2) changed %3 parameters, "
+                               "expected exactly 1: %4")
+                        .arg(rt.param, rt.how)
+                        .arg(changed.size())
+                        .arg(changed.join(", "));
+            }
+
+            if (changed.first() != rt.param) {
+                return QString("driving %1 (%2) changed %3 instead")
+                        .arg(rt.param, rt.how, changed.first());
+            }
+
+            const QVariant got = paramValue(rt.conf, rt.param);
+
+            if (!sameValue(got, rt.expect)) {
+                return QString("%1 holds %2, the editor was set to %3 (%4)")
+                        .arg(rt.param, got.toString(),
+                             rt.expect.toString(), rt.how);
+            }
+
+            return QString();
+        }
+    }
+
+    return QString("no drivable %1 on any parameter page; declined: %2")
+            .arg(QString::fromLatin1(T::staticMetaObject.className()),
+                 declined.isEmpty() ? QString("none") : declined.join(", "));
+}
+
+void UiTest::editorIntWritesThroughToConfig()
+{
+    QString where;
+    const QString err = roundTripOnFirstEditor<ParamEditInt>(
+        [](ParamEditInt *ed, RoundTrip *rt) {
+            ConfigParam *p = rt->conf->getParam(rt->param);
+
+            if (p == nullptr || p->type != CFG_T_INT || p->editorScale == 0.0) {
+                return false;
+            }
+
+            /*
+             * Both spin boxes exist at all times and both are connected; which
+             * one writes through is decided by editAsPercentage, and the other
+             * is hidden. Drive the visible one, which is also the only one a
+             * rider can reach. No shipped parameter sets editAsPercentage, so
+             * in practice this is always the plain box -- picking by
+             * visibility rather than hard-coding it means a parameter that
+             * turns percentage mode on does not silently stop being tested.
+             */
+            QSpinBox *box = nullptr;
+
+            for (QSpinBox *b: ed->findChildren<QSpinBox*>(QString(),
+                                              Qt::FindDirectChildrenOnly)) {
+                if (!b->isHidden()) {
+                    box = b;
+                    break;
+                }
+            }
+
+            if (box == nullptr) {
+                return false;
+            }
+
+            const int step = qMax(box->singleStep(), 1);
+            const int target = box->value() + step <= box->maximum()
+                    ? box->value() + step
+                    : box->value() - step;
+
+            if (target == box->value() || target < box->minimum()) {
+                return false;
+            }
+
+            rt->how = QString("spin box %1 -> %2").arg(box->value()).arg(target);
+            // Mirrors ParamEditInt::divScale, so a change to the scaling
+            // shows up here rather than silently writing a wrong value.
+            rt->expect = QVariant(int(double(target) / p->editorScale));
+            box->setValue(target);
+            return true;
+        }, &where);
+
+    QVERIFY2(err.isEmpty(), qPrintable(withWhere(err, where)));
+}
+
+void UiTest::editorBoolWritesThroughToConfig()
+{
+    QString where;
+    const QString err = roundTripOnFirstEditor<ParamEditBool>(
+        [](ParamEditBool *ed, RoundTrip *rt) {
+            ConfigParam *p = rt->conf->getParam(rt->param);
+
+            if (p == nullptr || p->type != CFG_T_BOOL) {
+                return false;
+            }
+
+            QComboBox *box = ed->findChild<QComboBox*>();
+
+            if (box == nullptr || box->count() < 2) {
+                return false;
+            }
+
+            const int idx = box->currentIndex() == 0 ? 1 : 0;
+            rt->how = QString("combo index %1 -> %2")
+                    .arg(box->currentIndex()).arg(idx);
+            // The editor passes the index straight to updateParamBool.
+            rt->expect = QVariant(idx != 0);
+            box->setCurrentIndex(idx);
+            return true;
+        }, &where);
+
+    QVERIFY2(err.isEmpty(), qPrintable(withWhere(err, where)));
+}
+
+void UiTest::editorEnumWritesThroughToConfig()
+{
+    QString where;
+    const QString err = roundTripOnFirstEditor<ParamEditEnum>(
+        [](ParamEditEnum *ed, RoundTrip *rt) {
+            ConfigParam *p = rt->conf->getParam(rt->param);
+
+            if (p == nullptr || p->type != CFG_T_ENUM) {
+                return false;
+            }
+
+            QComboBox *box = ed->findChild<QComboBox*>();
+
+            if (box == nullptr || box->count() < 2) {
+                return false;
+            }
+
+            const int idx = (box->currentIndex() + 1) % box->count();
+            rt->how = QString("combo index %1 -> %2")
+                    .arg(box->currentIndex()).arg(idx);
+            rt->expect = QVariant(idx);
+            box->setCurrentIndex(idx);
+            return true;
+        }, &where);
+
+    QVERIFY2(err.isEmpty(), qPrintable(withWhere(err, where)));
+}
+
+void UiTest::editorBitfieldWritesThroughToConfig()
+{
+    QString where;
+    const QString err = roundTripOnFirstEditor<ParamEditBitfield>(
+        [](ParamEditBitfield *ed, RoundTrip *rt) {
+            ConfigParam *p = rt->conf->getParam(rt->param);
+
+            if (p == nullptr || p->type != CFG_T_BITFIELD) {
+                return false;
+            }
+
+            /*
+             * The bit a box stands for is its position in the name, b0Box
+             * through b7Box, and a box labelled "unused" is hidden. Toggling a
+             * hidden one would assert that a bit no rider can reach still
+             * round-trips, which is not the claim being made here.
+             */
+            QCheckBox *box = nullptr;
+            int bit = -1;
+
+            for (QCheckBox *b: ed->findChildren<QCheckBox*>()) {
+                const QString n = b->objectName();
+
+                if (b->isHidden() || !n.startsWith("b") || !n.endsWith("Box")) {
+                    continue;
+                }
+
+                bool okNum = false;
+                const int cand = n.mid(1, n.length() - 4).toInt(&okNum);
+
+                if (okNum && cand >= 0 && cand < 8) {
+                    box = b;
+                    bit = cand;
+                    break;
+                }
+            }
+
+            if (box == nullptr) {
+                return false;
+            }
+
+            const int before = rt->conf->getParamInt(rt->param);
+            rt->how = QString("bit %1 (%2) toggled from %3")
+                    .arg(bit).arg(box->objectName()).arg(before);
+            rt->expect = QVariant(before ^ (1 << bit));
+            /*
+             * click(), not setChecked(): the editor connects to
+             * QCheckBox::clicked, which setChecked does not emit. A test using
+             * setChecked would fail here rather than pass vacuously, but it
+             * would fail for a reason that has nothing to do with the config.
+             */
+            box->click();
+            return true;
+        }, &where);
+
+    QVERIFY2(err.isEmpty(), qPrintable(withWhere(err, where)));
+}
+
+void UiTest::editorStringWritesThroughToConfig()
+{
+    QString where;
+    const QString err = roundTripOnFirstEditor<ParamEditString>(
+        [](ParamEditString *ed, RoundTrip *rt) {
+            ConfigParam *p = rt->conf->getParam(rt->param);
+
+            if (p == nullptr || p->type != CFG_T_QSTRING) {
+                return false;
+            }
+
+            QLineEdit *edit = ed->findChild<QLineEdit*>();
+
+            if (edit == nullptr) {
+                return false;
+            }
+
+            /*
+             * Growing the text is the obvious move and the wrong one at the
+             * limit: the editor applies the parameter's maxLen with
+             * setMaxLength, so an append on a full field is silently dropped
+             * and the test would compare the old value against itself.
+             */
+            const QString now = edit->text();
+            const bool full = edit->maxLength() > 0
+                    && now.length() >= edit->maxLength();
+            const QString target = full ? now.chopped(1) : now + QLatin1String("x");
+
+            if (target == now) {
+                return false;
+            }
+
+            rt->how = QString("line edit \"%1\" -> \"%2\"").arg(now, target);
+            rt->expect = QVariant(target);
+            edit->setText(target);
+            return true;
+        }, &where);
+
+    QVERIFY2(err.isEmpty(), qPrintable(withWhere(err, where)));
 }
 
 void UiTest::configChangeReachesEditor()

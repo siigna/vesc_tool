@@ -845,7 +845,21 @@ void ConfigParams::updateParamString(QString name, QString param, QObject *src)
     if (mParams.contains(name)) {
         ConfigParam &p = mParams[name];
         if (p.type == CFG_T_QSTRING) {
-            param.truncate(p.maxLen);
+            /*
+             * maxLen 0 means no limit, not a limit of zero. Every shipped
+             * string parameter has maxLen 0 -- motor_brand, motor_model,
+             * motor_description, motor_quality_description -- so an
+             * unconditional truncate silently emptied all four: the line edit
+             * accepted the text and the config stored "". Both editors already
+             * read 0 this way (ParamEditString applies setMaxLength only when
+             * maxLen > 0, as does mobile/ParamEditString.qml), and the
+             * deserialize path does not truncate at all, so this was the one
+             * place that disagreed. Nothing sizes a buffer from maxLen:
+             * strings go out through vbAppendString, which is length-prefixed.
+             */
+            if (p.maxLen > 0) {
+                param.truncate(p.maxLen);
+            }
             if (p.valString != param) {
                 p.valString = param;
                 emit paramChangedQString(src, name, param);
