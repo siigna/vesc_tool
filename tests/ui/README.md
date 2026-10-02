@@ -56,6 +56,22 @@ colour name comes back red. `Utility::getIcon` was made to warn for this;
 about box names this fork and carries the placeholder logo's CC BY-SA credit,
 and no page label calls this program by the upstream name.
 
+**The `insightsSaves*` checks** — the saves, driven through
+`saveSentLogTo`/`saveBundleTo` rather than the buttons. Each slot's first
+statement was a modal file dialog, which made the writing untestable and
+unreusable, so it now lives in methods that take a destination.
+
+Two claims get checked rather than asserted in a commit message. The saved log
+is **the one that was sent**: the test writes a sample CSV that contains
+`gnss_lat`/`gnss_lon`, previews, saves, and fails if either appears in the
+output — replacing the writer with a copy of the source file is caught. And the
+saved configuration is **genuinely re-uploadable**: it is loaded back through a
+separate `VescInterface`, and a parameter value has to survive the trip.
+
+Fixing that second test found a real defect in the first version of the CSV
+writer: it emitted `name:name::2:0:0` and threw away the label and unit the
+payload had deliberately kept, so "Speed ESC (km/h)" came back as `kmh_vesc`.
+
 **The `mainWindow*` checks** — the real window, built as the application builds
 it. `MainWindow::reloadPages` registers ~40 pages in one function and keeps the
 navigation list and the stacked widget in step **by convention only**; nothing
@@ -117,6 +133,8 @@ and reverted:
 | revert the welcome heading to the upstream name | **caught** — the `branding` stage of `tests/check.sh` |
 | add a nav row with no page behind it | **caught** — `mainWindowNavAndStackStayInStep` |
 | delete a light-theme icon from `res.qrc` | **caught by the light run only** — dark stayed green |
+| save the source log instead of the filtered one | **caught** — `insightsSavesWhatWasSent`, gnss reappeared |
+| write the config in a form that cannot be loaded | **caught** — `insightsSavedConfigLoadsBackIn` |
 
 Three of those were *not* caught when first written, and the reasons are worth
 keeping:

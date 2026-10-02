@@ -610,10 +610,35 @@ QString PageTuningInsights::sentLogCsv() const
      * a "name:label:unit:decimals:..." descriptor -- so the file reads back
      * into the same tools that produced the original.
      */
+    /*
+     * The label and unit come from the payload's column_fields, which is where
+     * the logger's own header metadata was kept. Writing name:name::2:0:0
+     * instead -- which this did at first -- threw away the very thing that
+     * makes the file readable: "Speed ESC (km/h)" became "kmh_vesc".
+     */
+    const QJsonObject fields = log["column_fields"].toObject();
+
     QStringList head;
     for (const QJsonValue &c: cols) {
         const QString name = c.toString();
-        head << QString("%1:%1::2:0:0").arg(name);
+        QString label = name;
+        QString unit;
+
+        const QString note = fields[name].toString();
+        if (!note.isEmpty()) {
+            // "Label (unit)" back into its parts; a note with no unit has no
+            // parentheses and is used as the label whole.
+            const int open = note.lastIndexOf(" (");
+
+            if (open > 0 && note.endsWith(")")) {
+                label = note.left(open);
+                unit = note.mid(open + 2, note.size() - open - 3);
+            } else {
+                label = note;
+            }
+        }
+
+        head << QString("%1:%2:%3:2:0:0").arg(name, label, unit);
     }
 
     QString out = head.join(";") + "\n";
@@ -640,38 +665,26 @@ static bool writeTextFile(const QString &path, const QString &text)
     return f.write(text.toUtf8()) == text.toUtf8().size();
 }
 
-void PageTuningInsights::on_saveAnswerButton_clicked()
+bool PageTuningInsights::saveAnswerTo(const QString &path, QString *err)
 {
     if (mLastAnswer.isEmpty()) {
-        showAnswer(tr("No answer to save yet."), false);
-        return;
-    }
-
-    const QString path = QFileDialog::getSaveFileName(
-                this, tr("Save answer"), "tuning-answer.md",
-                tr("Markdown (*.md);;All files (*)"));
-
-    if (path.isEmpty()) {
-        return;
+        *err = tr("No answer to save yet.");
+        return false;
     }
 
     if (!writeTextFile(path, mLastAnswer)) {
-        showAnswer(tr("Could not write %1").arg(path), false);
+        *err = tr("Could not write %1").arg(path);
+        return false;
     }
+
+    return true;
 }
 
-void PageTuningInsights::on_saveConfigButton_clicked()
+bool PageTuningInsights::saveConfigTo(const QString &dir, QString *err)
 {
     if (!mVesc) {
-        showAnswer(tr("Not connected."), false);
-        return;
-    }
-
-    const QString dir = QFileDialog::getExistingDirectory(
-                this, tr("Where to save the configuration"));
-
-    if (dir.isEmpty()) {
-        return;
+        *err = tr("Not connected.");
+        return false;
     }
 
     /*
@@ -684,48 +697,36 @@ void PageTuningInsights::on_saveConfigButton_clicked()
                 dir + "/appconf.xml", "APPConfiguration");
 
     if (!okMc || !okApp) {
-        showAnswer(tr("Could not write the configuration to %1").arg(dir),
-                   false);
+        *err = tr("Could not write the configuration to %1").arg(dir);
+        return false;
     }
+
+    return true;
 }
 
-void PageTuningInsights::on_saveLogButton_clicked()
+bool PageTuningInsights::saveSentLogTo(const QString &path, QString *err)
 {
-    if (!haveResult("log")) {
-        return;
-    }
-
     const QString csv = sentLogCsv();
 
     if (csv.isEmpty()) {
-        showAnswer(tr("No log was included in what was sent."), false);
-        return;
-    }
-
-    const QString path = QFileDialog::getSaveFileName(
-                this, tr("Save the log that was sent"), "sent-log.csv",
-                tr("CSV (*.csv);;All files (*)"));
-
-    if (path.isEmpty()) {
-        return;
+        *err = tr("No log was included in what was sent.");
+        return false;
     }
 
     if (!writeTextFile(path, csv)) {
-        showAnswer(tr("Could not write %1").arg(path), false);
+        *err = tr("Could not write %1").arg(path);
+        return false;
     }
+
+    return true;
 }
 
-void PageTuningInsights::on_saveBundleButton_clicked()
+bool PageTuningInsights::saveBundleTo(const QString &dir, QString *err)
 {
-    if (!haveResult("bundle")) {
-        return;
-    }
-
-    const QString dir = QFileDialog::getExistingDirectory(
-                this, tr("Where to save the bundle"));
-
-    if (dir.isEmpty()) {
-        return;
+    if (mLastPayload.isEmpty()) {
+        *err = tr("Nothing to save yet: press Preview payload or Analyse "
+                  "first.");
+        return false;
     }
 
     /*
@@ -750,18 +751,77 @@ void PageTuningInsights::on_saveBundleButton_clicked()
         failed << "sent-log.csv";
     }
 
-    if (mVesc) {
-        if (!mVesc->mcConfig()->saveXml(dir + "/mcconf.xml",
-                                        "MCConfiguration")) {
-            failed << "mcconf.xml";
-        }
-        if (!mVesc->appConfig()->saveXml(dir + "/appconf.xml",
-                                         "APPConfiguration")) {
-            failed << "appconf.xml";
-        }
+    QString confErr;
+    if (mVesc && !saveConfigTo(dir, &confErr)) {
+        failed << "mcconf.xml/appconf.xml";
     }
 
     if (!failed.isEmpty()) {
-        showAnswer(tr("Could not write: %1").arg(failed.join(", ")), false);
+        *err = tr("Could not write: %1").arg(failed.join(", "));
+        return false;
+    }
+
+    return true;
+}
+
+void PageTuningInsights::on_saveAnswerButton_clicked()
+{
+    const QString path = QFileDialog::getSaveFileName(
+                this, tr("Save answer"), "tuning-answer.md",
+                tr("Markdown (*.md);;All files (*)"));
+
+    if (path.isEmpty()) {
+        return;
+    }
+
+    QString err;
+    if (!saveAnswerTo(path, &err)) {
+        showAnswer(err, false);
+    }
+}
+
+void PageTuningInsights::on_saveConfigButton_clicked()
+{
+    const QString dir = QFileDialog::getExistingDirectory(
+                this, tr("Where to save the configuration"));
+
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    QString err;
+    if (!saveConfigTo(dir, &err)) {
+        showAnswer(err, false);
+    }
+}
+
+void PageTuningInsights::on_saveLogButton_clicked()
+{
+    const QString path = QFileDialog::getSaveFileName(
+                this, tr("Save the log that was sent"), "sent-log.csv",
+                tr("CSV (*.csv);;All files (*)"));
+
+    if (path.isEmpty()) {
+        return;
+    }
+
+    QString err;
+    if (!saveSentLogTo(path, &err)) {
+        showAnswer(err, false);
+    }
+}
+
+void PageTuningInsights::on_saveBundleButton_clicked()
+{
+    const QString dir = QFileDialog::getExistingDirectory(
+                this, tr("Where to save the bundle"));
+
+    if (dir.isEmpty()) {
+        return;
+    }
+
+    QString err;
+    if (!saveBundleTo(dir, &err)) {
+        showAnswer(err, false);
     }
 }

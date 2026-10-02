@@ -49,6 +49,11 @@
 #include <QTextBrowser>
 #include <QHash>
 #include <QPixmapCache>
+#include <QTemporaryDir>
+#include <QTextStream>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QFile>
 #include <QLabel>
 #include <QPushButton>
 
@@ -171,6 +176,8 @@ private slots:
 
     void insightsPreviewShowsTheAnswerTab();
     void insightsInstructionsAreEditable();
+    void insightsSavesWhatWasSent();
+    void insightsSavedConfigLoadsBackIn();
 
     void insightsEndpointFollowsProvider();
     void insightsKeylessProviderNeedsNoKey();
@@ -577,6 +584,142 @@ void UiTest::brandingIsOurs()
  * request. Not processing events keeps the suite offline, and the pages are all
  * built in the constructor anyway.
  */
+/*
+ * A log in the package logger's shape, written to a temporary file so the test
+ * does not depend on anybody's ride data. The gnss columns are present on
+ * purpose: what gets saved has to be the filtered log, not the source.
+ */
+static QString writeSampleLog(const QString &dir)
+{
+    const QString path = dir + "/sample.csv";
+    QFile f(path);
+
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return QString();
+    }
+
+    QTextStream ts(&f);
+    ts << "Input Voltage:Input Voltage:V:2:0:0;RPM:RPM::2:0:0;"
+          "kmh_vesc:Speed ESC:km/h:2:0:0;"
+          "gnss_lat:gnss_lat::2:0:0;gnss_lon:gnss_lon::2:0:0\n";
+
+    for (int i = 0; i < 20; i++) {
+        ts << 80.0 - i * 0.1 << ";" << i * 100 << ";" << i * 1.5
+           << ";57.70887;11.97456\n";
+    }
+
+    return path;
+}
+
+void UiTest::insightsSavesWhatWasSent()
+{
+    QTemporaryDir tmp;
+    QVERIFY(tmp.isValid());
+
+    const QString log = writeSampleLog(tmp.path());
+    QVERIFY(!log.isEmpty());
+
+    QScopedPointer<QWidget> p(makePage(Page_PageTuningInsights, g_vesc));
+    PageTuningInsights *page = qobject_cast<PageTuningInsights*>(p.data());
+    QVERIFY(page);
+    UiHarness::settle();
+
+    page->applyCliDefaults(QString(), QString(), QString(), log, false);
+    UiHarness::settle();
+
+    // Build the payload, which is what the saves are taken from.
+    QPushButton *preview = page->findChild<QPushButton*>("previewButton");
+    QVERIFY(preview);
+    preview->setEnabled(true);
+    QTest::mouseClick(preview, Qt::LeftButton);
+    UiHarness::settle();
+
+    const QString out = tmp.path() + "/sent-log.csv";
+    QString err;
+    QVERIFY2(page->saveSentLogTo(out, &err), qPrintable(err));
+
+    QFile f(out);
+    QVERIFY(f.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QString csv = QString::fromUtf8(f.readAll());
+
+    /*
+     * The point of saving "the log that was sent" rather than copying the
+     * source file: the location columns were filtered out before sending, so
+     * they must be absent here too.
+     */
+    QVERIFY2(!csv.contains("gnss"), "the saved log still carries gnss columns");
+    QVERIFY2(!csv.contains("57.70887"), "the saved log still carries coordinates");
+
+    // and the permitted columns did survive, so this is not passing by emptiness
+    QVERIFY2(csv.contains("Input Voltage"), qPrintable(csv.left(200)));
+    QVERIFY2(csv.contains("kmh_vesc"), qPrintable(csv.left(200)));
+
+    // The package logger's shape: ';' separated, "name:label:unit:..." header.
+    const QStringList lines = csv.split('\n', QString::SkipEmptyParts);
+    QVERIFY(lines.size() > 1);
+    QVERIFY2(lines.first().contains(';'), "header is not ';' separated");
+    QVERIFY2(lines.first().contains("Speed ESC"),
+             "header lost the label the logger puts in it");
+    QCOMPARE(lines.at(1).count(';'), lines.first().count(';'));
+}
+
+void UiTest::insightsSavedConfigLoadsBackIn()
+{
+    /*
+     * "Standard re-uploadable config" is a claim, so it is checked: the saved
+     * XML has to load back through the same ConfigParams that writes it, and
+     * carry a value that survives the trip.
+     */
+    QTemporaryDir tmp;
+    QVERIFY(tmp.isValid());
+
+    QScopedPointer<QWidget> p(makePage(Page_PageTuningInsights, g_vesc));
+    PageTuningInsights *page = qobject_cast<PageTuningInsights*>(p.data());
+    QVERIFY(page);
+    UiHarness::settle();
+
+    QPushButton *preview = page->findChild<QPushButton*>("previewButton");
+    QVERIFY(preview);
+    preview->setEnabled(true);
+    QTest::mouseClick(preview, Qt::LeftButton);
+    UiHarness::settle();
+
+    QString err;
+    QVERIFY2(page->saveBundleTo(tmp.path(), &err), qPrintable(err));
+
+    for (const QString &name: {"payload.json", "mcconf.xml", "appconf.xml"}) {
+        QVERIFY2(QFile::exists(tmp.path() + "/" + name),
+                 qPrintable(name + QString(" was not written")));
+    }
+
+    // The payload has to be JSON, since that is what was sent.
+    QFile pf(tmp.path() + "/payload.json");
+    QVERIFY(pf.open(QIODevice::ReadOnly));
+    QJsonParseError pe;
+    const QJsonDocument doc = QJsonDocument::fromJson(pf.readAll(), &pe);
+    QCOMPARE(pe.error, QJsonParseError::NoError);
+    QVERIFY(doc.object().contains("mcconf"));
+
+    // And the configuration has to come back in.
+    const double before = g_vesc->mcConfig()->getParamDouble("l_current_max");
+
+    /*
+     * A second interface, so the definitions are loaded exactly the way the
+     * application loads them. An earlier version of this passed
+     * configPath("parameters_mcconf.xml") -- a path with no version directory
+     * in it -- so nothing was defined, loadXml set nothing, and the value came
+     * back as 0.
+     */
+    QScopedPointer<VescInterface> other(UiHarness::makeVesc());
+    QVERIFY2(other->mcConfig()->loadXml(tmp.path() + "/mcconf.xml",
+                                        "MCConfiguration"),
+             "the saved motor configuration did not load back in");
+    QVERIFY2(qAbs(other->mcConfig()->getParamDouble("l_current_max") - before) < 1e-6,
+             qPrintable(QString("l_current_max came back as %1, was %2")
+                        .arg(other->mcConfig()->getParamDouble("l_current_max"))
+                        .arg(before)));
+}
+
 /*
  * One window, shared by the tests below and deliberately never destroyed.
  *

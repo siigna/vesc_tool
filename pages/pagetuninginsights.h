@@ -73,6 +73,24 @@ public:
     // "", "off", "low", "medium", "high" or a token count.
     void setReasoning(const QString &mode);
 
+    /*
+     * The saves, separated from the buttons that drive them.
+     *
+     * Each slot's first statement is a modal file dialog, which makes the slot
+     * untestable and the writing unreusable. These take the destination
+     * instead, so what gets written can be checked -- including the claim that
+     * the configuration comes back out in a form this program can load again.
+     *
+     * Each returns false and sets *err on failure.
+     */
+    bool saveAnswerTo(const QString &path, QString *err);
+    bool saveConfigTo(const QString &dir, QString *err);
+    bool saveSentLogTo(const QString &path, QString *err);
+    bool saveBundleTo(const QString &dir, QString *err);
+
+    // What the log would be saved as. Empty when no log was sent.
+    QString sentLogCsv() const;
+
 private slots:
     void on_providerBox_currentIndexChanged(int index);
     void on_logBrowseButton_clicked();
@@ -118,13 +136,6 @@ private:
 
     // Shows text in the Answer tab: Markdown rendered, anything else verbatim.
     void showAnswer(const QString &markdown, bool isMarkdown);
-
-    /*
-     * The log exactly as it was sent, rebuilt from the payload rather than
-     * from the source file, so what is saved is what left the machine --
-     * filtered columns and sampled rows included.
-     */
-    QString sentLogCsv() const;
 
     bool haveResult(const char *what);
     void loadLog(QStringList &header, QList<QStringList> &rows, QString *err);
