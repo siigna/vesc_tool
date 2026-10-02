@@ -1,0 +1,7 @@
+file: widgets/parameditenum.cpp
+test: editorEnumWritesThroughToConfig
+why: enums select app modes and sensor types; a dropped write is severe
+--- from
+        mConfig->updateParamEnum(mName, index, this);
+--- to
+        ;

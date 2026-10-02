@@ -4,10 +4,13 @@
 cd tests/ui && qmake && make -j8 && ./run.sh      # or: ./tests/check.sh
 ```
 
-No board, no display server, no network. 25 pages and 7 behaviour checks run in
-well under a second, because nothing here needs a window manager or a synthetic
-mouse: a page is a `QWidget` with a one-argument constructor, and the parameter
-XML is compiled into the binary.
+No board, no display server, no network. 38 pages and 24 behaviour checks,
+about 24 seconds for the offscreen tier -- 7 s of that is `snapshotsAreStable`
+waiting out constructor timers in real time, and 5 s is building all 38 pages
+twice. Nothing here needs a window manager or a synthetic mouse: a page is a
+`QWidget` with a one-argument constructor, and the parameter XML is compiled
+into the binary. The config round-trip and serialization checks, which are the
+ones protecting backwards compatibility, take 4 ms together.
 
 That is the point of this directory. Capturing one screenshot of a page by
 driving the real application under Xvfb with `xdotool` took over six minutes
@@ -44,6 +47,57 @@ editor. Both ask the editor for the parameter it is bound to via
 `ParamEditDouble::name()`; an earlier version matched parameter to editor by
 equal value and picked `app_ppm_conf.ramp_time_neg`, which is not on the page
 under test at all.
+
+**`editor{Int,Bool,Enum,Bitfield,String}WritesThroughToConfig`** — the same
+claim for the other five editor types, which were untested until they were not:
+each has its own `updateParam*` call site, so a passing double proved nothing
+about them. Each test walks the parameter pages, takes the first editor of its
+type that can actually be moved, and asserts that **exactly one** parameter
+changed, that it is the one the editor is named for, and that it holds the value
+the editor was set to. "Exactly one" is the part that is easy to leave out: an
+editor that writes the right name and also disturbs a neighbour would otherwise
+pass.
+
+Three traps are handled rather than stepped around, each because it would make
+a test pass without testing anything. `ParamEditInt` keeps both spin boxes
+alive and connected and `editAsPercentage` decides which one writes, so the test
+drives whichever is visible. `ParamEditBitfield` connects to
+`QCheckBox::clicked`, which `setChecked` does not emit, so the test calls
+`click()`. And several editors write their starting value back through
+`setConfig()`, so the before-snapshot is taken after the page has settled.
+
+**`configSurvivesBinaryRoundTrip` / `configSurvivesXmlRoundTrip`** — the
+config survives the trip to a controller and back, and to a saved file and
+back. Perturbs every parameter that has room to move, clears all of them,
+round-trips, and compares. Serialization is a flat stream with no field names,
+so one parameter at the wrong width shifts every parameter after it with no
+error anywhere; this is what notices. Doubles are snapped onto the wire's own
+grid first so the expectation is exact — a tolerance wide enough to absorb
+quantization absorbs real bugs too. Perturbation stays inside both the declared
+range and what the tx type can carry, because `vbAppendDouble16` casts to
+`qint16` *after* rounding, and that overflow wraps in a way that looks exactly
+like the bug being hunted.
+
+Two things worth knowing, neither a bug. `getXML` writes doubles through
+`QString::number`, six significant digits, so a saved file is lossier than the
+wire — that is the one tolerance in either test that is not the wire's own grid,
+and when a saved config is compared against a controller, differences in the
+last digits are the file format rather than drift. And bitfields go out through
+`vbAppendInt8`, so a value with bit 7 set returns negative: the bit pattern
+survives, the number does not. No shipped bitfield can reach it, since all four
+label their top two bits "Unused" and the editor hides them.
+
+**`configSignatureIsPinned`** — the signature is a CRC over every parameter's
+name, type, tx type and enum labels, and `confgenerator_deserialize_appconf`
+rejects the **whole blob** on a mismatch, in both directions, with "Invalid
+signature" as the only clue. So an edit to the parameter XML that is not
+followed by regenerating the firmware's `confgenerator.h` breaks config
+transfer completely. The pair is pinned here, and additionally compared against
+the firmware's own header when that tree is next door — `BLDC_DIR`, or
+`../../../bldc` — and skipped with a note when it is not, since this suite has
+to pass in a clone of `vesc_tool` alone. When it fails because the XML changed
+on purpose: regenerate `confgenerator.h`, flash it, and update the pin in the
+same commit.
 
 **`snapshotsAreStable`** — the same page described twice, with a real wait in
 between, must come out the same. Only the eight pages that start a timer in
@@ -182,8 +236,32 @@ Never run it to turn a red suite green without reading what moved.
 
 ## Mutation results
 
-A suite that cannot fail is worse than no suite. These were each applied, run,
-and reverted:
+A suite that cannot fail is worse than no suite. The severings that prove each
+check bites are no longer a thing to remember doing: they live in
+`tests/mutations/`, one file per mutation, and `tests/mutate.py` applies them.
+
+```sh
+./tests/mutate.py              # all of them, about four minutes
+./tests/mutate.py string       # just the ones whose name or test matches
+./tests/mutate.py --list       # what is defined, and why each one matters
+```
+
+It refuses to start unless the tests it is about to break are green, cuts one
+mutation at a time, rebuilds, runs only the test that should notice, and
+restores every file afterwards -- including on Ctrl-C, verified by hash before
+it exits. Three outcomes other than caught or not caught are reported as their
+own thing rather than folded into either: a pattern that no longer matches, a
+mutation that does not compile, and a test name that matched nothing. Each of
+those would otherwise read as "not caught" and send somebody after a
+non-existent hole. Currently 12 mutations, 12 caught.
+
+Adding a check to the suite means adding the mutation that proves it bites. A
+mutation may declare `occurrences:` when an editor writes through from more
+than one place -- `ParamEditInt` has a plain box and a percentage box -- so
+that all the sites are cut and the test cannot pass through a surviving one.
+
+These were each applied, run, and reverted; the first group now lives in
+`tests/mutations/`:
 
 | mutation | result |
 |---|---|
@@ -191,6 +269,13 @@ and reverted:
 | delete the `addParamSubgroup` call in `pageapppas.cpp` | **caught twice** — structure *and* `paramPagesAreNotEmpty` |
 | enable Analyse unconditionally in `pagetuninginsights.cpp` | **caught twice** — structure *and* `insightsButtonsNeedAController` |
 | delete both `updateParamDouble` calls in `parameditdouble.cpp` | **caught** — `editorWritesThroughToConfig` |
+| sever the write-through in each of the other five editors | **caught** — one test each, none catching another's |
+| truncate strings unconditionally again (`maxLen` 0) | **caught** — `editorStringWritesThroughToConfig` |
+| serialize one int at the wrong width | **caught** — `configSurvivesBinaryRoundTrip` |
+| skip the first parameter in the serialize order | **caught** — `configSurvivesBinaryRoundTrip` |
+| make `deSerialize` a no-op | **caught** — proves the test clears values first |
+| stop hashing the tx type into the signature | **caught** — `configSignatureIsPinned` |
+| write every XML double as zero | **caught** — `configSurvivesXmlRoundTrip` |
 | remove a colour the pages request from `appstyle.cpp` | **caught** — `noMissingIconsOrColours` |
 | revert the welcome heading to the upstream name | **caught** — the `branding` stage of `tests/check.sh` |
 | add a nav row with no page behind it | **caught** — `mainWindowNavAndStackStayInStep` |
@@ -203,7 +288,7 @@ and reverted:
 | bind UDP 65109 in `PageConnection`'s constructor again | **caught** — `connectionDoesNotBindUntilAsked` |
 | fill a combo from the host (serial ports) | **not a mutation** — found while generating baselines, see below |
 
-Three of those were *not* caught when first written, and the reasons are worth
+Four of those were *not* caught when first written, and the reasons are worth
 keeping:
 
 - **The round-trip suite was vacuous.** `paramEditorKeepsItsValue` only read
@@ -216,6 +301,14 @@ keeping:
   message handler, replacing the one installed in `main()`. The colour warning
   was emitted 42 times and the test still passed. The handler is now installed
   inside the test and chains to whatever QTest put there.
+- **Five of the six editor types were never driven at all.** The round-trip
+  check above covered `ParamEditDouble` on one page, and each of the other five
+  editors has its own `updateParam*` call site that can be severed on its own,
+  so a passing double was no evidence about any of them. Driving the string
+  editor for the first time found a real defect: `updateParamString` truncated
+  to `maxLen`, every shipped string parameter has `maxLen` 0, and
+  `truncate(0)` empties the string -- so editing a motor's brand or
+  description had never worked. Everything else already read 0 as "no limit".
 - **The branding test could not see the string that motivated it.** The welcome
   heading lives in `pagewelcome.ui`, and that page is QML-backed and excluded
   from the suite, so a widget test cannot reach it. That check is a grep over

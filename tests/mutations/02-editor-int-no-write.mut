@@ -1,0 +1,8 @@
+file: widgets/parameditint.cpp
+test: editorIntWritesThroughToConfig
+why: the int editor has two write sites, the plain box and the percentage box
+occurrences: 2
+--- from
+            mConfig->updateParamInt(mName, val, this);
+--- to
+            ;

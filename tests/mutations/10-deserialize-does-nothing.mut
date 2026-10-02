@@ -1,0 +1,12 @@
+file: configparams.cpp
+test: configSurvivesBinaryRoundTrip
+why: proves the test clears the values first; without that step a config that
+     is never read back still compares equal to what was written
+--- from
+    for (int i = 0;i < mSerializeOrder.size();i++) {
+        setParamSerial(vb, mSerializeOrder.at(i));
+    }
+--- to
+    for (int i = 0;i < 0;i++) {
+        setParamSerial(vb, mSerializeOrder.at(i));
+    }

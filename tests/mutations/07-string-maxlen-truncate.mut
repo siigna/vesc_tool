@@ -1,0 +1,10 @@
+file: configparams.cpp
+test: editorStringWritesThroughToConfig
+why: the real bug. maxLen 0 means no limit, and truncating unconditionally
+     emptied every shipped string parameter -- this guards the fix
+--- from
+            if (p.maxLen > 0) {
+                param.truncate(p.maxLen);
+            }
+--- to
+            param.truncate(p.maxLen);

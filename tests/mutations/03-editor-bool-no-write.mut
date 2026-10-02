@@ -1,0 +1,7 @@
+file: widgets/parameditbool.cpp
+test: editorBoolWritesThroughToConfig
+why: a bool that does not write through leaves the setting silently unchanged
+--- from
+        mConfig->updateParamBool(mName, index, this);
+--- to
+        ;

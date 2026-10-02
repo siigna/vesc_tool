@@ -1,0 +1,10 @@
+file: configparams.cpp
+test: configSurvivesXmlRoundTrip
+why: a saved config file is what a rider re-uploads; silently zeroed doubles
+     would be found on the bike
+--- from
+        case CFG_T_DOUBLE:
+            stream.writeTextElement(name, QString::number(p.valDouble));
+--- to
+        case CFG_T_DOUBLE:
+            stream.writeTextElement(name, QString::number(0.0));

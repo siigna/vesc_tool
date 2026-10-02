@@ -1,0 +1,8 @@
+file: widgets/parameditbitfield.cpp
+test: editorBitfieldWritesThroughToConfig
+why: the bitfield connects to clicked(), so this also proves the test drives
+     the box the way the editor is actually wired
+--- from
+            mConfig->updateParamInt(mName, getNum(), this);
+--- to
+            ;

@@ -1,0 +1,10 @@
+file: configparams.cpp
+test: configSurvivesBinaryRoundTrip
+why: one parameter at the wrong width shifts every parameter after it, with
+     no error reported anywhere
+--- from
+            } else if (p.vTx == VESC_TX_UINT16) {
+                vb.vbAppendUint16(p.valInt);
+--- to
+            } else if (p.vTx == VESC_TX_UINT16) {
+                vb.vbAppendUint8(p.valInt);

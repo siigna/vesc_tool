@@ -1,0 +1,9 @@
+file: widgets/parameditdouble.cpp
+test: editorWritesThroughToConfig
+why: a double editor that does not reach the config is the original defect
+     this suite was written for -- severing both calls once left 32/32 green
+occurrences: 2
+--- from
+            mConfig->updateParamDouble(mName, val, this);
+--- to
+            ;

@@ -1,0 +1,7 @@
+file: widgets/parameditstring.cpp
+test: editorStringWritesThroughToConfig
+why: strings are the type whose write-through was in fact broken
+--- from
+        mConfig->updateParamString(mName, arg1, this);
+--- to
+        ;

@@ -1,0 +1,8 @@
+file: configparams.cpp
+test: configSignatureIsPinned
+why: the signature exists to catch a width change; if it stops hashing the tx
+     type it stops catching the one thing it is for
+--- from
+            sigStr.append(QString("%1").arg(int(p->vTx)));
+--- to
+

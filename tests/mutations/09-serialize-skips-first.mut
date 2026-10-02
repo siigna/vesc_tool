@@ -1,0 +1,11 @@
+file: configparams.cpp
+test: configSurvivesBinaryRoundTrip
+why: an off-by-one in the serialize order misaligns the whole stream
+--- from
+    for (int i = 0;i < mSerializeOrder.size();i++) {
+        getParamSerial(vb, mSerializeOrder.at(i));
+    }
+--- to
+    for (int i = 1;i < mSerializeOrder.size();i++) {
+        getParamSerial(vb, mSerializeOrder.at(i));
+    }
