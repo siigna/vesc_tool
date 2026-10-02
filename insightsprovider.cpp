@@ -63,7 +63,32 @@ QList<InsightsProvider::Config> InsightsProvider::presets()
     Config anthropic;
     anthropic.kind = KindAnthropic;
     anthropic.id = "anthropic";
-    anthropic.baseUrl = "https://api.anthropic.com";
+    /*
+     * ANTHROPIC_BASE_URL wins when it is set, because a setup that already
+     * exports it is pointed somewhere on purpose -- a gateway, a proxy, or a
+     * company endpoint -- and silently sending to api.anthropic.com instead
+     * would route the data past whatever that is there for.
+     */
+    /*
+     * ANTHROPIC_BASE_URL is honoured, but only when it actually points at
+     * Anthropic. A setup here exported it pointing at openrouter.ai, which
+     * speaks the OpenAI dialect: posting /v1/messages there returned HTTP 200
+     * with a body this code could find no text in. The variable names a host,
+     * not a protocol, so a host that is not Anthropic's is left to the
+     * openrouter and openai presets, or to --insightsProvider, rather than
+     * being addressed in a dialect it does not speak.
+     */
+    const QString envBase =
+            QString::fromLocal8Bit(qgetenv("ANTHROPIC_BASE_URL")).trimmed();
+
+    anthropic.baseUrl = QUrl(envBase).host().endsWith("anthropic.com")
+            ? envBase
+            : QString("https://api.anthropic.com");
+
+    while (anthropic.baseUrl.endsWith("/")) {
+        anthropic.baseUrl.chop(1);
+    }
+
     anthropic.model = "claude-sonnet-5";
     anthropic.keyEnvVar = "ANTHROPIC_API_KEY";
     out.append(anthropic);
@@ -251,7 +276,7 @@ QString AnthropicProvider::parseReply(const QByteArray &in, QString *err) const
     }
 
     if (out.isEmpty() && err != nullptr) {
-        *err = "The reply carried no text.";
+        *err = "The reply carried no text. If the endpoint is not the one this dialect expects, it can answer 200 in a shape this cannot read -- check the provider kind against the base URL.";
     }
     return out;
 }
@@ -335,7 +360,7 @@ QString OpenAiCompatProvider::parseReply(const QByteArray &in,
             .toObject()["content"].toString();
 
     if (out.isEmpty() && err != nullptr) {
-        *err = "The reply carried no text.";
+        *err = "The reply carried no text. If the endpoint is not the one this dialect expects, it can answer 200 in a shape this cannot read -- check the provider kind against the base URL.";
     }
     return out;
 }

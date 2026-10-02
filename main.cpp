@@ -101,10 +101,12 @@ static void showHelp()
     qDebug() << "--useBoardSetupWindow : Start board setup window instead of the main UI";
     qDebug() << "--xmlConfToCode [xml-file] : Generate C code from XML configuration file (the files are saved in the same directory as the XML)";
     qDebug() << "--vescPort [port] : VESC Port for commands that connect, e.g. /dev/ttyACM0. If this command is left out autoconnect will be used.";
+    qDebug() << "--vescTcp [host:port] : Connect over TCP instead of serial, e.g. 172.31.5.34:65102. Port defaults to 65102.";
     qDebug() << "--vescBaud [rate] : Serial rate for --vescPort, e.g. 921600. Defaults to the rate last connected at.";
     qDebug() << "--canFwd [canId] : Can ID for CAN forwarding";
     qDebug() << "--tuningInsights : Connect, gather configuration and telemetry, and ask a model for tuning observations. Advisory only; nothing is applied.";
     qDebug() << "--dryRun : With --tuningInsights, print the exact payload and send nothing.";
+    qDebug() << "--insightsKeyEnv [VAR] : Name of the environment variable holding the key for --insightsProvider, e.g. ANTHROPIC_API_KEY.";
     qDebug() << "--insightsOffline : With --tuningInsights --dryRun, do not connect to a controller. Builds the payload from --insightsLog alone, so a log can be inspected without hardware.";
     qDebug() << "--insightsLog [path] : Include this RT log. Location columns (gnss_*) are never sent.";
     qDebug() << "--insightsProvider [id] : ollama (default), local, anthropic, openai, openrouter, or kind:baseUrl:model where kind is anthropic or openai.";
@@ -125,6 +127,8 @@ static void showHelp()
     qDebug() << "--uploadBootloaderBuiltin : Upload bootloader from generic included bootloaders.";
     qDebug() << "--queryDeviceFwParams : Connect and print out device fw parameters.";
     qDebug() << "--writeFileToSdCard [fileLocal:pathSdcard] : Write file to SD-card.";
+    qDebug() << "--listSdCard [path] : List a directory on the SD-card, e.g. /.";
+    qDebug() << "--insightsLogFromSd [path] : With --tuningInsights, read the log straight off the SD-card instead of from a local file.";
     qDebug() << "--packFirmware [fileIn:fileOut] : Pack firmware-file for compatibility with the bootloader. ";
     qDebug() << "--packLisp [fileIn:fileOut] : Pack LispBM file and the included imports.";
     qDebug() << "--bridgeAppData : Send app data (such as data from send-data in LispBM) to stdout.";
@@ -333,6 +337,8 @@ int main(int argc, char *argv[])
     QStringList pkgDescTests;
     QString xmlCodePath = "";
     QString vescPort = "";
+    QString vescTcpHost = "";
+    int vescTcpPort = 65102;
     int vescBaud = 0;
     int canFwd = -1;
     bool tuningInsights = false;
@@ -359,6 +365,9 @@ int main(int argc, char *argv[])
     QString fwPackIn = "";
     QString fwPackOut = "";
     QString fileForSdIn = "";
+    QString listSdPath = "";
+    QString insightsLogSdPath = "";
+    QString insightsKeyEnv = "";
     QString fileForSdOut = "";
     QString lispPackIn = "";
     QString lispPackOut = "";
@@ -555,6 +564,31 @@ int main(int argc, char *argv[])
             }
         }
 
+        if (str == "--vescTcp") {
+            if ((i + 1) < args.size()) {
+                i++;
+                const QString spec = args.at(i);
+                const int colon = spec.lastIndexOf(':');
+
+                if (colon > 0) {
+                    vescTcpHost = spec.left(colon);
+                    vescTcpPort = spec.mid(colon + 1).toInt();
+                } else {
+                    vescTcpHost = spec;
+                }
+
+                if (vescTcpHost.isEmpty() || vescTcpPort <= 0) {
+                    showHelp();
+                    return 1;
+                }
+
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
+        }
+
         if (str == "--vescBaud") {
             if ((i + 1) < args.size()) {
                 i++;
@@ -592,6 +626,17 @@ int main(int argc, char *argv[])
         if (str == "--dryRun") {
             insightsDryRun = true;
             found = true;
+        }
+
+        if (str == "--insightsKeyEnv") {
+            if ((i + 1) < args.size()) {
+                i++;
+                insightsKeyEnv = args.at(i);
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
         }
 
         if (str == "--insightsOffline") {
@@ -766,6 +811,28 @@ int main(int argc, char *argv[])
             } else {
                 i++;
                 qCritical() << "No path specified";
+                return 1;
+            }
+        }
+
+        if (str == "--listSdCard") {
+            if ((i + 1) < args.size()) {
+                i++;
+                listSdPath = args.at(i);
+                found = true;
+            } else {
+                showHelp();
+                return 1;
+            }
+        }
+
+        if (str == "--insightsLogFromSd") {
+            if ((i + 1) < args.size()) {
+                i++;
+                insightsLogSdPath = args.at(i);
+                found = true;
+            } else {
+                showHelp();
                 return 1;
             }
         }
@@ -1163,7 +1230,7 @@ int main(int argc, char *argv[])
     QmlUi *qmlUi = nullptr;
     QString qmlStr;
 
-    bool serialAutoconnect = vescPort.isEmpty();
+    bool serialAutoconnect = vescPort.isEmpty() && vescTcpHost.isEmpty();
 
     QTimer connTimer;
     connTimer.setInterval(1000);
@@ -1263,7 +1330,8 @@ int main(int argc, char *argv[])
             !lispPath.isEmpty() ||
             !installPkgPath.isEmpty() ||
             eraseLisp || !firmwarePath.isEmpty() || uploadBootloaderBuiltin ||
-            queryDeviceFwParams || !fileForSdIn.isEmpty() || bridgeAppData) {
+            queryDeviceFwParams || !fileForSdIn.isEmpty() || bridgeAppData ||
+            !listSdPath.isEmpty()) {
         if (offscreen) {
             qputenv("QT_QPA_PLATFORM", "offscreen");
         }
@@ -1336,7 +1404,39 @@ int main(int argc, char *argv[])
         QTimer::singleShot(10, [&]() {
             int exitCode = 0;
             bool ok = false;
-            if (serialAutoconnect) {
+            if (!vescTcpHost.isEmpty()) {
+                /*
+                 * connectTcp() is asynchronous and returns nothing, so the
+                 * firmware handshake is what says whether it worked. A longer
+                 * wait than the serial path gets: this is a network hop to a
+                 * board, not a USB enumeration.
+                 */
+                qDebug() << "Connecting to" << vescTcpHost << vescTcpPort;
+                vesc->connectTcp(vescTcpHost, vescTcpPort);
+
+                /*
+                 * Polled rather than waited on. connectTcp() is
+                 * asynchronous, and a board on the local network answers the
+                 * firmware request faster than the next statement runs: the
+                 * first version of this waited on fwRxChanged and timed out
+                 * every time, having missed an edge that had already
+                 * happened. Asking for the state instead cannot lose a race
+                 * against it.
+                 */
+                for (int t = 0; t < 80; t++) {
+                    Utility::sleepWithEventLoop(100);
+
+                    if (vesc->isPortConnected() &&
+                            vesc->getLastFwRxParams().major > 0) {
+                        ok = true;
+                        break;
+                    }
+                }
+
+                if (!ok) {
+                    qWarning() << "Could not read firmware version over TCP";
+                }
+            } else if (serialAutoconnect) {
                 ok = vesc->autoconnect();
             } else {
                 ok = vescBaud > 0 ? vesc->connectSerial(vescPort, vescBaud)
@@ -1436,6 +1536,21 @@ int main(int argc, char *argv[])
                     } else {
                         qWarning() << "Could not open LispBM file for reading.";
                         exitCode = -13;
+                    }
+                }
+
+                if (!listSdPath.isEmpty()) {
+                    const QVariantList ls =
+                            vesc->commands()->fileBlockList(listSdPath);
+
+                    if (ls.isEmpty()) {
+                        qWarning() << "Nothing listed at" << listSdPath;
+                    }
+
+                    for (const QVariant &v: ls) {
+                        const FILE_LIST_ENTRY e = v.value<FILE_LIST_ENTRY>();
+                        printf("%s%s\t%d\n", e.name.toLocal8Bit().constData(),
+                               e.isDir ? "/" : "", e.size);
                     }
                 }
 
@@ -1584,138 +1699,225 @@ int main(int argc, char *argv[])
                             }
                         }
 
-                        if (tuningInsights) {
+                    } else {
+                        qWarning() << "Could not load config";
+                        exitCode = -1;
+                    }
+                }
+
+                /*
+                 * Its own block, not nested in the configuration-export one
+                 * above: this depends on neither a custom-config load nor any
+                 * of the --get/--set flags. It was inside that nest at first,
+                 * which meant a plain --tuningInsights run did nothing at all
+                 * and exited 0.
+                 */
+                if (tuningInsights) {
+                    /*
+                     * Fetches its own configurations rather than
+                     * borrowing the --getMcConf path, which would then
+                     * try to save XML to an empty filename.
+                     */
+                    ConfigParams *mcp = vesc->mcConfig();
+                    ConfigParams *app = vesc->appConfig();
+
+                    /*
+                     * Retried, and with a longer wait than the local-serial
+                     * paths use. Over TCP and then forwarded across CAN to a
+                     * controller, the motor configuration did not arrive
+                     * within 4 s on the first attempt against real hardware.
+                     * Which one failed is also worth saying: "could not read
+                     * the configuration" sent me looking in the wrong place.
+                     */
+                    bool okMc = false;
+                    bool okApp = false;
+
+                    for (int attempt = 0; attempt < 3 && !okMc; attempt++) {
+                        vesc->commands()->getMcconf();
+                        okMc = Utility::waitSignal(mcp, SIGNAL(updated()), 8000);
+                    }
+
+                    for (int attempt = 0; attempt < 3 && !okApp; attempt++) {
+                        vesc->commands()->getAppConf();
+                        okApp = Utility::waitSignal(app, SIGNAL(updated()), 8000);
+                    }
+
+                    if (!okMc || !okApp) {
+                        qWarning() << "Could not read"
+                                   << (okMc ? "the app configuration"
+                                            : (okApp ? "the motor configuration"
+                                                     : "either configuration"));
+                        exitCode = -2;
+                    } else {
+                        /*
+                         * A telemetry snapshot. getValues() is a
+                         * request; the numbers arrive on a signal, so
+                         * capture them from it rather than guessing
+                         * at a getter.
+                         */
+                        MC_VALUES rtVals;
+                        QObject::connect(vesc->commands(),
+                                         &Commands::valuesReceived,
+                                         [&rtVals](MC_VALUES v, unsigned int) {
+                            rtVals = v;
+                        });
+                        vesc->commands()->getValues();
+                        if (!Utility::waitSignal(
+                                    vesc->commands(),
+                                    SIGNAL(valuesReceived(MC_VALUES,uint)),
+                                    4000)) {
+                            qWarning() << "No realtime data; "
+                                          "continuing without it";
+                        }
+
+                        FW_RX_PARAMS fwp = vesc->getLastFwRxParams();
+                        const QString fwStrInsights =
+                                QString("V%1.%2 %3 hw:%4")
+                                .arg(fwp.major).arg(fwp.minor, 2, 10,
+                                                    QLatin1Char('0'))
+                                .arg(fwp.fwName, fwp.hw);
+
+                        QStringList logHeader;
+                        QList<QStringList> logRows;
+
+                        if (!insightsLogSdPath.isEmpty()) {
                             /*
-                             * Fetches its own configurations rather than
-                             * borrowing the --getMcConf path, which would then
-                             * try to save XML to an empty filename.
+                             * Straight off the SD-card, which is where the
+                             * logs actually are: they are written by the
+                             * Express, not by this program, so requiring a
+                             * copy on this machine first would be an odd way
+                             * to analyse a ride.
                              */
-                            ConfigParams *mcp = vesc->mcConfig();
-                            ConfigParams *app = vesc->appConfig();
+                            /*
+                             * The file lives on the device holding the card
+                             * -- the Express -- while the configuration came
+                             * from a controller across CAN. With forwarding
+                             * still on, the read goes to the controller,
+                             * which has no card, and fails. So it is turned
+                             * off for the transfer and put back afterwards.
+                             */
+                            const bool canWas =
+                                    vesc->commands()->getSendCan();
+                            const int canWasId =
+                                    vesc->commands()->getCanSendId();
 
-                            vesc->commands()->getMcconf();
-                            bool okMc = Utility::waitSignal(
-                                        mcp, SIGNAL(updated()), 4000);
-                            vesc->commands()->getAppConf();
-                            bool okApp = Utility::waitSignal(
-                                        app, SIGNAL(updated()), 4000);
+                            if (canWas) {
+                                vesc->commands()->setSendCan(false, 0);
+                            }
 
-                            if (!okMc || !okApp) {
-                                qWarning() << "Could not read the configuration";
-                                exitCode = -2;
+                            const QByteArray raw = vesc->commands()->
+                                    fileBlockRead(insightsLogSdPath);
+
+                            if (canWas) {
+                                vesc->commands()->setSendCan(true, canWasId);
+                            }
+
+                            if (raw.isEmpty()) {
+                                qCritical() << "Could not read"
+                                            << insightsLogSdPath
+                                            << "from the SD-card";
+                                exitCode = -3;
                             } else {
-                                /*
-                                 * A telemetry snapshot. getValues() is a
-                                 * request; the numbers arrive on a signal, so
-                                 * capture them from it rather than guessing
-                                 * at a getter.
-                                 */
-                                MC_VALUES rtVals;
-                                QObject::connect(vesc->commands(),
-                                                 &Commands::valuesReceived,
-                                                 [&rtVals](MC_VALUES v, unsigned int) {
-                                    rtVals = v;
-                                });
-                                vesc->commands()->getValues();
-                                if (!Utility::waitSignal(
-                                            vesc->commands(),
-                                            SIGNAL(valuesReceived(MC_VALUES,uint)),
-                                            4000)) {
-                                    qWarning() << "No realtime data; "
-                                                  "continuing without it";
-                                }
+                                const QStringList ls =
+                                        QString::fromUtf8(raw).split('\n');
 
-                                FW_RX_PARAMS fwp = vesc->getLastFwRxParams();
-                                const QString fwStrInsights =
-                                        QString("V%1.%2 %3 hw:%4")
-                                        .arg(fwp.major).arg(fwp.minor, 2, 10,
-                                                            QLatin1Char('0'))
-                                        .arg(fwp.fwName, fwp.hw);
+                                for (int li = 0; li < ls.size(); li++) {
+                                    const QString line = ls.at(li);
 
-                                QStringList logHeader;
-                                QList<QStringList> logRows;
+                                    if (line.trimmed().isEmpty()) {
+                                        continue;
+                                    }
 
-                                if (!insightsLogPath.isEmpty()) {
-                                    QFile lf(insightsLogPath);
-                                    if (lf.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                                        QTextStream ts(&lf);
-                                        if (!ts.atEnd()) {
-                                            logHeader = ts.readLine().split(";");
-                                        }
-                                        while (!ts.atEnd()) {
-                                            const QString line = ts.readLine();
-                                            if (!line.trimmed().isEmpty()) {
-                                                logRows.append(line.split(";"));
-                                            }
-                                        }
-                                        qDebug() << "Read" << logRows.size()
-                                                 << "log rows," << logHeader.size()
-                                                 << "columns";
+                                    if (logHeader.isEmpty()) {
+                                        logHeader = line.split(";");
                                     } else {
-                                        qCritical() << "Could not open"
-                                                    << insightsLogPath;
-                                        exitCode = -3;
+                                        logRows.append(line.split(";"));
                                     }
                                 }
 
-                                if (exitCode == 0) {
-                                    QJsonObject payload =
-                                            TuningInsights::buildPayload(
-                                                TuningInsightsConf::extract(mcp),
-                                                TuningInsightsConf::extract(app),
-                                                rtVals,
-                                                logHeader, logRows,
-                                                insightsMaxRows, fwStrInsights);
+                                fprintf(stderr, "Read %d log rows, %d columns"
+                                        " from the SD-card\n",
+                                        logRows.size(), logHeader.size());
+                            }
+                        } else if (!insightsLogPath.isEmpty()) {
+                            QFile lf(insightsLogPath);
+                            if (lf.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                                QTextStream ts(&lf);
+                                if (!ts.atEnd()) {
+                                    logHeader = ts.readLine().split(";");
+                                }
+                                while (!ts.atEnd()) {
+                                    const QString line = ts.readLine();
+                                    if (!line.trimmed().isEmpty()) {
+                                        logRows.append(line.split(";"));
+                                    }
+                                }
+                                qDebug() << "Read" << logRows.size()
+                                         << "log rows," << logHeader.size()
+                                         << "columns";
+                            } else {
+                                qCritical() << "Could not open"
+                                            << insightsLogPath;
+                                exitCode = -3;
+                            }
+                        }
 
-                                    if (insightsDryRun) {
-                                        // Exactly what would be sent, and
-                                        // nothing is.
-                                        printf("%s\n", QJsonDocument(payload)
-                                               .toJson(QJsonDocument::Indented)
-                                               .constData());
+                        if (exitCode == 0) {
+                            QJsonObject payload =
+                                    TuningInsights::buildPayload(
+                                        TuningInsightsConf::extract(mcp),
+                                        TuningInsightsConf::extract(app),
+                                        rtVals,
+                                        logHeader, logRows,
+                                        insightsMaxRows, fwStrInsights);
+
+                            if (insightsDryRun) {
+                                // Exactly what would be sent, and
+                                // nothing is.
+                                printf("%s\n", QJsonDocument(payload)
+                                       .toJson(QJsonDocument::Indented)
+                                       .constData());
+                            } else {
+                                QString err;
+                                InsightsProvider::Config cfg =
+                                        InsightsProvider::fromSpec(
+                                            insightsProviderSpec.isEmpty()
+                                            ? "ollama"
+                                            : insightsProviderSpec, &err);
+
+                                if (!err.isEmpty()) {
+                                    qCritical() << err.toLocal8Bit().constData();
+                                    exitCode = -4;
+                                } else {
+                                    if (!insightsModel.isEmpty()) {
+                                        cfg.model = insightsModel;
+                                    }
+
+                                    if (!insightsKeyEnv.isEmpty()) {
+                                        cfg.keyEnvVar = insightsKeyEnv;
+                                    }
+
+                                    QScopedPointer<InsightsProvider> prov(
+                                                InsightsProvider::create(cfg));
+                                    qDebug() << "Sending to"
+                                             << prov->endpoint()
+                                             << "model" << cfg.model;
+
+                                    TuningClient client;
+                                    const QString text = client.send(
+                                                prov.data(),
+                                                TuningInsights::buildPrompt(payload),
+                                                4096, 120000, &err);
+
+                                    if (text.isEmpty()) {
+                                        qCritical() << err.toLocal8Bit().constData();
+                                        exitCode = -5;
                                     } else {
-                                        QString err;
-                                        InsightsProvider::Config cfg =
-                                                InsightsProvider::fromSpec(
-                                                    insightsProviderSpec.isEmpty()
-                                                    ? "ollama"
-                                                    : insightsProviderSpec, &err);
-
-                                        if (!err.isEmpty()) {
-                                            qCritical() << err.toLocal8Bit().constData();
-                                            exitCode = -4;
-                                        } else {
-                                            if (!insightsModel.isEmpty()) {
-                                                cfg.model = insightsModel;
-                                            }
-
-                                            QScopedPointer<InsightsProvider> prov(
-                                                        InsightsProvider::create(cfg));
-                                            qDebug() << "Sending to"
-                                                     << prov->endpoint()
-                                                     << "model" << cfg.model;
-
-                                            TuningClient client;
-                                            const QString text = client.send(
-                                                        prov.data(),
-                                                        TuningInsights::buildPrompt(payload),
-                                                        4096, 120000, &err);
-
-                                            if (text.isEmpty()) {
-                                                qCritical() << err.toLocal8Bit().constData();
-                                                exitCode = -5;
-                                            } else {
-                                                printf("%s\n", text.toLocal8Bit().constData());
-                                            }
-                                        }
+                                        printf("%s\n", text.toLocal8Bit().constData());
                                     }
                                 }
                             }
                         }
-
-                    } else {
-                        qWarning() << "Could not load config";
-                        exitCode = -1;
                     }
                 }
 
