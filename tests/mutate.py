@@ -126,7 +126,25 @@ def build(suite):
     # caught -- the one wrong answer this script must never give. So a build
     # failure is its own outcome.
     d = os.path.join(ROOT, "tests", suite)
-    r = subprocess.run(["make", "-j8"], cwd=d,
+
+    # In a fresh checkout there is no Makefile yet, and `make` would fail in a
+    # way that reads as "this mutation does not compile" on the very first
+    # mutation. Running qmake here also means the CI step is one command with
+    # no nested shell.
+    if not os.path.exists(os.path.join(d, "Makefile")):
+        pro = os.path.join(d, "%s.pro" % suite)
+
+        if not os.path.exists(pro):
+            return False, "no Makefile and no %s.pro in tests/%s" % (suite,
+                                                                     suite)
+
+        q = subprocess.run(["qmake", "%s.pro" % suite], cwd=d,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+
+        if q.returncode != 0:
+            return False, q.stderr.decode("utf-8", "replace")[-2000:]
+
+    r = subprocess.run(["make", "-j%d" % (os.cpu_count() or 8)], cwd=d,
                        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     return r.returncode == 0, r.stderr.decode("utf-8", "replace")[-2000:]
 

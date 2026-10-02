@@ -2,6 +2,13 @@
 # Everything that can be checked without a board, a display or a provider.
 #
 #   ./tests/check.sh
+#   ./tests/check.sh --build-app     also build the application first
+#
+# The cli suite tests paths through main.cpp as a process, so it needs the
+# application itself, not a test binary. That build takes about three and a
+# half minutes against this suite's forty-five seconds, so it is not the
+# default -- but in a fresh clone the cli stage has nothing to run, which is
+# what --build-app is for, and what CI uses.
 #
 # Adding a suite is a directory under tests/ with a run.sh, plus one word in
 # the list below.
@@ -12,6 +19,15 @@
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
+
+build_app=0
+
+for arg in "$@"; do
+    case "$arg" in
+        --build-app) build_app=1 ;;
+        *) printf 'check.sh: unknown argument %s\n' "$arg" >&2; exit 2 ;;
+    esac
+done
 
 fail=0
 
@@ -58,11 +74,27 @@ else
     printf '  skipped: tests/ui not present\n'
 fi
 
+if [ "$build_app" -eq 1 ]; then
+    stage "application (for the cli suite, which runs it as a process)"
+    (
+        qmake -config release \
+            "CONFIG += release_lin build_original exclude_fw" >/dev/null \
+            && make -j"$(nproc 2>/dev/null || echo 8)" >/dev/null 2>&1
+    )
+    report $?
+fi
+
 stage "cli (flags, the offline dump, the screenshot path)"
 if [ -x tests/cli/run.sh ]; then
     # Needs the application built, not a test binary of its own: these are
     # paths through main.cpp, exercised as a process.
-    (cd tests/cli && ./run.sh 2>&1 | tail -3) || exit 1
+    #
+    # No `|| exit 1` here. The other stages use that inside their subshell, to
+    # end the subshell; out here it ended check.sh, so a fresh clone -- where
+    # the application is not built and this suite cannot run -- never reached
+    # the branding stage at all, and the file's own promise that one failing
+    # suite does not stop the others was false.
+    (cd tests/cli && ./run.sh 2>&1 | tail -3)
     report $?
 else
     printf '  skipped: tests/cli not present\n'

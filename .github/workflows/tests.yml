@@ -44,13 +44,18 @@ jobs:
       - name: Build the dev shell
         run: nix develop --command true
 
-      # No separate build step: check.sh runs make clean and qmake for each
-      # suite itself, so anything built here would be thrown away.
+      # --build-app builds the application itself, which the cli suite runs
+      # as a process -- about three and a half minutes, and without it that
+      # suite has nothing to test in a fresh checkout. Everything else
+      # check.sh builds for itself, per suite, from clean.
+      #
+      # One command rather than a build step plus a test step, so CI cannot
+      # drift from what a developer runs.
       #
       # check.sh deliberately has no set -e: one failing suite must not stop
       # the others, and its exit code is the verdict.
       - name: tests/check.sh
-        run: nix develop --command bash tests/check.sh
+        run: nix develop --command bash tests/check.sh --build-app
 
   # Mutation testing is fifteen rebuilds, which is the wrong trade for every
   # push. It runs on a schedule and on request, and its job is to catch a
@@ -69,9 +74,8 @@ jobs:
             accept-flake-config = true
             experimental-features = nix-command flakes
 
+      # mutate.py runs qmake itself when a suite has no Makefile, and each
+      # suite's run.sh finds its own Qt plugins, so this needs no setup and no
+      # nested shell.
       - name: tests/mutate.py
-        run: |
-          nix develop --command bash -c '
-            . tests/qtenv.sh && qt_env_setup
-            ( cd tests/ui && qmake && make -j"$(nproc)" )
-            ./tests/mutate.py'
+        run: nix develop --command ./tests/mutate.py
