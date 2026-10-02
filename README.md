@@ -1,10 +1,51 @@
-# VESC® Tool
+# ESCargot Tool
 
-This is the source code of VESC Tool. A pre-compiled binary of both the stable release as well as the development release packaged with all the matching firmware for all supported hardware can be downloaded at http://vesc-project.com/
+Configuration and script-upload tool for motor controllers. A source-only fork
+of VESC® Tool, with Lua package support and an expanded PAS configuration.
 
-The stable binary is available for **Linux**, **Windows**, **MacOS**, **Android** and **iOS**. The development binary is available for **Linux**, **Windows** and **Android** and is updated every few days.
+**Not affiliated with, endorsed by, or certified by Mr. Benjamin Vedder.**
+VESC® is his registered trademark; see [TRADEMARKS.md](TRADEMARKS.md).
 
-All binaries can also be downloaded free-of-charge for all platforms except for iOS, which only is available via the Apple App Store as they do not allow any other distribution channel.
+**No binary releases are published from this repository**, which is what the
+upstream guidance below asks of a fork. For an official binary, go to
+[vesc-project.com](https://vesc-project.com/) — that is the only channel that
+can tell you a release is genuinely theirs.
+
+## What this fork adds
+
+### Lua packages
+
+`pkgLua` in `pkgdesc.qml` builds and installs a package whose script is Lua
+rather than LispBM. The container format is unchanged, so the existing upload,
+erase and REPL paths carry it.
+
+Two bugs were worth the trouble of finding:
+
+* The whole container was being embedded where only its body belongs.
+  `lispUpload` prepends its own six-byte header, so embedding the container
+  nested one inside another and the firmware reported "4 source bytes, 301
+  imports".
+* The size report divided by the QML flash block rather than the script limit,
+  which read 186.5% for a script that fitted comfortably. It now reports
+  against both the ESP32 and STM32 limits, since one tool talks to both.
+
+### An expanded PAS configuration
+
+A 7.02 configuration carrying the PAS parameters: torque sensor, proportional
+power, limits, pedalling threshold and assist cadence floor, walk assist, and
+closed-loop power. PAS values are added to the realtime data and the log.
+
+`APPCONF_SIGNATURE` is a CRC32c over the parameter names, types and order, so
+a mismatch makes the board reject the config with no clue why. `tests/confsig`
+in the firmware repository checks the two against each other.
+
+### Connection
+
+Follows the board's reported serial rate instead of assuming 115200.
+
+## Building
+
+Unchanged from upstream; see the sections below.
 
 ## Code Contribution, Distribution and Trademark Usage
 
@@ -24,9 +65,13 @@ If you make a fork of VESC Tool and remove all traces of the VESC trademark you 
 
 If you see a missing feature and you want to put in some work and make that feature available, we would appreciate if you contribute that back to the main VESC repositories. That way there is only one consistent and compatible release for everyone that is managed by the main authors of the VESC code who make the vast majority of the development. It also gives the main authors, who are the most familiar with the code, a chance to review features to make sure that they are as safe as possible and don't break other parts of the functionality.
 
-## Add Your Hardware to the Binary Release
+## Add Your Hardware to the Upstream Binary Release
 
-If you have custom hardware and you want to add support for it in the official release of VESC Tool, you can use the following steps:
+This section is upstream's, kept because it is still the route to getting
+hardware supported officially. It is not about this fork, which publishes no
+binaries.
+
+If you have custom hardware and you want to add support for it in the official release of VESC® Tool, you can use the following steps:
 
 1) Go to https://github.com/vedderb/bldc and use the github fork function.  
 2) Make your changes, test them and make a pull request to the main repository.  
