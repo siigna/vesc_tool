@@ -15,9 +15,19 @@
 #       Qt 5.15's supported range is API 21 to 31
 #       (doc.qt.io/qt-5/android.html). It is also what the one live,
 #       actively-updated Qt 5.15 app in F-Droid compiles against.
-#   build-tools 31.0.0
-#       Kept with the platform rather than newest, because aapt2's manifest
-#       handling is the thing most likely to differ.
+#   build-tools 30.0.3
+#       NOT 31.0.0, which matches the platform. Build-tools 31 removed `dx`
+#       in favour of `d8`, and AGP 4.2.2 validates a build-tools install by
+#       looking for `dx` -- so 31.0.0 fails the whole package step with
+#
+#           Installed Build Tools revision 31.0.0 is corrupted.
+#           Remove and install again using the SDK Manager.
+#
+#       which is a lie: the install is complete, AGP just wants a tool that
+#       Google deleted. 30.0.3 is the last version that ships `dx`, and
+#       compileSdkVersion still comes from the platform, so this costs
+#       nothing. A newer AGP would not need `dx`, but a newer AGP needs a
+#       newer Gradle than Qt 5.15's templates tolerate.
 #   JDK 11
 #       "As of Qt 5.15.8, JDK 11 or later is supported for Qt for Android."
 #       JDK 8 is what upstream's build_android used, and is too old for the
@@ -29,7 +39,7 @@ let
   composed = pkgs.androidenv.composeAndroidPackages {
     cmdLineToolsVersion = "13.0";
     platformToolsVersion = "35.0.2";
-    buildToolsVersions = [ "31.0.0" ];
+    buildToolsVersions = [ "30.0.3" ];
     platformVersions = [ "31" ];
 
     includeNDK = true;

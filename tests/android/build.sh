@@ -5,6 +5,10 @@
 #   nix develop .#android --command tests/android/build.sh mobile
 #   nix develop .#android --command tests/android/build.sh full
 #   nix develop .#android --command tests/android/build.sh mobile arm64-v8a
+#   nix develop .#android --command tests/android/build.sh --reuse mobile
+#
+# --reuse keeps the compiled objects and skips qmake, for iterating on the
+# packaging steps. Do not use it after changing a .pro or .pri.
 #
 # Variant is `mobile` (the QML phone UI) or `full` (the desktop widget UI).
 # They are separate applications with separate ids, so both can be installed
@@ -21,6 +25,12 @@ set -uo pipefail
 
 cd "$(dirname "$0")/../.."
 root=$(pwd)
+
+reuse=0
+if [ "${1:-}" = "--reuse" ]; then
+    reuse=1
+    shift
+fi
 
 variant="${1:-mobile}"
 abis="${2:-armeabi-v7a arm64-v8a}"
@@ -151,12 +161,25 @@ echo "Qt:   $qt_root ($("$qt_root/bin/qmake" -query QT_VERSION))"
 # creates files inside platforms/ and licenses/.
 sdk="${VT_ANDROID_SDK_RW:-${XDG_CACHE_HOME:-$HOME/.cache}/escargot/android-sdk}"
 
-if [ ! -d "$sdk/platforms" ]; then
+# Keyed on the store path, not just existence. Checking only for
+# $sdk/platforms meant that changing the SDK, the NDK or the build-tools
+# version in pkgs/android left the old copy in place and the change had no
+# effect at all -- which looks exactly like the change not working.
+want="$ANDROID_SDK_ROOT"
+have=""
+[ -f "$sdk/.escargot-source" ] && have=$(cat "$sdk/.escargot-source")
+
+if [ "$want" != "$have" ]; then
     say "copying the SDK somewhere writable"
-    echo "  $ANDROID_SDK_ROOT -> $sdk"
+    echo "  $want"
+    echo "  -> $sdk"
+    if [ -n "$have" ]; then
+        echo "  (replacing a copy of $have)"
+    fi
     rm -rf "$sdk"
     mkdir -p "$(dirname "$sdk")"
-    cp -r --no-preserve=mode,ownership "$ANDROID_SDK_ROOT" "$sdk" || exit 1
+    cp -r --no-preserve=mode,ownership "$want" "$sdk" || exit 1
+    printf '%s\n' "$want" > "$sdk/.escargot-source"
 fi
 
 export ANDROID_SDK_ROOT="$sdk"
@@ -180,16 +203,29 @@ if [ "$variant" = "mobile" ]; then
     config="$config build_mobile"
 fi
 
-say "qmake ($variant, $abis)"
-rm -rf "$build"
-mkdir -p "$build" || exit 1
-cd "$build" || exit 1
+if [ "$reuse" -eq 1 ] && [ -f "$build/Makefile" ]; then
+    # --reuse keeps the object files and re-runs make incrementally. Compiling
+    # two ABIs of this application takes about fifteen minutes, which is a
+    # long time to re-test a one-line change to the manifest, the gradle
+    # config or the signing step.
+    #
+    # It deliberately does NOT re-run qmake: a change to a .pro or .pri needs
+    # a full pass, and pretending otherwise produces a build from stale
+    # makefiles. Drop --reuse for anything that touches the project files.
+    say "reusing $build (no qmake, incremental make)"
+    cd "$build" || exit 1
+else
+    say "qmake ($variant, $abis)"
+    rm -rf "$build"
+    mkdir -p "$build" || exit 1
+    cd "$build" || exit 1
 
-"$qt_root/bin/qmake" "$root/vesc_tool.pro" \
-    -spec android-clang \
-    -config release \
-    "CONFIG += $config" \
-    ANDROID_ABIS="$abis" || exit 1
+    "$qt_root/bin/qmake" "$root/vesc_tool.pro" \
+        -spec android-clang \
+        -config release \
+        "CONFIG += $config" \
+        ANDROID_ABIS="$abis" || exit 1
+fi
 
 say "make"
 make -j"$(nproc 2>/dev/null || echo 4)" || exit 1
