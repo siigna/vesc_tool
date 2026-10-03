@@ -23,19 +23,10 @@ ios | macx: {
     }
 }
 
-ANDROID_VERSION = 1
-
-android:contains(QT_ARCH, i386) {
-    VT_ANDROID_VERSION = $$VT_ANDROID_VERSION_X86
-}
-
-contains(ANDROID_TARGET_ARCH, arm64-v8a) {
-    VT_ANDROID_VERSION = $$VT_ANDROID_VERSION_ARM64
-}
-
-contains(ANDROID_TARGET_ARCH, armeabi-v7a) {
-    VT_ANDROID_VERSION = $$VT_ANDROID_VERSION_ARMV7
-}
+# The three blocks that used to stand here picked a per-ABI version code,
+# and two of them were not guarded by `android:` at all, so they ran on every
+# platform. They are gone with the per-ABI codes themselves: this builds one
+# universal APK carrying every ABI, so there is one code, derived in app.pri.
 
 android: {
     manifest.input = $$PWD/android/AndroidManifest.xml.in
@@ -88,8 +79,8 @@ DISTFILES += \
     android/res/values/libs.xml \
     android/build.gradle \
     android/gradle/wrapper/gradle-wrapper.properties \
-    android/src/com/vedder/vesc/VForegroundService.java \
-    android/src/com/vedder/vesc/Utils.java
+    android/src/io/github/siigna/escargot/VForegroundService.java \
+    android/src/io/github/siigna/escargot/Utils.java
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 

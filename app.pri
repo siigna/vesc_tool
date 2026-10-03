@@ -44,11 +44,46 @@ VT_IS_TEST_VERSION = 1
 # GIT commit
 VT_GIT_COMMIT = $$system(git rev-parse --short=8 HEAD)
 
-VT_ANDROID_VERSION_ARMV7 = 221
-VT_ANDROID_VERSION_ARM64 = 222
-VT_ANDROID_VERSION_X86 = 223
+# Android identity and packaging.
+#
+# The three per-ABI version codes that used to live here (221 armv7, 222
+# arm64, 223 x86) were for shipping one APK per architecture. This builds a
+# single universal APK carrying every ABI instead -- which is what
+# androiddeployqt --release produces, and the only thing F-Droid can install,
+# since it does not support app bundles. One package therefore needs one code.
+#
+# Derived from VT_VERSION rather than hand-maintained, because a hand-
+# maintained code is one more thing to forget on a release: 7.02 -> 702.
+# This stays monotonic only while VT_VERSION keeps two decimal places (7.10
+# -> 710 > 702, but 7.2 -> 72 would go backwards), so
+# tests/android/manifest.py asserts the result has at least three digits.
+#
+# The app id is new to this fork, so the sequence starts here and owes
+# nothing to upstream's numbering.
+VT_ANDROID_VERSION = $$replace(VT_VERSION, \\., )
 
-VT_ANDROID_VERSION = $$VT_ANDROID_VERSION_X86
+VT_ANDROID_MIN_SDK = 23
+
+# Qt 5.15's supported Android range is API 21 to 31
+# (doc.qt.io/qt-5/android.html). The manifest claimed 35, which nothing had
+# ever validated because nothing had ever built it. F-Droid imposes no floor
+# of its own.
+VT_ANDROID_TARGET_SDK = 31
+
+# The two variants are one tree and one manifest template, distinguished only
+# by build_mobile -- the mobile QML UI, or the desktop widget UI on a phone.
+# They install side by side, so they need separate ids.
+build_mobile {
+    VT_ANDROID_PACKAGE = io.github.siigna.escargot
+    VT_ANDROID_LABEL = ESCargot Tool
+} else {
+    VT_ANDROID_PACKAGE = io.github.siigna.escargot.full
+    VT_ANDROID_LABEL = ESCargot Tool Desktop
+}
+
+# Must match TARGET for the android build, which vesc_tool.pro pins to
+# vesc_tool; QtActivity dlopens exactly this name.
+VT_ANDROID_LIB_NAME = vesc_tool
 
 # Ubuntu 18.04 (should work on raspbian buster too)
 # sudo apt install qml-module-qt-labs-folderlistmodel qml-module-qtquick-extras qml-module-qtquick-controls2 qt5-default libqt5quickcontrols2-5 qtquickcontrols2-5-dev qtcreator qtcreator-doc libqt5serialport5-dev build-essential qml-module-qt3d qt3d5-dev qtdeclarative5-dev qtconnectivity5-dev qtmultimedia5-dev qtpositioning5-dev qtpositioning5-dev libqt5gamepad5-dev qml-module-qt-labs-settings qml-module-qt-labs-platform libqt5svg5-dev

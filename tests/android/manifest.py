@@ -3,38 +3,28 @@
 
 Run through tests/android/run.sh, from the repository root.
 
-The template is substituted by qmake, so an undefined variable becomes an
-empty attribute rather than an error -- and an empty android:versionCode is a
-manifest the Play Store rejects, which is a long way downstream of here.
-
-On the double quoting
---------------------
-Every value in the template is wrapped in a second pair of quotes:
+Why this emulates qmake
+-----------------------
+The template is not valid XML, deliberately. Every value is wrapped in the
+`'"..."'` idiom, the XML declaration included:
 
     <?xml version='"1.0"'?>
-    <manifest xmlns:android='"http://schemas.android.com/apk/res/android"'
-              android:versionCode='"$${VT_ANDROID_VERSION}"' ...>
+    <manifest package='"$${VT_ANDROID_PACKAGE}"' ...>
 
-That is upstream's own spelling, unchanged in this fork, and it is not
-cosmetic:
+QMAKE_SUBSTITUTES strips the single quotes and leaves the double ones, so what
+qmake writes to android/AndroidManifest.xml is `version="1.0"` and
+`package="io.github.siigna.escargot"`. Write the values with plain double
+quotes instead and the output is `version=1.0`, which is not XML at all.
 
-  * The XML declaration is ill-formed. A VersionNum cannot contain a quote.
-  * Every attribute value carries the quotes into its value, so
-    android:versionCode is the string `"1"` rather than the integer 1.
-  * The xmlns:android URI is itself quoted, so none of the android:
-    attributes are in the Android namespace -- which is why asking the parsed
-    tree for android:versionCode returns nothing at all.
+An earlier version of this file parsed the *template* as XML, concluded the
+manifest was unusable, and asserted that it stay that way. That was wrong: it
+was reading the input of a substitution as though it were the output. The
+check now applies the same two transformations qmake applies -- variable
+substitution, then removal of the single quotes -- and asserts on the result.
 
-So this is not a usable manifest as committed, and whatever produces
-upstream's releases is not this file as it stands. The history around it says
-as much: "Another attempt at checking in the correct file...".
-
-It is not rewritten here. Seventy-nine attributes cannot be re-quoted and
-called correct without an Android build to try it against, and this fork has
-none. What is asserted instead is that the file stays *uniform* -- all values
-quoted, which is the state recorded here, or none, which is the fixed state.
-A mixed file means a hand edit that did not decide which, and that is the
-thing worth catching.
+That is an emulation, so it is stated as one. The real generated manifest is
+asserted against a built APK by `aapt2 dump badging` once there is a build to
+run; see tests/android/README.md.
 """
 
 import os
@@ -45,6 +35,24 @@ import xml.etree.ElementTree as ET
 TEMPLATE = "android/AndroidManifest.xml.in"
 PROJECT_FILES = ("vesc_tool.pro", "app.pri")
 JAVA_ROOT = "android/src"
+ANDROID_NS = "http://schemas.android.com/apk/res/android"
+A = "{%s}" % ANDROID_NS
+
+# The permission set, as a decision rather than an accident. Each one has a
+# call site; tests/android/README.md records what and why, and the four that
+# used to be here and are not any more.
+EXPECTED_PERMISSIONS = {
+    "android.permission.BLUETOOTH",
+    "android.permission.BLUETOOTH_SCAN",
+    "android.permission.BLUETOOTH_CONNECT",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_BACKGROUND_LOCATION",
+    "android.permission.FOREGROUND_SERVICE",
+    "android.permission.FOREGROUND_SERVICE_LOCATION",
+    "android.permission.POST_NOTIFICATIONS",
+    "android.permission.WAKE_LOCK",
+}
 
 fail = False
 
@@ -59,18 +67,18 @@ def bad(msg):
     fail = True
 
 
-def qmake_variables_are_defined(src):
-    # Both spellings the template uses: $$NAME and $${NAME}.
+def qmake_variables(src):
+    """The qmake variables the template uses, and their values."""
     wanted = set(re.findall(r"\$\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?", src))
 
-    defined = set()
+    assignments = {}
     for name in PROJECT_FILES:
         with open(name) as fh:
-            defined.update(re.findall(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=",
-                                      fh.read(), re.M))
+            for var, value in re.findall(
+                    r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$", fh.read(), re.M):
+                assignments.setdefault(var, value.strip())
 
-    undefined = sorted(wanted - defined)
-
+    undefined = sorted(wanted - set(assignments))
     if undefined:
         bad("manifest uses qmake variables nothing defines: %s"
             % ", ".join(undefined))
@@ -78,72 +86,148 @@ def qmake_variables_are_defined(src):
         ok("every qmake variable in the manifest is defined (%s)"
            % ", ".join(sorted(wanted)))
 
-
-def parse(src):
-    """The tree, with the declaration normalised -- the only way to get one."""
-    filled = re.sub(r"\$\$\{?[A-Za-z_][A-Za-z0-9_]*\}?", "1", src)
-    norm = filled.replace("<?xml version='\"1.0\"'?>",
-                          '<?xml version="1.0"?>', 1)
-
-    try:
-        root = ET.fromstring(norm)
-    except ET.ParseError as exc:
-        bad("manifest template does not parse: %s" % exc)
-        return None
-
-    ok("manifest template parses as XML once the declaration is normalised")
-    return root
+    return wanted, assignments
 
 
-def quoting_is_uniform(root):
-    values = [v for el in root.iter() for v in el.attrib.values()]
-    quoted = [v for v in values
-              if len(v) >= 2 and v.startswith('"') and v.endswith('"')]
+def substitute(src, wanted, assignments):
+    """What qmake would write, near enough to assert on.
 
-    if len(quoted) == len(values):
-        ok("manifest is uniformly double-quoted (%d/%d values), as recorded"
-           % (len(quoted), len(values)))
-    elif not quoted:
-        bad("manifest is no longer double-quoted at all. If that was a "
-            "deliberate fix, record it here and drop this check -- but "
-            "confirm it against a real Android build first")
-    else:
-        bad("manifest is double-quoted in %d of %d values. Mixed means a hand "
-            "edit that did not decide which; see the note at the top of this "
-            "file" % (len(quoted), len(values)))
-
-
-def android_name(el):
-    """The android:name of an element, by local name.
-
-    Matched this way rather than through the namespace, because the quoted
-    xmlns means nothing resolves through the Android namespace.
+    Values are not resolved recursively -- VT_ANDROID_VERSION is a
+    $$replace() call on VT_VERSION, which only qmake can evaluate -- so each
+    variable becomes a placeholder of the right shape instead: a number where
+    the real value is numeric, so the integer checks below mean something.
     """
-    for key, value in el.attrib.items():
-        if key.endswith("name") and "android" in key:
-            return value.strip('"')
+    numeric = {"VT_ANDROID_VERSION", "VT_ANDROID_MIN_SDK",
+               "VT_ANDROID_TARGET_SDK"}
 
-    return ""
+    out = src
+    for var in wanted:
+        if var in numeric:
+            # Three digits, because that is the shape the derived version code
+            # has to keep: VT_VERSION 7.02 becomes 702.
+            value = "702" if var == "VT_ANDROID_VERSION" else assignments[var]
+        else:
+            value = assignments[var]
+
+        out = re.sub(r"\$\$\{?%s\}?" % re.escape(var), value, out)
+
+    # The transformation that makes the template valid.
+    return out.replace("'", "")
 
 
-def declared_components_have_sources(root):
-    declared = []
-    for tag in ("activity", "service", "receiver", "provider"):
-        for el in root.iter(tag):
-            name = android_name(el)
-            if name:
-                declared.append((tag, name))
+def check(root, assignments):
+    if root.tag != "manifest":
+        bad("root element is %s, not manifest" % root.tag)
+        return
 
+    # The namespace is the thing most easily broken by editing the quoting,
+    # and the breakage is invisible: every android: attribute silently stops
+    # resolving while the file still parses.
+    for el in root.iter():
+        for key in el.attrib:
+            if key.startswith("{") and not key.startswith(A):
+                bad("attribute %s on <%s> is not in the Android namespace; "
+                    "check xmlns:android" % (key, el.tag))
+                return
+
+    ok("xmlns:android resolves to %s" % ANDROID_NS)
+
+    code = root.get(A + "versionCode")
+    try:
+        if len(str(int(code))) < 3:
+            bad("versionCode %r has fewer than three digits; the derived code "
+                "goes backwards if VT_VERSION loses a decimal place" % code)
+        else:
+            ok("versionCode is an integer of at least three digits (%s)" % code)
+    except (TypeError, ValueError):
+        bad("versionCode %r is not an integer" % code)
+
+    package = root.get("package")
+    if package and package.startswith("io.github.siigna.escargot"):
+        ok("package is this fork's own id (%s)" % package)
+    else:
+        bad("package is %r; a published fork needs its own application id"
+            % package)
+
+    sdk = root.find("uses-sdk")
+    if sdk is None:
+        bad("no uses-sdk element")
+    else:
+        target = int(sdk.get(A + "targetSdkVersion"))
+        minimum = int(sdk.get(A + "minSdkVersion"))
+
+        # Qt 5.15 supports API 21 to 31; above that nothing has validated the
+        # Java bindings or the Gradle that Qt ships.
+        if target > 31:
+            bad("targetSdkVersion %d is above Qt 5.15's supported ceiling of "
+                "31" % target)
+        elif minimum < 23:
+            bad("minSdkVersion %d is below 23, which Android refuses to "
+                "install" % minimum)
+        else:
+            ok("minSdk %d / targetSdk %d, inside Qt 5.15's supported range"
+               % (minimum, target))
+
+    got = {p.get(A + "name") for p in root.findall("uses-permission")}
+
+    added = sorted(got - EXPECTED_PERMISSIONS)
+    lost = sorted(EXPECTED_PERMISSIONS - got)
+
+    if added or lost:
+        if added:
+            bad("manifest requests permissions this check does not expect: %s"
+                % ", ".join(added))
+        if lost:
+            bad("manifest no longer requests: %s" % ", ".join(lost))
+    else:
+        ok("permission set is exactly the %d expected" % len(got))
+
+    app = root.find("application")
+    if app is None:
+        bad("no application element")
+        return
+
+    if A + "requestLegacyExternalStorage" in app.attrib:
+        bad("requestLegacyExternalStorage is back; it is ignored from API 30 "
+            "and the storage permissions it went with are gone")
+
+    service = app.find("service")
+    if service is None:
+        bad("no service element; the foreground logging service is how "
+            "background GNSS works")
+        return
+
+    if service.get(A + "exported") != "false":
+        bad("the foreground service is exported; it is started only from this "
+            "app's own QML, so exporting it lets any app start our location "
+            "service")
+    else:
+        ok("the foreground service is not exported")
+
+    if service.get(A + "foregroundServiceType") != "location":
+        bad("the service has no location foregroundServiceType, which API 34+ "
+            "requires")
+
+    return service.get(A + "name")
+
+
+def java_sources_exist(root, declared_name):
     packages = []
     for dirpath, _, files in os.walk(JAVA_ROOT):
         if any(f.endswith(".java") for f in files):
             packages.append(os.path.relpath(dirpath, JAVA_ROOT)
                             .replace(os.sep, "."))
 
+    names = []
+    for tag in ("activity", "service", "receiver", "provider"):
+        for el in root.iter(tag):
+            name = el.get(A + "name")
+            if name:
+                names.append((tag, name))
+
     checked = 0
-    for tag, name in declared:
-        # Qt's own org.qtproject.* classes come from the Qt libraries, so only
-        # this project's packages are checked.
+    for tag, name in names:
+        # Qt's own org.qtproject.* classes come from the Qt libraries.
         if not any(name.startswith(pkg + ".") for pkg in packages):
             continue
 
@@ -154,10 +238,11 @@ def declared_components_have_sources(root):
             bad("manifest declares <%s> %s, but %s does not exist"
                 % (tag, name, path))
 
-    # Finding none at all means the match broke, not that everything is fine.
     if checked == 0:
-        bad("no manifest component resolved to this project's Java sources; "
-            "either the packages moved or the match broke")
+        bad("no manifest component resolved to this project's Java sources "
+            "(packages found: %s; declared: %s)"
+            % (", ".join(packages) or "none",
+               ", ".join(n for _, n in names) or "none"))
     else:
         ok("all %d declared component(s) in %s have Java sources"
            % (checked, ", ".join(sorted(packages))))
@@ -167,12 +252,31 @@ def main():
     with open(TEMPLATE) as fh:
         src = fh.read()
 
-    qmake_variables_are_defined(src)
+    # A bare double hyphen anywhere inside an XML comment is a parse error,
+    # and it is the easiest thing to introduce while writing a comment.
+    for body in re.findall(r"<!--(.*?)-->", src, re.S):
+        if "--" in body:
+            bad("an XML comment contains a double hyphen, which is a parse "
+                "error: %r" % body.strip()[:60])
+            break
 
-    root = parse(src)
-    if root is not None:
-        quoting_is_uniform(root)
-        declared_components_have_sources(root)
+    wanted, assignments = qmake_variables(src)
+
+    if fail:
+        return 1
+
+    filled = substitute(src, wanted, assignments)
+
+    try:
+        root = ET.fromstring(filled)
+    except ET.ParseError as exc:
+        bad("what qmake would write does not parse: %s" % exc)
+        return 1
+
+    ok("substitutes into well-formed XML")
+
+    check(root, assignments)
+    java_sources_exist(root, None)
 
     return 1 if fail else 0
 

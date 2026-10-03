@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
 
-package com.vedder.vesc;
+package io.github.siigna.escargot;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -29,7 +29,6 @@ import android.app.NotificationManager;
 import android.os.Build;
 import android.content.pm.ServiceInfo;
 
-import vedder.vesctool.R;
 
 public class VForegroundService extends Service {
     public static final String ACTION_START_FOREGROUND_SERVICE = "ACTION_START_FOREGROUND_SERVICE";
@@ -94,7 +93,17 @@ public class VForegroundService extends Service {
         builder.setContentText("ESCargot Tool is logging position and motor data.");
 
         builder.setWhen(System.currentTimeMillis());
-        builder.setSmallIcon(R.drawable.icon);
+        /*
+         * Resolved by name rather than through R.drawable.icon.
+         *
+         * The generated R class sits in whatever package the manifest
+         * declares, and the two build variants declare different ones
+         * (io.github.siigna.escargot and io.github.siigna.escargot.full)
+         * while sharing this one Java source. An import of R would compile
+         * for one variant and not the other.
+         */
+        builder.setSmallIcon(getResources().getIdentifier(
+                "icon", "drawable", getPackageName()));
 
 //        builder.setFullScreenIntent(pendingIntent, true);
 

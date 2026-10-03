@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     */
 
-package com.vedder.vesc;
+package io.github.siigna.escargot;
 
 import android.content.Context;
 import android.content.ContextWrapper;
