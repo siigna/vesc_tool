@@ -59,6 +59,97 @@ jobs:
       - name: tests/check.sh
         run: nix develop --command bash tests/check.sh --build-app
 
+  # The Android package.
+  #
+  # This exists for a specific failure the other jobs structurally cannot see.
+  # Everything Android-specific in utility.cpp and vescinterface.cpp sits
+  # behind Q_OS_ANDROID, so the desktop build compiles it out entirely -- and
+  # a JNI mistake like callStaticMethod<QString>, which has no Qt 5.15
+  # specialisation, is a LINK error that only appears when linking for
+  # Android. It got through a clean desktop build and a clean test suite.
+  #
+  # Two shapes, because a full build is expensive:
+  #
+  #   every push   one variant, one ABI, through packaging. Catches link
+  #                errors, manifest merge failures and gradle breakage.
+  #   on request   both variants, both ABIs, with the APKs attached to the
+  #                run so a phone can have one without a local toolchain.
+  android:
+    name: android package
+    runs-on: ubuntu-latest
+    # Provisioning dominates: the SDK and NDK from nixpkgs, and Qt for
+    # Android from aqtinstall, before any compiling starts.
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+
+      # Qt for Android is a ~1.5 GB download that aqtinstall fetches from
+      # download.qt.io, and the writable SDK copy is built from the nix store
+      # on first run. Neither changes unless a pinned version does, so both
+      # are keyed on the files that pin them.
+      - name: Cache the Qt and SDK trees
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/escargot
+          key: >-
+            android-${{ runner.os }}-${{ hashFiles('pkgs/android/default.nix',
+            'flake.lock') }}
+          restore-keys: android-${{ runner.os }}-
+
+      # Separate from the build so a provisioning failure reads as its own
+      # failure rather than as a broken build.
+      - name: Build the Android dev shell
+        run: nix develop .#android --command true
+
+      - name: Build
+        run: |
+          set -e
+          if [ "${{ github.event_name }}" = "push" ] \
+             || [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "one variant, one ABI: this is the link check"
+              nix develop .#android --command \
+                  tests/android/build.sh mobile arm64-v8a
+          else
+              nix develop .#android --command tests/android/build.sh mobile
+              nix develop .#android --command tests/android/build.sh full
+          fi
+
+      # The stage that reads the package rather than its inputs: the
+      # application id, both SDK levels, the exact permission set, the ABIs
+      # and that the label is not upstream's. The first APK that ever built
+      # here declared minSdkVersion 1 while every manifest check correctly
+      # said 23, and only this could see it.
+      #
+      # VT_ANDROID_EXPECT_ABIS narrows the ABI assertion on the per-push
+      # build, which compiles one. Skipping the whole stage there would have
+      # thrown away every other assertion for the sake of that one line.
+      - name: Assert what the package declares
+        run: nix develop .#android --command tests/android/run.sh
+        env:
+          VT_ANDROID_EXPECT_ABIS: >-
+            ${{ (github.event_name == 'push'
+                 || github.event_name == 'pull_request')
+                && 'arm64-v8a' || '' }}
+
+      # Unsigned: there is no key in CI and there should not be. These are
+      # for inspection and for sideloading after signing locally; see
+      # tests/android/keystore.sh.
+      - name: Attach the packages
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: escargot-android-unsigned
+          path: build/android/*.apk
+          if-no-files-found: ignore
+          retention-days: 14
+
   # Mutation testing is fifteen rebuilds, which is the wrong trade for every
   # push. It runs on a schedule and on request, and its job is to catch a
   # check that has quietly stopped being able to fail.

@@ -88,6 +88,10 @@ if [ -z "$apks" ]; then
 elif [ -z "$aapt2" ] || [ ! -x "$aapt2" ]; then
     printf '  skipped  no aapt2; run inside: nix develop .#android\n'
 else
+    if [ -n "${VT_ANDROID_EXPECT_ABIS:-}" ]; then
+        printf '  expecting ABIs: %s\n' "$VT_ANDROID_EXPECT_ABIS"
+    fi
+
     for apk in $apks; do
         printf '  %s\n' "$(basename "$apk")"
         python3 tests/android/apk.py "$apk" "$aapt2"

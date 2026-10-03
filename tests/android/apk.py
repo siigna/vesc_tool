@@ -24,8 +24,18 @@ import manifest  # noqa: E402  (after the path fix, deliberately)
 
 EXPECTED_MIN_SDK = 23
 EXPECTED_TARGET_SDK = 31
-EXPECTED_ABIS = {"arm64-v8a", "armeabi-v7a"}
 PACKAGE_PREFIX = "io.github.siigna.escargot"
+
+# Both ABIs, unless told otherwise.
+#
+# VT_ANDROID_EXPECT_ABIS exists for the per-push CI build, which compiles one
+# ABI because two take twice as long and the point of that job is to catch
+# link errors. The alternative was to skip this whole check on those runs,
+# which would have given up the package id, SDK level, permission and label
+# assertions as well -- for the sake of one line.
+EXPECTED_ABIS = set(
+    (os.environ.get("VT_ANDROID_EXPECT_ABIS")
+     or "arm64-v8a armeabi-v7a").replace(",", " ").split())
 
 fail = False
 
