@@ -54,10 +54,18 @@ if [ ! -x "$qt_root/bin/qmake" ]; then
 
     mkdir -p "$qt_cache/$VT_ANDROID_QT_VERSION" || exit 1
 
-    # shellcheck disable=SC2086
+    # -m is passed only when there is something to pass. For Qt 5.15's
+    # Android target the list is empty, because every module this application
+    # uses is in the base install; naming them anyway fails the whole install.
+    mods=()
+    if [ -n "${VT_ANDROID_QT_MODULES// /}" ]; then
+        # shellcheck disable=SC2086
+        mods=(-m $VT_ANDROID_QT_MODULES)
+    fi
+
     aqt install-qt \
         linux android "$VT_ANDROID_QT_VERSION" "$VT_ANDROID_QT_ARCH" \
-        -m $VT_ANDROID_QT_MODULES \
+        "${mods[@]}" \
         -O "$qt_cache/$VT_ANDROID_QT_VERSION" || {
             echo "build.sh: aqt failed." >&2
             echo "  If it reports \"packages ['qt_base'] were not found\", the" >&2

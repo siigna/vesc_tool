@@ -69,17 +69,20 @@ rec {
   # most common way this goes wrong.
   qtArch = "android";
 
-  qtModules = [
-    "qtbase"
-    "qtdeclarative"
-    "qtquickcontrols"      # QtQuick.Extras, which both gauge components use
-    "qtquickcontrols2"
-    "qtgraphicaleffects"
-    "qtsvg"
-    "qtconnectivity"       # Bluetooth
-    "qtpositioning"        # GNSS
-    "qtandroidextras"
-    "qttools"
-    "qtimageformats"
-  ];
+  # Deliberately empty.
+  #
+  # For Qt 5.15.2's Android target, everything this application links is in
+  # the base install -- qtbase, qtdeclarative, qtquickcontrols (which is
+  # where QtQuick.Extras lives), qtquickcontrols2, qtgraphicaleffects, qtsvg,
+  # qtconnectivity, qtpositioning, qtandroidextras, qttools and
+  # qtimageformats. `aqt list-qt linux android --modules 5.15.2 android`
+  # offers only add-ons this fork does not use:
+  #
+  #   qtcharts qtdatavis3d qtlottie qtnetworkauth qtpurchasing qtquick3d
+  #   qtquicktimeline qtscript
+  #
+  # Passing the base modules to -m fails the whole install with "The packages
+  # [...] were not found while parsing XML of package information!", which
+  # reads like a network or arch problem and is not.
+  qtModules = [ ];
 }

@@ -1,0 +1,7 @@
+2026-10-03 01:51:57,694 - aqt.main - INFO - installer 140737352796032 aqtinstall(aqt) v3.3.0 on Python 3.13.15 [CPython GCC 15.2.0]
+2026-10-03 01:51:57,695 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/Updates.xml.sha256
+2026-10-03 01:51:59,479 - aqt.main - ERROR - installer 140737352796032 The packages ['qtandroidextras', 'qtbase', 'qtconnectivity', 'qtdeclarative', 'qtgraphicaleffects', 'qtimageformats', 'qtpositioning', 'qtquickcontrols', 'qtquickcontrols2', 'qtsvg', 'qttools'] were not found while parsing XML of package information!
+==============================Suggested follow-up:==============================
+* Please use 'aqt list-qt linux android --modules 5.15.2 <arch>' to show modules available.
+2026-10-03 01:52:43,141 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/Updates.xml.sha256
+2026-10-03 01:52:45,702 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/Updates.xml.sha256
