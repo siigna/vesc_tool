@@ -83,6 +83,12 @@ say "building for $abi"
 reuse_arg="--reuse"
 [ -n "${VT_ANDROID_EMULATOR_CLEAN:-}" ] && reuse_arg=""
 
+# Debuggable, so that `adb run-as` can seed this application's own settings.
+# The alternative is pixel-tapping a mandatory intro wizard and typing a host
+# into a 320px field, which is a test that passes until someone moves a
+# margin. Never set for a build that could reach a real device; see
+# android/build.gradle.
+VT_ANDROID_DEBUGGABLE=1 \
 VT_ANDROID_VARIANT_DIR="android-emu" \
 VT_ANDROID_OUT_SUFFIX="-$abi" \
     "$root/tests/android/build.sh" $reuse_arg mobile "$abi" \

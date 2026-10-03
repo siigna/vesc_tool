@@ -240,6 +240,15 @@ android.aapt2FromMavenOverride=$aapt2
 org.gradle.jvmargs=-Xmx3072m
 PROPS
 
+# Only the emulator harness sets this, and only so that `adb run-as` works
+# for seeding the application's own settings. A debuggable release package
+# lets any process on the device read this application's private data, so it
+# is never set for a build that could reach one.
+if [ -n "${VT_ANDROID_DEBUGGABLE:-}" ]; then
+    echo "escargotDebuggable=true" >> "$GRADLE_USER_HOME/gradle.properties"
+    echo "  debuggable: yes (emulator harness)"
+fi
+
 echo "aapt2: $aapt2"
 export PATH="$JAVA_HOME/bin:$qt_root/bin:$PATH"
 
@@ -271,6 +280,22 @@ fi
 if [ "$reuse" -eq 1 ] && [ -f "$build/Makefile" ]; then
     say "reusing objects in $build (qmake still re-runs)"
     cd "$build" || exit 1
+
+    # The generated resources are thrown away even in reuse mode.
+    #
+    # Precautionary, not a fix for anything observed here. qmake drives rcc in
+    # two-pass mode for the larger resources, and its dependency tracking on
+    # the individual files listed inside a .qrc is weaker there than on the
+    # .qrc itself. An edited .qml silently not reaching the APK is the kind of
+    # failure that wastes an afternoon, and regenerating these costs seconds
+    # against the fifteen minutes of C++ that reuse exists to skip.
+    #
+    # I did once think I had seen exactly that, and was wrong: the APK was
+    # fine and the install had failed with a signature mismatch, which `adb
+    # install` reports on the line above the one I was reading.
+    find . -name 'qrc_*.cpp' -o -name 'qrc_*.o' | while read -r f; do
+        rm -f "$f"
+    done
 else
     rm -rf "$build"
     mkdir -p "$build" || exit 1

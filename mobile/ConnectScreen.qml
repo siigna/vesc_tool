@@ -25,6 +25,7 @@ import Vedder.vesc.bleuart 1.0
 import Vedder.vesc.commands 1.0
 import Vedder.vesc.utility 1.0
 import Vedder.vesc.udpserversimple 1.0
+import Qt.labs.settings 1.0 as QSettings
 
 Item {
     id: rootItem
@@ -184,6 +185,108 @@ Item {
                             bleModel.clear()
                             pingTcpHub = true
                             mBle.emitScanDone()
+                        }
+                    }
+
+                    /*
+                     * Manual TCP, by host and port.
+                     *
+                     * Everything else here finds a controller for you: BLE
+                     * scanning, or the TCP hub, which relays through a server
+                     * on the internet. Neither reaches a bridge on the local
+                     * network that you simply know the address of -- a VESC
+                     * Express on wifi, an ESP32, or a simulator on a desktop
+                     * -- and the desktop Tool has had this on its connection
+                     * page all along. This is parity, not a new idea.
+                     *
+                     * The host and port are remembered, because anyone using
+                     * this is using the same address repeatedly.
+                     */
+                    MenuItem {
+                        text: "Connect TCP..."
+                        onTriggered: {
+                            tcpConnDialog.open()
+                        }
+
+                        Dialog {
+                            id: tcpConnDialog
+                            standardButtons: Dialog.Ok | Dialog.Cancel
+                            modal: true
+                            focus: true
+                            closePolicy: Popup.CloseOnEscape
+                            anchors.centerIn: parent
+                            width: parent.width - 20
+                            parent: rootItem.parent
+                            title: "Connect TCP"
+
+                            Overlay.modal: Rectangle {
+                                color: "#AA000000"
+                            }
+
+                            QSettings.Settings {
+                                property alias tcp_manual_host: tcpHostField.text
+                                property alias tcp_manual_port: tcpPortField.text
+                            }
+
+                            onAccepted: {
+                                var host = tcpHostField.text.trim()
+                                var port = parseInt(tcpPortField.text)
+
+                                if (host.length === 0) {
+                                    VescIf.emitMessageDialog(
+                                                "Connect TCP",
+                                                "Enter a host name or address.",
+                                                false, false)
+                                    return
+                                }
+
+                                // The field is numeric, so this only catches
+                                // an empty one or something out of range.
+                                if (isNaN(port) || port < 1 || port > 65535) {
+                                    VescIf.emitMessageDialog(
+                                                "Connect TCP",
+                                                "Port must be between 1 and 65535.",
+                                                false, false)
+                                    return
+                                }
+
+                                VescIf.connectTcp(host, port)
+                            }
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                spacing: 6
+
+                                Label {
+                                    text: "Host"
+                                    color: Utility.getAppHexColor("lightText")
+                                }
+
+                                TextField {
+                                    id: tcpHostField
+                                    Layout.fillWidth: true
+                                    placeholderText: "192.168.1.50"
+                                    text: ""
+                                    inputMethodHints: Qt.ImhNoAutoUppercase |
+                                                      Qt.ImhNoPredictiveText |
+                                                      Qt.ImhUrlCharactersOnly
+                                }
+
+                                Label {
+                                    text: "Port"
+                                    color: Utility.getAppHexColor("lightText")
+                                }
+
+                                TextField {
+                                    id: tcpPortField
+                                    Layout.fillWidth: true
+                                    // The port every VESC bridge listens on,
+                                    // so the common case is one field to fill.
+                                    text: "65102"
+                                    inputMethodHints: Qt.ImhDigitsOnly
+                                    validator: IntValidator { bottom: 1; top: 65535 }
+                                }
+                            }
                         }
                     }
 

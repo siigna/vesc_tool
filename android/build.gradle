@@ -95,6 +95,27 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    /*
+     * Debuggable only when asked for, and only ever asked for by the
+     * emulator harness.
+     *
+     * tests/android/emulator.sh sets escargotDebuggable in the gradle home
+     * it controls, because a debuggable package is what makes `adb run-as`
+     * work -- and that is the only way to seed the application's own
+     * QSettings from outside. Without it, reaching the log settings on an
+     * emulator means pixel-tapping a mandatory intro wizard and typing a
+     * host into a 320px field, which is a test that passes until someone
+     * moves a margin.
+     *
+     * It is off for every real build. A debuggable release package lets any
+     * process on the device read this application's private data.
+     */
+    buildTypes {
+        release {
+            debuggable project.hasProperty('escargotDebuggable')
+        }
+    }
+
     lintOptions {
         abortOnError false
 

@@ -232,6 +232,14 @@ stage "branding (no upstream product name in display strings)"
         printf '%s\n' "$hits" "$lits" | sed '/^$/d' | sed 's/^/  /'
         exit 1
     fi
+
+    # A third pass, because the two greps above look for a contiguous
+    # "VESC Tool" and that is not how the name necessarily appears. Every
+    # res/config/*/info.xml rendered "Welcome to VESC Tool." from markup that
+    # put the two words in different tags, so the string was never in the
+    # file and the greps could not see it. Twenty-six files; found by running
+    # the application on an emulator and reading the screen.
+    python3 tests/branding.py || exit 1
 )
 report $?
 
