@@ -166,13 +166,37 @@ stage "branding (no upstream product name in display strings)"
     # appstyle.cpp is the one documented exception: setApplicationName is not
     # displayed, it is what QSettings resolves paths from, and changing it
     # would strand existing users' settings. See ATTRIBUTION.md.
-
+    #
+    # The file types matter as much as the patterns. This started at .cpp,
+    # .h, .ui, .qml and .xml, and three user-visible strings were outside all
+    # five: the macOS and iOS bundle name in vesc_tool.pro, the Android
+    # launcher label in AndroidManifest.xml.in -- which is the name under the
+    # icon and in the task switcher -- and the title of the notification the
+    # foreground logging service shows, in a .java file. So .pro, .pri, .in,
+    # .gradle and .java are included now.
+    #
+    # The `(\./)?` in the exclusions is not decoration. GNU grep prefixes a
+    # recursive match with `./`; ugrep, which some shells alias grep to, does
+    # not. Anchored on `^\./` alone, every exclusion silently stopped
+    # matching outside the dev shell and the three documented exceptions
+    # failed the stage.
+    #
+    # Still deliberately outside: the Java package and Android application id
+    # com.vedder.vesc. That is an identity rather than a display string, and
+    # changing it makes the build a different app that cannot upgrade an
+    # installed one.
+    # Two files may name it, and both are deliberate:
+    #   utility.cpp  -- the about box says "a fork of VESC(R) Tool", which is a
+    #                   nominative reference and the honest thing to state.
+    #   tests/       -- this rule's own description and the test that checks it.
     hits=$(grep -rnE 'VESC(®|&#174;|&reg;) Tool' \
              --include='*.cpp' --include='*.h' --include='*.ui' \
-             --include='*.qml' --include='*.xml' \
+             --include='*.qml' --include='*.xml' --include='*.pro' \
+             --include='*.pri' --include='*.in' --include='*.gradle' \
+             --include='*.java' \
              . 2>/dev/null \
            | grep -vE '/maddy/|/qmarkdowntextedit/|/QCodeEditor/|/build/|/obj/' \
-           | grep -vE '^\./utility\.cpp:|^\./tests/' || true)
+           | grep -vE '^(\./)?utility\.cpp:|^(\./)?tests/' || true)
 
     # Any occurrence of the bare name, not just an exact "VESC Tool" literal:
     # the first version of this rule missed
@@ -181,11 +205,13 @@ stage "branding (no upstream product name in display strings)"
     # inherited are excluded by their own wording.
     lits=$(grep -rn 'VESC Tool' \
              --include='*.cpp' --include='*.h' --include='*.ui' \
-             --include='*.qml' --include='*.xml' \
+             --include='*.qml' --include='*.xml' --include='*.pro' \
+             --include='*.pri' --include='*.in' --include='*.gradle' \
+             --include='*.java' \
              . 2>/dev/null \
            | grep -vE '/maddy/|/qmarkdowntextedit/|/QCodeEditor/|/build/|/obj/' \
            | grep -vE 'part of VESC Tool|VESC Tool is free software|VESC Tool is distributed' \
-           | grep -vE '^\./appstyle\.cpp:|^\./utility\.cpp:|^\./tests/' || true)
+           | grep -vE '^(\./)?appstyle\.cpp:|^(\./)?utility\.cpp:|^(\./)?tests/' || true)
 
     if [ -n "$hits$lits" ]; then
         printf '%s\n' "$hits" "$lits" | sed '/^$/d' | sed 's/^/  /'

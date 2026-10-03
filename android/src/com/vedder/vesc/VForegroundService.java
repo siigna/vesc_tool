@@ -90,8 +90,8 @@ public class VForegroundService extends Service {
             builder = new Notification.Builder(this);
         }
 
-        builder.setContentTitle("VESC Tool");
-        builder.setContentText("VESC Tool is logging position and motor data.");
+        builder.setContentTitle("ESCargot Tool");
+        builder.setContentText("ESCargot Tool is logging position and motor data.");
 
         builder.setWhen(System.currentTimeMillis());
         builder.setSmallIcon(R.drawable.icon);

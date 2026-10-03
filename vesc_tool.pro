@@ -12,7 +12,7 @@ include($$PWD/app.pri)
 SOURCES += $$PWD/main.cpp
 
 ios | macx: {
-    TARGET = "VESC Tool"
+    TARGET = "ESCargot Tool"
     CONFIG += sdk_no_version_check
 }else: {
     android:{
