@@ -34,6 +34,22 @@ Item {
     property ConfigParams mInfoConf: VescIf.infoConfig()
     property var dialogParent: ApplicationWindow.overlay
 
+    /*
+     * The height the dialog sizes itself against.
+     *
+     * This used to read `column.height` directly -- an id that exists in
+     * ConfigPageMotor.qml, which is the only document that instantiates this
+     * component, and not here. QML resolved it through the creation context,
+     * so it worked from there and nowhere else: instantiated anywhere else
+     * the dialog had no height, and the engine reported
+     *
+     *   TypeError: Cannot read property 'height' of undefined
+     *
+     * Passed in explicitly now, the way dialogParent beside it already is.
+     * The default is the dialog's own parent, which is the whole overlay.
+     */
+    property real dialogMaxHeight: dialogParent ? dialogParent.height : 0
+
     function openDialog() {
         dialog.open()
     }
@@ -74,7 +90,7 @@ Item {
         modal: true
         focus: true
         width: parent.width - 20
-        height: column.height - 40
+        height: dialogMaxHeight - 40
         closePolicy: Popup.CloseOnEscape
 
         Overlay.modal: Rectangle {

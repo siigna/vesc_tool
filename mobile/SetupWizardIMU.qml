@@ -97,7 +97,7 @@ Item {
         //            q0 = 1; q1 = 0; q2 = 0; q3 = 0;
         //            vesc_id = 0;
         //        }
-        onValuesImuReceived: {
+        function onValuesImuReceived(values, mask) {
 
             // Update values
             filteredIMUValues.roll = values.roll

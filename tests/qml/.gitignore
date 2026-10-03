@@ -1,0 +1,9 @@
+# The suite builds in place, like tests/ui and tests/tuning.
+Makefile
+obj/
+tst_qml
+*.o
+moc_*.cpp
+*.moc
+.qmake.stash
+target_wrapper.*

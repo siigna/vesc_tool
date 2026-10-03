@@ -597,6 +597,8 @@ Item {
 
     Dialog {
         id: firmwareDialog
+        // So tests/qml can reach it; findChild matches on objectName, not id.
+        objectName: "firmwareDialog"
         standardButtons: Dialog.Close
         closePolicy: Popup.CloseOnEscape
         modal: true
@@ -612,11 +614,22 @@ Item {
             color: "#AA000000"
         }
 
+        /*
+         * No anchors, and no margins.
+         *
+         * Dialog positions and sizes its contentItem in the space between
+         * header and footer, so `anchors.fill: parent` here was redundant --
+         * and, together with the same anchors inside FwUpdate.qml, was what
+         * Qt reported as a binding loop on this Dialog's implicitWidth.
+         *
+         * The two margins that went with it were correcting for the same
+         * mistake: topMargin reserved the header's height a second time, and
+         * bottomMargin 50 reserved room for the Close button that the footer
+         * already occupies. With the anchors gone, both would cut into the
+         * content area rather than protect it.
+         */
         contentItem: FwUpdate {
             id: fwUpdate
-            anchors.fill: parent
-            anchors.bottomMargin: 50
-            anchors.topMargin: tabBar.implicitHeight
             pageIndicatorVisible: false
             swipeOrientation: Qt.Horizontal
             currentPage: tabBar.currentIndex
@@ -624,6 +637,7 @@ Item {
         }
 
         header: Rectangle {
+            id: fwDialogHeader
             color: Utility.getAppHexColor("lightText")
             height: tabBar.implicitHeight
 
@@ -638,7 +652,19 @@ Item {
                     color: Utility.getAppHexColor("lightestBackground")
                 }
 
-                property int buttonWidth: Math.max(120, tabBar.width / (rep.model.length))
+                /*
+                 * Divided out of the header, not out of tabBar -- the same
+                 * cycle SetupWizardFoc.qml had, which Qt did report there:
+                 * a button width that reads tabBar.width goes back through
+                 * TabBar's implicitWidth, which Container computes from its
+                 * buttons.
+                 *
+                 * Qt did not name this one, so this change is pre-emptive and
+                 * not a fix for an observed warning. The Dialog's own
+                 * implicitWidth loop, which it did name, came from FwUpdate
+                 * anchoring itself to its parent; see the contentItem above.
+                 */
+                property int buttonWidth: Math.max(120, fwDialogHeader.width / (rep.model.length))
 
                 Repeater {
                     id: rep

@@ -1,8 +1,10 @@
 # Everything tests/check.sh runs, on every push and pull request.
 #
 # This fork's suite needs no board, no display server and no network, which is
-# what makes it a reasonable thing to run in CI at all -- the whole of
-# check.sh is about forty-five seconds once the toolchain is in place.
+# what makes it a reasonable thing to run in CI at all. check.sh takes about
+# four and a half minutes once the toolchain is in place, nearly all of it
+# compiling: the ui and qml suites each link the whole application, and
+# --build-app links it once more for the cli suite.
 #
 # Note on what this cannot prove: it was written and committed without being
 # run on GitHub's runners, because this fork has never been pushed. Treat the

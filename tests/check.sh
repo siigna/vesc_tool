@@ -101,6 +101,29 @@ else
     printf '  skipped: tests/ui not present\n'
 fi
 
+stage "qml (mobile components load, instantiate and warn about nothing)"
+if [ -f tests/qml/qml.pro ]; then
+    (
+        cd tests/qml || exit 1
+        # No `make clean` here, unlike the ui stage. That clean is there
+        # because a failed build leaves the previous binary for the run step,
+        # which reads as a pass -- and this suite has a second guard against
+        # exactly that: run.sh refuses to run a tst_qml older than any file in
+        # mobile/, since the QML is linked in as a resource. Cleaning as well
+        # would mean recompiling the whole application twice per check.sh.
+        qmake qml.pro >/dev/null 2>&1 && make -j8 >/dev/null 2>&1 || exit 1
+        ./run.sh > "$raw/qml" 2>&1
+        st=$?
+        grep -E "^(FAIL|SKIP|Totals)" "$raw/qml"
+        exit $st
+    )
+    st=$?
+    explain $st "$raw/qml"
+    report $st
+else
+    printf '  skipped: tests/qml not present\n'
+fi
+
 if [ "$build_app" -eq 1 ]; then
     stage "application (for the cli suite, which runs it as a process)"
     (
@@ -143,10 +166,7 @@ stage "branding (no upstream product name in display strings)"
     # appstyle.cpp is the one documented exception: setApplicationName is not
     # displayed, it is what QSettings resolves paths from, and changing it
     # would strand existing users' settings. See ATTRIBUTION.md.
-    # Two files may name it, and both are deliberate:
-    #   utility.cpp  -- the about box says "a fork of VESC(R) Tool", which is a
-    #                   nominative reference and the honest thing to state.
-    #   tests/       -- this rule's own description and the test that checks it.
+
     hits=$(grep -rnE 'VESC(®|&#174;|&reg;) Tool' \
              --include='*.cpp' --include='*.h' --include='*.ui' \
              --include='*.qml' --include='*.xml' \

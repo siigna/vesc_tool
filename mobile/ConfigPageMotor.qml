@@ -40,21 +40,29 @@ Item {
     DetectBldc {
         id: detectBldc
         dialogParent: confPageMotorItem.dialogParent
+        // What the component used to reach in and read by itself.
+        dialogMaxHeight: column.height
     }
 
     DetectFocParam {
         id: detectFocParam
         dialogParent: confPageMotorItem.dialogParent
+        // What the component used to reach in and read by itself.
+        dialogMaxHeight: column.height
     }
 
     DetectFocHall {
         id: detectFocHall
         dialogParent: confPageMotorItem.dialogParent
+        // What the component used to reach in and read by itself.
+        dialogMaxHeight: column.height
     }
 
     DetectFocEncoder {
         id: detectFocEncoder
         dialogParent: confPageMotorItem.dialogParent
+        // What the component used to reach in and read by itself.
+        dialogMaxHeight: column.height
     }
 
     Dialog {

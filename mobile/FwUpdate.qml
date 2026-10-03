@@ -37,7 +37,24 @@ Item {
     property ConfigParams mInfoConf: VescIf.infoConfig()
     property bool isHorizontal: width > height
     property bool showUploadAllButton: true
-    anchors.fill: parent
+
+    /*
+     * Deliberately not anchored to its parent.
+     *
+     * This root Item used to carry `anchors.fill: parent`, which made the
+     * component size itself wherever it was put. Its only use is as the
+     * contentItem of StartPage's firmware Dialog, and a Dialog sizes its
+     * contentItem itself from the space left between header and footer --
+     * so the anchors fought that, and Qt reported
+     *
+     *   QML Dialog: Binding loop detected for property "implicitWidth"
+     *
+     * every time StartPage was created. A component that anchors itself also
+     * cannot be put in a Layout or given a size by its user at all.
+     *
+     * Anything instantiating this must size it, which a Dialog, a Layout and
+     * an explicit anchors.fill at the use site all do.
+     */
 
     FwHelper {
         id: fwHelper

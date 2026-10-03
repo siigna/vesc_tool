@@ -635,6 +635,7 @@ Item {
         }
 
         header: Rectangle {
+            id: tabBarHeader
             color: {color = Utility.getAppHexColor("lightText")}
             height: tabBar.implicitHeight
 
@@ -656,7 +657,25 @@ Item {
                     model: ["Usage", "Motor", "Battery", "Setup", "Direction"]
                     TabButton {
                         text: modelData
-                        width: Math.max(tabBar.buttonWidth, tabBar.width / tabBar.buttons)
+                        /*
+                         * Divided out of the header, not out of tabBar.
+                         *
+                         * tabBar fills this header, so the two have the same
+                         * width -- but a TabButton width that reads
+                         * tabBar.width closes a cycle through TabBar's own
+                         * implicitWidth, which Container computes from its
+                         * buttons. Qt reported exactly that, as two loops:
+                         *
+                         *   TabButton: Binding loop detected for property "width"
+                         *   TabBar: Binding loop detected for property "implicitWidth"
+                         *
+                         * A loop is broken by refusing to re-evaluate, so the
+                         * tab strip kept whatever width the aborted pass left
+                         * behind. The header's width comes from the Page above
+                         * and depends on nothing below it.
+                         */
+                        width: Math.max(tabBar.buttonWidth,
+                                        tabBarHeader.width / tabBar.buttons)
                     }
                 }
             }
