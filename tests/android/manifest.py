@@ -281,6 +281,29 @@ def main():
                 "error: %r" % body.strip()[:60])
             break
 
+    # An apostrophe anywhere in this file, prose included, breaks the qmake
+    # substitution: qmake reads it as an opening quote and swallows the rest
+    # of the line. A comment reading "the service's own notification" lost its
+    # entire opening "<!--" line, which left an orphaned "-->" in the
+    # generated manifest. Python parsed that happily; Android lint did not,
+    # and failed with "Failed to parse XML" from inside lintVitalRelease,
+    # several layers away from the cause.
+    #
+    # The legitimate single quotes are exactly the ones wrapping an attribute
+    # value, so those are removed before looking.
+    probe = re.sub(r"='\"[^\"]*\"'", "=@@", src)
+    stray = [i for i, line in enumerate(probe.splitlines(), 1) if "'" in line]
+    if stray:
+        bad("apostrophe on line(s) %s. qmake treats one as an opening quote "
+            "and eats the rest of the line, including a comment delimiter"
+            % ", ".join(str(n) for n in stray))
+
+    # Balanced comment delimiters, counted rather than parsed, because the
+    # failure above produces a file that some parsers accept.
+    if src.count("<!--") != src.count("-->"):
+        bad("comment delimiters do not balance: %d \"<!--\" against %d "
+            "\"-->\"" % (src.count("<!--"), src.count("-->")))
+
     wanted, assignments = qmake_variables(src)
 
     if fail:

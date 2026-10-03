@@ -3,8 +3,8 @@
     Substituted by qmake into android/AndroidManifest.xml; see vesc_tool.pro.
     The variables come from app.pri.
 
-    Every value is wrapped in the '"..."' idiom on purpose, the XML
-    declaration included. QMAKE_SUBSTITUTES strips the single quotes and
+    Every value is wrapped in a single-quoted pair of double quotes on
+    purpose, the XML declaration included. QMAKE_SUBSTITUTES strips the single quotes and
     leaves the double ones. So this file, which is not valid XML as it sits,
     substitutes into one that is. Writing the values with plain double
     quotes produces version=1.0 and name=android.permission.BLUETOOTH in the
@@ -12,6 +12,17 @@
 
     So do not "fix" the quoting. Check the generated
     android/AndroidManifest.xml, not this template.
+
+    Two more rules for anything written in here, both learned the hard way:
+
+      * No apostrophes, anywhere, including in prose. qmake treats one as an
+        opening quote and swallows the rest of the line. A comment reading
+        "the own notification of the service" lost its whole
+        comment-opening line, leaving an orphaned comment-closing one that
+        Android lint refused to parse while Python parsed it happily.
+      * No double hyphen inside a comment. That is a parse error in XML.
+
+    tests/android/manifest.py checks both.
 -->
 <manifest xmlns:android='"http://schemas.android.com/apk/res/android"'
           package='"$${VT_ANDROID_PACKAGE}"'
@@ -22,7 +33,7 @@
     <!--
         targetSdkVersion is 31, not the 35 this file used to claim.
 
-        Qt 5.15's supported Android range is API 21 to 31
+        The supported Android range for Qt 5.15 is API 21 to 31
         (doc.qt.io/qt-5/android.html). 31 is also what the one live,
         actively-updated Qt 5.15 application in F-Droid builds against, with
         NDK r21e and JDK 11. 35 was never validated by anything, because
@@ -37,9 +48,9 @@
 
     <!--
         Declared rather than inherited. Every one of these has a call site,
-        and tests/android/run.sh asserts the built APK's set matches this
-        list, so a permission cannot be added without a reason or lost by
-        accident.
+        and tests/android/run.sh asserts that the permission set of the
+        built APK matches this list, so one cannot be added without a reason
+        or lost by accident.
 
         BLUETOOTH is capped at 30 because API 31 replaced it with the two
         permissions below it; without the cap it is requested forever on
@@ -60,7 +71,7 @@
     <uses-permission android:name='"android.permission.FOREGROUND_SERVICE"'/>
     <uses-permission android:name='"android.permission.FOREGROUND_SERVICE_LOCATION"'/>
 
-    <!-- The foreground service's own notification. Without this it is
+    <!-- The notification posted by the foreground service. Without this it is
          silently dropped on API 33+, and that notification is both the only
          indication logging is running and the only way to stop it. -->
     <uses-permission android:name='"android.permission.POST_NOTIFICATIONS"'/>
@@ -84,10 +95,10 @@
     -->
 
     <!--
-        The two Qt modules' own needs, declared here rather than left to
-        androiddeployqt's INSERT_PERMISSIONS placeholder (written here
-        without its percent signs, because androiddeployqt replaces the token
-        wherever it appears, including inside a comment about it).
+        What the linked Qt modules need, declared here rather than left to
+        the INSERT_PERMISSIONS placeholder that androiddeployqt replaces.
+        That name is written without its percent signs, because the token is
+        substituted wherever it appears, including inside a comment about it.
 
         That placeholder is removed on purpose. It injected seven permissions
         derived from the linked Qt modules, and among them was
@@ -181,7 +192,7 @@
             <!--
                 Kept true, and load-bearing rather than incidental: the
                 foreground service logs while the application is not visible.
-                Qt's template warns that an app which keeps drawing after
+                The Qt template warns that an app which keeps drawing after
                 ApplicationSuspended may crash; this one stops at that signal.
             -->
             <meta-data android:name='"android.app.background_running"'
@@ -206,9 +217,10 @@
         </activity>
 
         <!--
-            exported="false": started only from this application's own QML,
-            through Utils.startVForegroundService. Exported meant any
-            application on the device could start our location service.
+            exported is false: the service is started only from the QML of
+            this application, through Utils.startVForegroundService. Exported
+            meant any application on the device could start our location
+            service.
         -->
         <service android:name='"io.github.siigna.escargot.VForegroundService"'
                  android:enabled='"true"'
