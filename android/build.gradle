@@ -55,16 +55,26 @@ android {
     buildToolsVersion androidBuildToolsVersion
 
     /*
-     * No defaultConfig minSdkVersion or targetSdkVersion on purpose.
+     * These have to be here, and the first version of this file left them out
+     * on the reasoning that the manifest should be the single source. That
+     * was wrong in a way the manifest cannot show: AGP replaces the manifest
+     * uses-sdk with defaultConfig, and an unset defaultConfig.minSdkVersion
+     * defaults to 1. The resulting APK declared minSdk 1 while the manifest
+     * said 23, and `aapt2 dump badging` was the only place that showed it.
+     * targetSdkVersion came out right by luck, AGP falling back to
+     * compileSdkVersion.
      *
-     * AndroidManifest.xml is the single place those are declared, generated
-     * from AndroidManifest.xml.in with VT_ANDROID_MIN_SDK and
-     * VT_ANDROID_TARGET_SDK, and tests/android/manifest.py asserts them.
-     * Setting them here too would override the manifest silently and with
-     * different values: androiddeployqt writes qtMinSdkVersion=21 and
-     * qtTargetSdkVersion=28 into gradle.properties, which are Qt's defaults
-     * and not this application's.
+     * qtMinSdkVersion and qtTargetSdkVersion come from gradle.properties,
+     * which androiddeployqt generates from the deployment settings, which
+     * qmake fills from ANDROID_MIN_SDK_VERSION and ANDROID_TARGET_SDK_VERSION
+     * in app.pri -- set there from the same VT_ANDROID_MIN_SDK and
+     * VT_ANDROID_TARGET_SDK the manifest template uses. So there is still one
+     * source; it just has to be plumbed through rather than assumed.
      */
+    defaultConfig {
+        minSdkVersion qtMinSdkVersion
+        targetSdkVersion qtTargetSdkVersion
+    }
 
     sourceSets {
         main {

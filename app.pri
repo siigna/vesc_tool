@@ -200,7 +200,23 @@ contains(DEFINES, HAS_GAMEPAD) {
     QT       += gamepad
 }
 
-android: QT += androidextras
+android: {
+    QT += androidextras
+
+    # These flow qmake -> android-vesc_tool-deployment-settings.json ->
+    # gradle.properties (as qtMinSdkVersion and qtTargetSdkVersion) ->
+    # build.gradle's defaultConfig.
+    #
+    # They are not optional. AGP replaces the manifest's uses-sdk with
+    # defaultConfig, and an unset defaultConfig.minSdkVersion defaults to 1 --
+    # which is what the first working APK shipped: a manifest declaring 23 and
+    # a package declaring 1. targetSdkVersion happened to come out right only
+    # because AGP falls back to compileSdkVersion for it.
+    #
+    # Same two variables the manifest template uses, so there is one source.
+    ANDROID_MIN_SDK_VERSION = $$VT_ANDROID_MIN_SDK
+    ANDROID_TARGET_SDK_VERSION = $$VT_ANDROID_TARGET_SDK
+}
 
 build_mobile {
     DEFINES += USE_MOBILE

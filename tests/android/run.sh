@@ -63,4 +63,29 @@ fi
 python3 tests/android/manifest.py
 [ $? -ne 0 ] && fail=1
 
+# ------------------------------------------------------------- built package
+
+# The manifest is not the artefact. This is the only stage that can see what
+# the APK actually declares, and it is the stage that would have caught an
+# APK declaring minSdkVersion 1 while every manifest check reported 23.
+#
+# Skipped rather than failed when there is no APK, because check.sh is meant
+# to run with no SDK at all. The skip says what to run.
+apk=$(ls -t build/android/escargot-*.apk 2>/dev/null | head -1)
+aapt2=""
+
+if [ -n "${ANDROID_SDK_ROOT:-}" ]; then
+    aapt2="$ANDROID_SDK_ROOT/build-tools/${VT_ANDROID_BUILD_TOOLS:-30.0.3}/aapt2"
+fi
+
+if [ -z "$apk" ]; then
+    printf '  skipped  no APK in build/android; run tests/android/build.sh\n'
+elif [ -z "$aapt2" ] || [ ! -x "$aapt2" ]; then
+    printf '  skipped  no aapt2; run inside: nix develop .#android\n'
+else
+    printf '  %s\n' "$(basename "$apk")"
+    python3 tests/android/apk.py "$apk" "$aapt2"
+    [ $? -ne 0 ] && fail=1
+fi
+
 exit $fail
