@@ -224,6 +224,74 @@ starts, and do not where it is not. Its comment now says that rather than
 
 Moving them onto the same framework is separate work and is not done.
 
+## Running it: tests/android/emulator.sh
+
+```
+nix develop .#emulator --command tests/android/emulator.sh
+nix develop .#emulator --command tests/android/emulator.sh --keep
+```
+
+The first thing here that runs the application rather than building it. API 31
+x86_64, which matches `VT_ANDROID_TARGET_SDK`, under KVM. The Qt kit already
+carries `x86_64` -- the 5.15 Android download is multi-ABI -- so this costs no
+second Qt download.
+
+It builds, signs with a **throwaway** key generated for the run and discarded
+with it, boots a fresh AVD, installs, launches, and judges the result by
+logcat. The release key from `keystore.sh` is never involved: a test harness
+should not need, touch, or be able to use the key that signs what goes on a
+device.
+
+### What it established, that nothing else could
+
+- The application installs, launches and keeps running on Android 12, with
+  no crash markers.
+- **Zero QML errors from `qrc:/mobile` or `qrc:/res`.** The 906 that do appear
+  are all `qrc:/android_rcc_bundle` -- Qt's own Quick Controls 1 Android
+  style, pulled in because `FilePicker.qml` and `DirectoryPicker.qml` import
+  `QtQuick.Controls 1.4`.
+- **The repackaged JNI resolves at runtime.** `Utils.checkLocationEnabled`
+  returned false and the app surfaced "BLE scan does not seem to be
+  possible", which means `io/github/siigna/escargot/Utils` was found. Those
+  are string literals the compiler cannot check, and renaming the package was
+  the highest-risk change in this work.
+- The BLE permission path fires: the system nearby-devices dialog appears,
+  naming the application correctly.
+- `maxSdkVersion="30"` on `BLUETOOTH` behaves -- it is absent on API 31.
+- The rebrand renders everywhere it is visible at runtime: dialogs, the system
+  permission prompt, the title.
+- The background-location disclosure is shown **before** the runtime prompt,
+  which is what it has to be.
+
+### What it cannot reach, and why
+
+**`POST_NOTIFICATIONS` does not exist on API 31.** It is API 33 and later, so
+`pm grant` rejects it as an unknown permission here. Testing the notification
+path needs an API 33 or 34 image. Note also that an application targeting
+below 33 is not prompted for it at all.
+
+**The storage access framework picker and background logging are behind a
+working controller connection.** `LogBox` lives in `StartPage.qml`, and the
+connect screen is the only page until a connection exists -- verified by
+walking the mandatory intro wizard and then finding that nothing swipes. So
+`pickLogDirectory` and `createLogFile` have still never executed.
+
+Two ways to change that, neither done:
+
+1. Point the emulator at a real controller over TCP. Exercises the real
+   protocol and real data, and needs the bench rig powered.
+2. A VESC protocol stub that answers enough of `COMM_FW_VERSION` for
+   `VescInterface` to consider itself connected. More work, but it would make
+   the whole logging path testable headlessly, including in CI.
+
+**UI automation is limited.** Qt does bridge accessibility -- `uiautomator`
+sees `BLE scan` and dialog titles as `content-desc` -- but most controls set
+no `Accessible.name`, so they are invisible to it and the dialog buttons are
+not addressable by text. Driving the app past the wizard needed pixel taps
+read off screenshots, which is fine for an investigation and not a basis for
+a durable test. Adding `Accessible.name` to the handful of controls a test
+would touch is the honest fix, and has its own benefit for screen readers.
+
 ## What a build still does not prove
 
 No emulator and no device, so nothing here shows that it runs. The things
