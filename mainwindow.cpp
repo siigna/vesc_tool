@@ -978,7 +978,6 @@ void MainWindow::timerSlot()
 
         has_run_start_checks = true;
         checkUdev();
-        Utility::checkVersion(mVesc);
     }
 }
 

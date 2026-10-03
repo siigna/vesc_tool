@@ -272,9 +272,14 @@ private slots:
 
     /*
      * Last on purpose. These build the real MainWindow, whose timer runs the
-     * startup checks -- which end in Utility::checkVersion, a live network
-     * request. Nothing turns the event loop after them, so that timer never
-     * fires and the suite stays offline.
+     * startup checks. Nothing turns the event loop after them, so that timer
+     * never fires.
+     *
+     * It used to end in Utility::checkVersion, a live request to
+     * vesc-project.com, which is why this ordering exists at all. That check
+     * is gone, so the suite is no longer one processEvents away from the
+     * network -- but the ordering is kept, because a startup check reaching
+     * the network again should not silently become a test that does.
      */
     void mainWindowNavAndStackStayInStep();
     void mainWindowOpensPagesByName();
@@ -1814,9 +1819,11 @@ void UiTest::brandingIsOurs()
  * in the code enforces it. These construct the real window.
  *
  * Deliberately without turning the event loop: MainWindow's startup checks run
- * from its timer and end in Utility::checkVersion, which makes a live network
- * request. Not processing events keeps the suite offline, and the pages are all
- * built in the constructor anyway.
+ * from its timer, and the pages are all built in the constructor anyway.
+ *
+ * Those checks used to end in Utility::checkVersion and a live request to
+ * vesc-project.com. That is removed now, but not processing events is still
+ * the right default here.
  */
 /*
  * A log in the package logger's shape, written to a temporary file so the test

@@ -59,7 +59,6 @@ public:
 
         return res;
     }
-    Q_INVOKABLE static void checkVersion(VescInterface *vesc = nullptr);
     Q_INVOKABLE static QString fwChangeLog();
     Q_INVOKABLE static QString vescToolChangeLog();
     Q_INVOKABLE static QString aboutText();

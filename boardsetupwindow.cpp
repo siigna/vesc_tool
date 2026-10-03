@@ -178,7 +178,6 @@ void BoardSetupWindow::timerSlot()
         // put code when opening tool here
 
         has_run_start_checks = true;
-        Utility::checkVersion(mVesc);
     }
 }
 
