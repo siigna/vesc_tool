@@ -156,6 +156,52 @@
           '';
         };
 
+        # The same toolchain plus an emulator and a system image, for running
+        # the thing rather than only building it.
+        #
+        #   nix develop .#emulator --command tests/android/emulator.sh
+        devShells.emulator = pkgsAndroid.mkShell {
+          packages = [
+            android.emulatorSdk
+            android.jdk
+            pkgsAndroid.aqtinstall
+            pkgsAndroid.p7zip
+            pkgsAndroid.patchelf
+            pkgsAndroid.file
+            pkgsAndroid.which
+            pkgsAndroid.unzip
+            pkgsAndroid.git
+          ];
+
+          ANDROID_SDK_ROOT = android.emulatorSdkRoot;
+          ANDROID_HOME = android.emulatorSdkRoot;
+          ANDROID_NDK_ROOT = "${android.emulatorSdkRoot}/ndk/21.4.7075529";
+          ANDROID_NDK_HOME = "${android.emulatorSdkRoot}/ndk/21.4.7075529";
+          ANDROID_AVD_HOME = "";
+          JAVA_HOME = "${android.jdk}";
+
+          VT_ANDROID_HOST_INTERP =
+            "${pkgsAndroid.glibc}/lib/ld-linux-x86-64.so.2";
+          VT_ANDROID_HOST_LIBS = pkgsAndroid.lib.makeLibraryPath [
+            pkgsAndroid.glibc
+            pkgsAndroid.stdenv.cc.cc.lib
+            pkgsAndroid.zlib
+          ];
+
+          VT_ANDROID_QT_VERSION = android.qtVersion;
+          VT_ANDROID_QT_ARCH = android.qtArch;
+          VT_ANDROID_QT_MODULES = builtins.concatStringsSep " " android.qtModules;
+          VT_ANDROID_PLATFORM = "android-31";
+          VT_ANDROID_BUILD_TOOLS = "30.0.3";
+
+          VT_ANDROID_EMULATOR_ABI = android.emulatorAbi;
+          VT_ANDROID_EMULATOR_IMAGE = android.emulatorImage;
+
+          shellHook = ''
+            export VT_ANDROID_SDK_RO="${android.emulatorSdkRoot}"
+          '';
+        };
+
         # For `nix fmt`
         formatter = treefmtEval.config.build.wrapper;
 
