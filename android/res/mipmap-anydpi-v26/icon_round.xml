@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Same layers as icon.xml. A round adaptive icon is not a different drawing:
+    the launcher decides the shape, and this exists so a launcher asking for
+    android:roundIcon on API 26+ gets the adaptive pair rather than the
+    pre-masked PNG.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/icon_background"/>
+    <foreground android:drawable="@mipmap/icon_fg"/>
+</adaptive-icon>

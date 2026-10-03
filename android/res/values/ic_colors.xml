@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        darkBackground from appstyle.cpp, the fork's own palette. Referenced
+        by mipmap-anydpi-v26/icon.xml as the adaptive icon's background layer,
+        which is a flat colour on purpose: the launcher parallaxes the layers,
+        and a detailed background turns that into noise.
+    -->
+    <color name="icon_background">#272727</color>
+</resources>

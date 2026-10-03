@@ -142,7 +142,8 @@
 
     <application android:name='"org.qtproject.qt5.android.bindings.QtApplication"'
                  android:label='"$${VT_ANDROID_LABEL}"'
-                 android:icon='"@drawable/icon"'
+                 android:icon='"@mipmap/icon"'
+                 android:roundIcon='"@mipmap/icon_round"'
                  android:allowBackup='"true"'
                  android:extractNativeLibs='"true"'
                  android:hardwareAccelerated='"true"'>

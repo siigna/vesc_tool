@@ -102,8 +102,30 @@ public class VForegroundService extends Service {
          * while sharing this one Java source. An import of R would compile
          * for one variant and not the other.
          */
-        builder.setSmallIcon(getResources().getIdentifier(
-                "icon", "drawable", getPackageName()));
+        int icon = getResources().getIdentifier(
+                "icon", "mipmap", getPackageName());
+
+        /*
+         * mipmap, not drawable. The launcher icon moved out of the
+         * res/drawable density buckets into the res/mipmap ones when the
+         * adaptive icon was added, and getIdentifier returns 0 for the wrong
+         * resource type:
+         * at runtime, with no build error, leaving the notification with no
+         * icon. A notification without a small icon is not posted at all on
+         * some versions, which would have silently broken the only way to
+         * see or stop logging.
+         *
+         * Falling back to drawable rather than trusting either, so moving it
+         * back does not break this again.
+         */
+        if (icon == 0) {
+            icon = getResources().getIdentifier(
+                    "icon", "drawable", getPackageName());
+        }
+
+        if (icon != 0) {
+            builder.setSmallIcon(icon);
+        }
 
 //        builder.setFullScreenIntent(pendingIntent, true);
 
