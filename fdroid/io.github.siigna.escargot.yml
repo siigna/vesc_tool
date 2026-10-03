@@ -1,0 +1,94 @@
+# DRAFT. Not submitted, and not submittable as it stands.
+#
+# This is what an F-Droid build recipe for the mobile variant would look like.
+# It lives here as documentation, so the gap between "we can build an APK"
+# and "F-Droid could build one" is written down rather than assumed. Nothing
+# in this repository submits anything anywhere.
+#
+# Why it cannot simply reuse tests/android/build.sh: that script fetches a
+# prebuilt Qt with aqtinstall. F-Droid's inclusion policy allows prebuilt
+# binaries only from a short list of origins, and Qt is not on it. The only
+# currently live, actively updated Qt 5.15 application in the main F-Droid
+# repository builds Qt from source inside its own recipe, fetching the
+# official source tarball with a pinned sha256; the one app that downloaded
+# prebuilt Qt binaries is disabled and archived. So the from-source route is
+# the proven one and this follows it.
+#
+# What is NOT verified here, and must be before this is used:
+#
+#   * The sha256 below is a placeholder. It has to be the real digest of the
+#     tarball, checked by hand.
+#   * The -skip list has not been tested against this application's modules.
+#     It must keep qtbase, qtdeclarative, qtquickcontrols (QtQuick.Extras,
+#     which both gauge components use), qtquickcontrols2, qtgraphicaleffects,
+#     qtsvg, qtconnectivity, qtpositioning, qtandroidextras and
+#     qtimageformats. Skipping one of those fails late and confusingly.
+#   * Whether a Qt build fits inside the default 7200 s build timeout. The
+#     comparable app builds 5.15.13 with no timeout field; a Qt build plus
+#     this application may need one.
+#   * androiddeployqt here produces the APK directly rather than going
+#     through tests/android/build.sh, so the aapt2 override and the gradle
+#     versions that script sets up do not apply. Whether F-Droid's build
+#     server needs equivalents is untested.
+
+Categories:
+  - Connectivity
+  - Science & Education
+License: GPL-3.0-only
+AuthorName: Stephen Bouche
+SourceCode: https://github.com/siigna/vesc_tool
+IssueTracker: https://github.com/siigna/vesc_tool/issues
+
+AutoName: ESCargot Tool
+
+RepoType: git
+Repo: https://github.com/siigna/vesc_tool
+
+Builds:
+  - versionName: '7.02'
+    versionCode: 702
+    commit: PLACEHOLDER_TAG
+    sudo:
+      - apt-get update
+      - apt-get install -y build-essential wget openjdk-11-jdk-headless
+      - update-java-alternatives --set java-1.11.0-openjdk-amd64
+      # One known platform, rather than whatever the image happens to carry.
+      - rm -rf /opt/android-sdk/platforms
+      - sdkmanager "platforms;android-31"
+    output: build/android/build/outputs/apk/release/android-build-release-unsigned.apk
+    build:
+      - mkdir -pv build-qt
+      - cd build-qt
+      - wget -cq https://download.qt.io/official_releases/qt/5.15/5.15.2/single/qt-everywhere-opensource-src-5.15.2.tar.xz
+      - echo "PLACEHOLDER_SHA256  qt-everywhere-opensource-src-5.15.2.tar.xz" | sha256sum -c -
+      - tar -xkf qt-everywhere-opensource-src-5.15.2.tar.xz
+      - mkdir qt5 build
+      - cd build
+      - ../qt-everywhere-src-5.15.2/configure -xplatform android-clang
+        --disable-rpath -no-warnings-are-errors -prefix $(pwd)/../qt5
+        -android-ndk $$NDK$$ -android-sdk $$SDK$$ -opensource -confirm-license
+        -release -nomake examples -nomake tests -no-compile-examples
+        -skip qt3d -skip qtcharts -skip qtdatavis3d -skip qtgamepad
+        -skip qtlocation -skip qtlottie -skip qtmultimedia -skip qtnetworkauth
+        -skip qtpurchasing -skip qtquick3d -skip qtquicktimeline
+        -skip qtremoteobjects -skip qtscript -skip qtscxml -skip qtsensors
+        -skip qtserialbus -skip qtserialport -skip qtspeech
+        -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel
+        -skip qtwebengine -skip qtwebglplugin -skip qtwebview
+      - make -j$(nproc)
+      - make -j$(nproc) install
+      - cd ../../
+      - ../build-qt/qt5/bin/qmake vesc_tool.pro -spec android-clang
+        -config release "CONFIG += release_android build_mobile"
+        ANDROID_ABIS="armeabi-v7a arm64-v8a"
+      - make -j$(nproc)
+      - make install INSTALL_ROOT=build/android
+      - ../build-qt/qt5/bin/androiddeployqt --release --gradle
+        --input android-vesc_tool-deployment-settings.json
+        --output build/android
+    ndk: r21e
+
+AutoUpdateMode: None
+UpdateCheckMode: None
+CurrentVersion: '7.02'
+CurrentVersionCode: 702

@@ -1,0 +1,42 @@
+Configure, tune and log open-source VESC motor controllers from your phone
+over Bluetooth Low Energy.
+
+A fork of VESC Tool by Benjamin Vedder, with changes of its own. VESC is a
+registered trademark of Benjamin Vedder; this application is not affiliated
+with or endorsed by him.
+
+<b>What it does</b>
+
+* Connects to a controller over Bluetooth Low Energy, or over TCP to a bridge
+* Reads and writes motor and application configuration, with every parameter
+  the controller exposes
+* Shows real-time data: current, duty cycle, speed, temperatures, power
+* Runs the motor detection and setup wizards
+* Updates controller firmware
+* Installs and configures packages, and includes a Lisp console
+* Logs motor data and GNSS position to a CSV file during a ride, continuing
+  with the screen off, for later analysis on the desktop
+
+<b>Location and logging</b>
+
+Position is recorded only while you have started a ride log, and only into
+the file you chose a folder for. It is written to that file and nowhere else:
+the application sends no telemetry, contacts no analytics service and has no
+account.
+
+Logging in the background needs the background location permission, because
+Android otherwise stops delivering position the moment the screen turns off,
+which is most of a ride. A notification is shown for as long as logging is
+running, and stopping it from that notification stops the log.
+
+<b>Choosing where logs go</b>
+
+You pick a folder once and Android remembers it. The application holds no
+general storage permission and cannot read anything outside the folder you
+grant.
+
+<b>Hardware</b>
+
+You need a VESC-based controller and a Bluetooth module it can talk to. USB
+serial is not available on Android: the Qt version this is built with does not
+support it on that platform.

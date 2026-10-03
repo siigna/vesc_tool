@@ -1,0 +1,13 @@
+First Android release of this fork.
+
+* Its own application id and launcher icon, rather than upstream's
+* Ride logs are written through the storage access framework: you choose a
+  folder once instead of the app holding a storage permission. Logging to a
+  file had not worked on Android 11 or later before this.
+* The notification permission is requested, without which the logging
+  notification was silently dropped and there was no way to stop a log
+* The foreground logging service is no longer exported, so other apps on
+  the device cannot start it
+* Four permissions dropped that nothing used: both storage permissions,
+  vibrate, and an orientation permission that is never granted to apps
+* No startup version check, and no outbound request on launch
