@@ -35,7 +35,16 @@
         # suites stay on a package set with no licence exceptions at all.
         pkgsAndroid = import nixpkgs {
           inherit system;
-          config.android_sdk.accept_license = true;
+          config = {
+            android_sdk.accept_license = true;
+
+            # Narrower than allowUnfree: only the SDK components themselves,
+            # by name. Google's SDK licence is why these are unfree; nothing
+            # else in this tree needs an exception, and a blanket allowUnfree
+            # here would silently cover anything added later.
+            allowUnfreePredicate =
+              pkg: builtins.match "android-sdk-.*" (nixpkgs.lib.getName pkg) != null;
+          };
         };
 
         android = import ./pkgs/android { pkgs = pkgsAndroid; };
