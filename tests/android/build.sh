@@ -189,6 +189,40 @@ export ANDROID_HOME="$sdk"
 echo "SDK:  $ANDROID_SDK_ROOT"
 echo "NDK:  $ANDROID_NDK_ROOT"
 echo "JDK:  $JAVA_HOME"
+
+# ------------------------------------------------------------ gradle home
+
+# AGP fetches its own aapt2 from Maven -- aapt2-4.2.2-7147631-linux -- and
+# that is a generic-linux binary, so on NixOS it dies with
+#
+#     AAPT2 aapt2-...-linux Daemon #1: Daemon startup failed
+#     This should not happen under normal circumstances, please file an issue
+#
+# which invites exactly the wrong conclusion. The SDK's own aapt2 is patched
+# by nixpkgs and runs, so AGP is pointed at it.
+#
+# This goes in a gradle home rather than the project's gradle.properties
+# because androiddeployqt regenerates that file on every run and would
+# overwrite it. Gradle reads $GRADLE_USER_HOME/gradle.properties as well, and
+# that one is ours.
+export GRADLE_USER_HOME="${VT_ANDROID_GRADLE_HOME:-${XDG_CACHE_HOME:-$HOME/.cache}/escargot/gradle}"
+mkdir -p "$GRADLE_USER_HOME" || exit 1
+
+aapt2="$ANDROID_SDK_ROOT/build-tools/${VT_ANDROID_BUILD_TOOLS:-30.0.3}/aapt2"
+
+if [ ! -x "$aapt2" ]; then
+    echo "build.sh: no aapt2 at $aapt2" >&2
+    echo "  build-tools version mismatch between pkgs/android and build.sh?" >&2
+    exit 1
+fi
+
+cat > "$GRADLE_USER_HOME/gradle.properties" <<PROPS
+# Written by tests/android/build.sh. Do not edit; it is regenerated.
+android.aapt2FromMavenOverride=$aapt2
+org.gradle.jvmargs=-Xmx3072m
+PROPS
+
+echo "aapt2: $aapt2"
 export PATH="$JAVA_HOME/bin:$qt_root/bin:$PATH"
 
 # ------------------------------------------------------------------ build

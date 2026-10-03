@@ -144,6 +144,10 @@
           VT_ANDROID_QT_MODULES = builtins.concatStringsSep " " android.qtModules;
           VT_ANDROID_PLATFORM = "android-31";
 
+          # build.sh needs this to find aapt2 inside the SDK, so it is pinned
+          # here with everything else rather than written twice.
+          VT_ANDROID_BUILD_TOOLS = "30.0.3";
+
           shellHook = ''
             # The SDK in the nix store is read-only, and gradle wants to write
             # into it. androiddeployqt is pointed at a writable copy instead;
