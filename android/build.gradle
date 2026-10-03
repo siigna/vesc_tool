@@ -1,23 +1,39 @@
+/*
+ * Gradle configuration for the Android package.
+ *
+ * This replaces upstream's, which was AGP 3.2.0 on Gradle 4.6 against
+ * jcenter(). None of those three is usable now: jcenter is sunset and
+ * read-only, the `compile` configuration was removed in Gradle 7, and Gradle
+ * 4.6 cannot parse a JDK 11 version string -- it fails with "Could not
+ * determine java version from '11.0.32'", which is how this surfaced.
+ *
+ * AGP 4.2.2 on Gradle 6.7.1 is the pairing chosen: the oldest that accepts
+ * JDK 11, and contemporary with Qt 5.15 so its deployment templates still
+ * apply. Qt 5.15 is the ceiling here, not a preference -- see
+ * tests/android/README.md.
+ */
+
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.0'
+        classpath 'com.android.tools.build:gradle:4.2.2'
     }
 }
 
 repositories {
     google()
-    jcenter()
+    mavenCentral()
 }
 
 apply plugin: 'com.android.application'
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    // `compile` was removed in Gradle 7 and is deprecated well before that.
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 }
 
 android {
@@ -38,6 +54,18 @@ android {
 
     buildToolsVersion androidBuildToolsVersion
 
+    /*
+     * No defaultConfig minSdkVersion or targetSdkVersion on purpose.
+     *
+     * AndroidManifest.xml is the single place those are declared, generated
+     * from AndroidManifest.xml.in with VT_ANDROID_MIN_SDK and
+     * VT_ANDROID_TARGET_SDK, and tests/android/manifest.py asserts them.
+     * Setting them here too would override the manifest silently and with
+     * different values: androiddeployqt writes qtMinSdkVersion=21 and
+     * qtTargetSdkVersion=28 into gradle.properties, which are Qt's defaults
+     * and not this application's.
+     */
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -49,6 +77,12 @@ android {
             assets.srcDirs = ['assets']
             jniLibs.srcDirs = ['libs']
        }
+    }
+
+    // Stated rather than inherited, so a toolchain change cannot move it.
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     lintOptions {
