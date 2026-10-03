@@ -92,20 +92,112 @@ combination worked on no phone this would be installed on; logs move to a
 user-picked folder instead), `VIBRATE` (nothing in the tree vibrates) and
 `SET_ORIENTATION` (signature-level, never granted to an app).
 
-## Still missing: a build
+## Building
 
-Nothing here compiles for Android. A build job would catch what these checks
-cannot — a `.pro` that no longer configures, a Qt module unavailable for the
-Android kit, Java that does not compile, a manifest the packaging step
-rejects.
+```
+nix develop .#android --command tests/android/build.sh mobile
+nix develop .#android --command tests/android/build.sh full
+nix develop .#android --command tests/android/build.sh --reuse mobile
+```
 
-- **nixpkgs has no Qt for Android**, only host Qt 5.15.19. `androidenv` does
-  provide the SDK, NDK and build-tools, so only Qt itself has to come from
-  elsewhere.
-- Qt 5.15 wants **NDK r20b or r21** and JDK 11, per
-  `doc.qt.io/qt-5/android-getting-started.html`.
-- **Qt Serial Port is not supported on Android in Qt 5.15**, which is why
-  `app.pri:113` excludes `HAS_SERIALPORT` there. No USB serial on a phone.
+Two applications from one tree, installable side by side:
+
+| variant | package | label | UI |
+|---|---|---|---|
+| `mobile` | `io.github.siigna.escargot` | ESCargot Tool | the QML phone UI |
+| `full` | `io.github.siigna.escargot.full` | ESCargot Tool Desktop | the widget UI |
+
+Each is a single universal APK carrying `arm64-v8a` and `armeabi-v7a`, about
+61 MB, **unsigned** unless `VT_ANDROID_KEYSTORE` and
+`VT_ANDROID_KEYSTORE_ALIAS` are set — see `keystore.sh`. Upstream's
+`build_android` harvested the debug-signed APK out of `outputs/apk/debug/`,
+which is how a debug key ends up shipped; this produces a release APK and
+signs it only when asked.
+
+`--reuse` keeps the compiled objects, because compiling two ABIs takes about
+fifteen minutes. It still re-runs qmake, which is not optional: qmake writes
+the deployment settings that carry the SDK and build-tools versions, so
+skipping it makes a toolchain change silently ineffective.
+
+### Where the pieces come from
+
+nix provides the SDK (platform 31, build-tools **30.0.3**), NDK
+`21.4.7075529` (r21e) and JDK 11, with the unfree licence scoped to a
+separate nixpkgs instance. Qt 5.15.2 is fetched by `aqtinstall` into
+`$XDG_CACHE_HOME/escargot/qt-android` — nixpkgs has no Qt for Android — and
+that download is the one non-reproducible input.
+
+Three things about that environment are not obvious:
+
+- **The Qt host tools cannot run as downloaded.** They are generic-linux
+  x86-64 ELF wanting `/lib64/ld-linux-x86-64.so.2`. `build.sh` rewrites the
+  interpreter and rpath of the 27 executables in `bin/` and nothing else:
+  `lib/` is ARM, and is the build output rather than a tool.
+- **AGP downloads its own `aapt2`**, equally unrunnable, and reports it as
+  `Daemon startup failed ... This should not happen under normal
+  circumstances`. It does, here. `android.aapt2FromMavenOverride` points AGP
+  at the SDK's own `aapt2`, which nixpkgs has patched. That setting lives in
+  a gradle home under the cache, because androiddeployqt regenerates the
+  project `gradle.properties` on every run.
+- **build-tools is 30.0.3, not 31.0.0.** Build-tools 31 removed `dx` in
+  favour of `d8`, and AGP 4.2.2 validates an install by looking for `dx`, so
+  31.0.0 fails with `Installed Build Tools revision 31.0.0 is corrupted` —
+  which is untrue. `compileSdkVersion` comes from the platform, so this costs
+  nothing.
+
+Gradle is 6.7.1 with AGP 4.2.2: the oldest pair that accepts JDK 11, which
+Qt 5.15.8+ requires. Upstream had AGP 3.2.0 on Gradle 4.6 against `jcenter()`,
+and Gradle 4.6 cannot parse a JDK 11 version string at all.
+
+`lintVitalRelease` is disabled. AGP 4.2's lint crashes inside
+`LintCliClient.createLintRequest` and reports `Failed to parse XML` about a
+manifest that is clean ASCII, balanced, duplicate-free and parsed
+successfully by AGP's own manifest merger earlier in the same build. Note
+that `abortOnError false` does not cover it; `checkReleaseBuilds false` does.
+
+### Editing the manifest template
+
+Beyond the quoting above, two rules, both found by breaking them:
+
+- **No apostrophes, anywhere, prose included.** qmake reads one as an opening
+  quote and swallows the rest of the line. A comment containing
+  `the service` + `'s own notification` lost its whole comment-opening line,
+  leaving an orphan close that Python parsed happily and Android lint did
+  not. This is why upstream's prose reads oddly.
+- **No double hyphen inside a comment.** A parse error in XML.
+
+`manifest.py` checks both, and caught three attempts to write these rules
+*into* the template.
+
+## The permission set is asserted twice, and only one of them is the artefact
+
+`manifest.py` checks the template and what qmake writes. `apk.py` checks what
+`aapt2 dump badging` says about the built package, and imports the expected
+permission set from `manifest.py` so the two cannot drift.
+
+Both are needed, and the reason is concrete: the first APK that built
+declared `minSdkVersion 1` while every manifest check correctly reported 23.
+AGP replaces the manifest `uses-sdk` with its `defaultConfig`, and an unset
+`defaultConfig.minSdkVersion` defaults to 1. The manifest was right and the
+package was wrong, and only the package could say so.
+
+The SDK levels are now plumbed rather than assumed: `app.pri` sets
+`ANDROID_MIN_SDK_VERSION` and `ANDROID_TARGET_SDK_VERSION` from the same
+`VT_ANDROID_*` variables the template uses, qmake puts them in the deployment
+settings, androiddeployqt turns them into `qtMinSdkVersion` and
+`qtTargetSdkVersion`, and `defaultConfig` reads those.
+
+`apk.py` is mutation-tested against real badging output: `minSdk 1`,
+`WRITE_EXTERNAL_STORAGE` injected back, an upstream label, a single ABI, and
+an upstream package id are all caught, each with a message naming the cause.
+
+## What a build still does not prove
+
+No emulator and no device, so nothing here shows that it runs. The things
+only a phone can answer: whether BLE finds a controller, whether the RT data
+screen draws, whether a ride log survives the app being backgrounded with the
+screen off, and whether the foreground-service notification appears and stops
+the log.
 
 ## The clock on Qt 5.15
 
