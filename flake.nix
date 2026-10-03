@@ -38,12 +38,16 @@
           config = {
             android_sdk.accept_license = true;
 
-            # Narrower than allowUnfree: only the SDK components themselves,
-            # by name. Google's SDK licence is why these are unfree; nothing
-            # else in this tree needs an exception, and a blanket allowUnfree
-            # here would silently cover anything added later.
-            allowUnfreePredicate =
-              pkg: builtins.match "android-sdk-.*" (nixpkgs.lib.getName pkg) != null;
+            # Scoped to this instance, which exists only to hold the Android
+            # toolchain. Google's SDK licence is why its components are
+            # unfree, and they do not share a name prefix to match on --
+            # `platform-tools`, `build-tools` and `ndk` are bare names -- so
+            # the boundary is the package set rather than a predicate.
+            #
+            # The desktop build and every test suite use the instance above,
+            # which has no licence exceptions at all. Anything added to this
+            # shell inherits the exception, so add only toolchain here.
+            allowUnfree = true;
           };
         };
 
