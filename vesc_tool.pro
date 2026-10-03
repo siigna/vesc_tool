@@ -66,10 +66,27 @@ release_macos {
 
 release_android {
     DESTDIR = build/android
-    OBJECTS_DIR = build/android/obj
-    MOC_DIR = build/android/obj
-    RCC_DIR = build/android/obj
-    UI_DIR = build/android/obj
+
+    # Intermediates are per-ABI, which the shared build/android/obj they used
+    # to go in was not.
+    #
+    # A multi-ABI build runs one sub-make per architecture, and they run at the
+    # same time. res_lisp.qrc is big enough that qmake builds it with rcc's
+    # two-pass mode, writing qrc_res_lisp.tmp.o in pass 1 and reading it back
+    # in pass 2 -- so with one shared directory the armv7 pass read the
+    # arm64 pass's half-written temporary and failed with
+    #
+    #     No data signature found
+    #
+    # which names neither the resource nor the real problem. Upstream never
+    # saw it because build_android only ever passed a single ABI.
+    VT_ANDROID_OBJ = build/android/obj
+    !isEmpty(ANDROID_TARGET_ARCH): VT_ANDROID_OBJ = build/android/$$ANDROID_TARGET_ARCH/obj
+
+    OBJECTS_DIR = $$VT_ANDROID_OBJ
+    MOC_DIR = $$VT_ANDROID_OBJ
+    RCC_DIR = $$VT_ANDROID_OBJ
+    UI_DIR = $$VT_ANDROID_OBJ
 }
 
 DISTFILES += \
