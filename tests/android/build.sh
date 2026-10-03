@@ -62,8 +62,15 @@ say() { printf '\n=== %s ===\n' "$1"; }
 # there, and tests/android/apk.py checks whatever it finds. A link error
 # would therefore be followed by a clean set of assertions about a package
 # built minutes earlier.
+#
+# VT_ANDROID_VARIANT_DIR and VT_ANDROID_OUT_SUFFIX exist for the emulator
+# run, which builds the same variant for a different ABI. Without them it
+# would reuse build/android-mobile and overwrite the arm64 objects and the
+# arm64 APK, so running the emulator once would quietly destroy the package
+# built for a phone.
 out_dir="$root/build/android"
-out_apk="$out_dir/escargot-$variant-$(sed -n 's/^VT_VERSION = //p' "$root/app.pri" | tr -d ' ').apk"
+vt_ver=$(sed -n 's/^VT_VERSION = //p' "$root/app.pri" | tr -d ' ')
+out_apk="$out_dir/escargot-$variant${VT_ANDROID_OUT_SUFFIX:-}-$vt_ver.apk"
 rm -f "$out_apk"
 
 # ----------------------------------------------------------------- Qt
@@ -242,7 +249,7 @@ export PATH="$JAVA_HOME/bin:$qt_root/bin:$PATH"
 # object files or deployment settings. Upstream's script rm -rf'd between
 # passes, which meant a failed second pass left the first one's APK looking
 # like its output.
-build="$root/build/android-$variant"
+build="$root/build/${VT_ANDROID_VARIANT_DIR:-android-$variant}"
 
 config="release_android"
 if [ "$variant" = "mobile" ]; then
