@@ -85,6 +85,29 @@ build_mobile {
 # vesc_tool; QtActivity dlopens exactly this name.
 VT_ANDROID_LIB_NAME = vesc_tool
 
+# How much of the native Android style Qt extracts at startup.
+#
+# Qt's own guidance: "minimal - useful for Quick Controls 2 apps, it is much
+# faster than full", and "full - useful QWidget & Quick Controls 1 apps".
+# The mobile variant is Quick Controls 2; the full variant is QWidget.
+#
+# Kept for the documented startup cost only. It does NOT silence the 906
+# warning lines the mobile variant emits on an emulator from
+# qrc:/android_rcc_bundle/qml/QtQuick/Controls/Styles/Android/LabelStyle.qml
+# -- "minimal" was tried, verified in the built APK with aapt2, and the count
+# did not change. That was a wrong guess on my part.
+#
+# The actual source is Qt Quick Controls 1: that Styles/Android path is the
+# Controls 1 Android style, and mobile/FilePicker.qml and
+# mobile/DirectoryPicker.qml import QtQuick.Controls 1.4. Dropping those two
+# imports is what would remove the warnings, and is a separate change -- they
+# are the firmware, configuration and Lisp file pickers.
+build_mobile {
+    VT_ANDROID_STYLE = minimal
+} else {
+    VT_ANDROID_STYLE = full
+}
+
 # Ubuntu 18.04 (should work on raspbian buster too)
 # sudo apt install qml-module-qt-labs-folderlistmodel qml-module-qtquick-extras qml-module-qtquick-controls2 qt5-default libqt5quickcontrols2-5 qtquickcontrols2-5-dev qtcreator qtcreator-doc libqt5serialport5-dev build-essential qml-module-qt3d qt3d5-dev qtdeclarative5-dev qtconnectivity5-dev qtmultimedia5-dev qtpositioning5-dev qtpositioning5-dev libqt5gamepad5-dev qml-module-qt-labs-settings qml-module-qt-labs-platform libqt5svg5-dev
 

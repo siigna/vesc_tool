@@ -202,12 +202,12 @@
             <meta-data android:name='"android.app.auto_screen_scale_factor"'
                        android:value='"false"'/>
 
-            <!-- full, because the widget variant is QWidget-based. minimal
-                 would be faster for the Quick Controls 2 mobile variant, but
-                 one template serves both.
-                 -->
+            <!-- Per variant, from app.pri: minimal for the Quick Controls 2
+                 mobile UI, full for the QWidget one, which is what Qt
+                 documents for each. See the note in app.pri for what this
+                 does not fix. -->
             <meta-data android:name='"android.app.extract_android_style"'
-                       android:value='"full"'/>
+                       android:value='"$${VT_ANDROID_STYLE}"'/>
 
             <meta-data android:name='"android.app.splash_screen_drawable"'
                        android:resource='"@drawable/splashscreen"'/>

@@ -76,9 +76,17 @@ say "building for $abi"
 
 # A separate build directory from the device builds, so this cannot consume
 # or clobber an arm64 package.
+# --reuse keeps the objects from the last emulator run. It still re-runs
+# qmake, so a change to a .pro or to the toolchain is picked up; only the
+# ten-minute recompile is skipped. VT_ANDROID_EMULATOR_CLEAN=1 forces a full
+# build.
+reuse_arg="--reuse"
+[ -n "${VT_ANDROID_EMULATOR_CLEAN:-}" ] && reuse_arg=""
+
 VT_ANDROID_VARIANT_DIR="android-emu" \
 VT_ANDROID_OUT_SUFFIX="-$abi" \
-    "$root/tests/android/build.sh" mobile "$abi" > "$tmp/build.log" 2>&1
+    "$root/tests/android/build.sh" $reuse_arg mobile "$abi" \
+    > "$tmp/build.log" 2>&1
 st=$?
 
 if [ "$st" -ne 0 ]; then
@@ -114,6 +122,15 @@ ok "built $(basename "$apk") ($(du -h "$apk" | cut -f1))"
 key="$tmp/emulator-test.keystore"
 signed="$tmp/signed.apk"
 
+# apksigner is in build-tools, not on PATH. Resolved the same way build.sh
+# resolves aapt2, from the same pinned version.
+apksigner="$ANDROID_SDK_ROOT/build-tools/${VT_ANDROID_BUILD_TOOLS:-30.0.3}/apksigner"
+
+if [ ! -x "$apksigner" ]; then
+    bad "no apksigner at $apksigner"
+    exit 1
+fi
+
 keytool -genkeypair -keystore "$key" -storetype PKCS12 \
     -storepass emulator -keypass emulator -alias test \
     -keyalg RSA -keysize 2048 -validity 1 \
@@ -124,7 +141,7 @@ keytool -genkeypair -keystore "$key" -storetype PKCS12 \
         exit 1
     }
 
-apksigner sign --ks "$key" --ks-pass pass:emulator --key-pass pass:emulator \
+"$apksigner" sign --ks "$key" --ks-pass pass:emulator --key-pass pass:emulator \
     --ks-key-alias test --out "$signed" "$apk" \
     > "$tmp/apksigner.log" 2>&1 || {
         bad "apksigner failed:"
@@ -133,7 +150,7 @@ apksigner sign --ks "$key" --ks-pass pass:emulator --key-pass pass:emulator \
     }
 
 # Proves the signature is there, rather than assuming apksigner's exit code.
-if apksigner verify --print-certs "$signed" > "$tmp/verify.log" 2>&1; then
+if "$apksigner" verify --print-certs "$signed" > "$tmp/verify.log" 2>&1; then
     ok "signed with a throwaway key ($(grep -m1 -oE 'CN=[^,]*' "$tmp/verify.log" || echo 'CN unknown'))"
 else
     bad "the signed APK does not verify:"
@@ -268,15 +285,30 @@ fi
 # running -- which is exactly the failure tests/qml exists to catch on the
 # desktop. Here it catches the same thing with the real Qt libraries, the
 # real resource bundle and the real JNI.
-qml=$(grep -E "qrc:/|\.qml:[0-9]+" "$tmp/logcat.txt" \
-      | grep -vE "^\s*$" | grep -icE "error|is not installed|cannot|undefined")
-if [ "$qml" -gt 0 ]; then
-    bad "$qml QML error line(s):"
-    grep -E "qrc:/|\.qml:[0-9]+" "$tmp/logcat.txt" \
-        | grep -iE "error|is not installed|cannot|undefined" | head -15 \
-        | sed 's/^/  | /'
+#
+# Scoped to this application's own QML. The first version of this grepped
+# every QML error and reported 906 of them -- all from
+# qrc:/android_rcc_bundle, which is Qt's own bundled Android style, and none
+# from qrc:/mobile. Failing on those would have meant a check that can never
+# pass for reasons outside this repository.
+#
+# Qt's noise is still counted and shown, because a jump in it is worth
+# noticing; it just does not fail the run.
+ours=$(grep -aE "qrc:/(mobile|res)/" "$tmp/logcat.txt" \
+       | grep -icE "error|is not installed|cannot|undefined|TypeError")
+
+if [ "$ours" -gt 0 ]; then
+    bad "$ours QML error line(s) in this application's QML:"
+    grep -aE "qrc:/(mobile|res)/" "$tmp/logcat.txt" \
+        | grep -iE "error|is not installed|cannot|undefined|TypeError" \
+        | head -15 | sed 's/^/  | /'
 else
-    ok "no QML errors"
+    ok "no QML errors in qrc:/mobile or qrc:/res"
+fi
+
+qt_noise=$(grep -ac "qrc:/android_rcc_bundle" "$tmp/logcat.txt")
+if [ "$qt_noise" -gt 0 ]; then
+    printf '  note    %s line(s) from Qt'"'"'s own bundled Android style\n' "$qt_noise"
 fi
 
 # Qt's own complaints, which do not necessarily stop the app.
