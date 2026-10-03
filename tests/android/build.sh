@@ -106,10 +106,15 @@ if [ ! -f "$stamp" ]; then
     for f in "$qt_root"/bin/*; do
         [ -f "$f" ] || continue
 
-        # Only x86-64 executables. `file` distinguishes them from the shell
-        # wrappers and qt.conf that also live in bin/.
+        # Only x86-64 ELF. bin/ also holds perl scripts (fixqt4headers.pl),
+        # shell wrappers and qt.conf, and patchelf on those is an error.
+        #
+        # Matched in file's own order: "ELF 64-bit LSB executable, x86-64,
+        # ... interpreter /lib64/ld-linux-x86-64.so.2". An earlier version of
+        # this glob expected "executable" after "x86-64", matched nothing, and
+        # reported patching zero tools -- which the check below caught.
         case "$(file -b "$f")" in
-            *"ELF 64-bit"*x86-64*executable*) ;;
+            *"ELF 64-bit"*"x86-64"*) ;;
             *) continue ;;
         esac
 
