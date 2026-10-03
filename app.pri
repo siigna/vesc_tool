@@ -1,5 +1,19 @@
+# Copyright 2016 - 2023 Benjamin Vedder	benjamin@vedder.se
+# Copyright Jeffrey M. Friesen
+# Copyright Marcos Chaparro
+# Copyright 2026 Stephen Bouche
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
 # Everything that defines the application's content and dependencies, shared by
 # the app and by the test binaries under tests/.
+#
+# The source and resource lists were moved here out of vesc_tool.pro, which is
+# where git records them: 36 of these lines are Benjamin Vedder's, 8 Jeffrey M.
+# Friesen's and one Marcos Chaparro's. What is new is the split itself, and
+# every path gaining a $$PWD/ -- a bare relative path in a .pri resolves
+# against the including project's directory, so without it the test binaries
+# look for the sources in tests/ui/.
 #
 # Split out of vesc_tool.pro so a widget test can link the whole application
 # without duplicating its source list. The boundary is forced rather than

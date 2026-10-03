@@ -1,5 +1,15 @@
 /*
+	Copyright 2016 - 2023 Benjamin Vedder	benjamin@vedder.se
+	Copyright Jeffrey M. Friesen
+	Copyright r3n33
 	Copyright 2026 Stephen Bouche
+
+	The palette, the font registration and the stylesheet in this file were
+	moved here out of main.cpp, where git records them as 47 lines from
+	Jeffrey M. Friesen, 19 from Benjamin Vedder and 16 from r3n33. What is
+	new here is the split into initIdentity/initColors/registerFonts/
+	applyStyle so that a test binary can apply the same style the application
+	does, and the fix to the Roboto-Bold filename.
 
 	This file is part of ESCargot Tool.
 

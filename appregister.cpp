@@ -1,5 +1,13 @@
 /*
+	Copyright 2016 - 2023 Benjamin Vedder	benjamin@vedder.se
+	Copyright Renee
 	Copyright 2026 Stephen Bouche
+
+	The QML type registrations here were moved out of main.cpp, qmlui.cpp and
+	vescinterface.cpp; git records 28 of these lines as Benjamin Vedder's.
+	What is new is lifting them out of main() so the tests can register the
+	same types, and dropping a duplicate registration of VescInterface and
+	Utility that the GUI branch was making twice.
 
 	This file is part of ESCargot Tool.
 
