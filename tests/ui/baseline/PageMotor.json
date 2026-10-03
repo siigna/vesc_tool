@@ -23,11 +23,12 @@
                 "ParamEditInt",
                 "ParamEditEnum",
                 "ParamEditDouble",
-                "ParamEditBitfield"
+                "ParamEditBitfield",
+                "ParamEditDouble"
             ],
             "enabled": true,
             "name": "advancedTab",
-            "rows": 9
+            "rows": 10
         },
         {
             "class": "BatteryCalculator",
@@ -92,13 +93,15 @@
                 "ParamEditDouble",
                 "ParamEditDouble",
                 "ParamEditDouble",
+                "ParamEditDouble",
+                "ParamEditDouble",
                 "(none)",
                 "ParamEditEnum",
                 "ParamEditInt"
             ],
             "enabled": true,
             "name": "currentTab",
-            "rows": 15
+            "rows": 17
         },
         {
             "class": "DirSetup",

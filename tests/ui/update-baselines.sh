@@ -17,6 +17,15 @@ mkdir -p baseline
 # green against a snapshot of a deliberately broken page.
 rm -rf actual
 
+# Rebuild first. The parameter XML is compiled into the binary as a resource,
+# so running a stale tst_ui compares the pages against the parameters as they
+# were at its last build -- which reports "nothing to update" for a change to
+# the XML and then fails in check.sh, where the suite is rebuilt from clean.
+if ! make -j"$(nproc 2>/dev/null || echo 8)" >/dev/null 2>&1; then
+    echo "build failed; not updating anything" >&2
+    exit 2
+fi
+
 # The suite writes actual/<page>.json for every mismatch, so one run produces
 # everything that needs updating.
 ./run.sh >/dev/null 2>&1

@@ -1403,8 +1403,15 @@ void UiTest::configSignatureIsPinned()
      * regenerate confgenerator.h/.c in the firmware tree, flash it, and update
      * the numbers below in the same commit.
      */
-    const quint32 expectApp = 2638111212u;
-    const quint32 expectMc = 3154770096u;
+    /*
+     * Moved by merging upstream, which added l_erpm_abs_overspeed,
+     * l_in_current_max_scale and l_in_current_min_scale to mcconf and an IMU
+     * type to appconf. Ported into this fork's 7.02 and regenerated with
+     * --genFwConf, so the firmware agrees -- see MERGING.md in the firmware
+     * tree. Was 2638111212 / 3154770096.
+     */
+    const quint32 expectApp = 3436054497u;
+    const quint32 expectMc = 1953902595u;
 
     const quint32 gotApp = g_vesc->appConfig()->getSignature();
     const quint32 gotMc = g_vesc->mcConfig()->getSignature();

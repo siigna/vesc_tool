@@ -30,6 +30,7 @@
 #include "codeloader.h"
 #include "configparam.h"
 #include "utility.h"
+#include "vescinterface.h"
 #include "appstyle.h"
 #include "appregister.h"
 #include <QAbstractButton>
@@ -91,6 +92,7 @@ static void showHelp()
     qDebug() << "--testPkgDesc [hwtype:hwname:optfwname] : Test isCompatible from package QML description after build";
     qDebug() << "--useBoardSetupWindow : Start board setup window instead of the main UI";
     qDebug() << "--xmlConfToCode [xml-file] : Generate C code from XML configuration file (the files are saved in the same directory as the XML)";
+    qDebug() << "--genFwConf [config-dir] : Generate the firmware's confgenerator.c/.h into the working directory, from the parameter XML in [config-dir] (a version directory such as res/config/7.02). This is the pair carrying MCCONF_SIGNATURE and APPCONF_SIGNATURE, which the firmware checks before accepting a configuration -- see MERGING.md in the firmware tree.";
     qDebug() << "--vescPort [port] : VESC Port for commands that connect, e.g. /dev/ttyACM0. If this command is left out autoconnect will be used.";
     qDebug() << "--insightsReasoning [off|low|medium|high|N] : Thinking budget for a reasoning model. A large payload can otherwise consume the whole token cap before any answer. OpenAI-compatible providers only.";
     qDebug() << "--insightsPrompt [text] : Replace the instructions sent with the data. The data itself is always appended, so this cannot drop it.";
@@ -215,6 +217,7 @@ int main(int argc, char *argv[])
     QString pkgDesc = "";
     QStringList pkgDescTests;
     QString xmlCodePath = "";
+    QString fwConfPath = "";
     QString vescPort = "";
     QString showPageName = "";
     QString screenshotPath = "";
@@ -436,6 +439,18 @@ int main(int argc, char *argv[])
             } else {
                 i++;
                 qCritical() << "No path to xml file";
+                return 1;
+            }
+        }
+
+        if (str == "--genFwConf") {
+            if ((i + 1) < args.size()) {
+                i++;
+                fwConfPath = args.at(i);
+                found = true;
+            } else {
+                i++;
+                qCritical() << "No output directory for --genFwConf";
                 return 1;
             }
         }
@@ -990,6 +1005,76 @@ int main(int argc, char *argv[])
             qCritical() << "Errors while generating files.";
             return 2;
         }
+    }
+
+    /*
+     * The firmware's confgenerator.c/.h, which carry MCCONF_SIGNATURE and
+     * APPCONF_SIGNATURE. Until now this was reachable only from the GUI's
+     * Export Configuration Parser, which made the documented procedure for
+     * merging upstream into the firmware -- port the new parameters, then
+     * regenerate -- impossible to follow headlessly or in CI, and the
+     * signature is the one thing that must not be hand-edited: the firmware
+     * rejects an entire configuration blob when it disagrees.
+     */
+    if (!fwConfPath.isEmpty()) {
+        /*
+         * Read from the directory given, not through Utility::configPath.
+         * That helper registers $AppData/res_config.rcc over the compiled-in
+         * parameters when a developer has ever downloaded a config archive,
+         * and the first version of this flag did exactly that: it loaded a
+         * stale archive, found no matching version, and wrote a header whose
+         * signatures were both 0 -- which would be accepted by nothing and
+         * looks like a successful run. The same shadowing is why the widget
+         * tests pin every XDG path before building anything.
+         */
+        const QDir confDir(fwConfPath);
+        const QString mcPath = confDir.filePath("parameters_mcconf.xml");
+        const QString appPath = confDir.filePath("parameters_appconf.xml");
+
+        for (const QString &need: {mcPath, appPath}) {
+            if (!QFileInfo::exists(need)) {
+                qCritical() << "No" << need
+                            << "-- --genFwConf takes a config version"
+                               " directory, such as res/config/7.02";
+                return 1;
+            }
+        }
+
+        VescInterface vesc;
+
+        // The same suppression the other headless paths apply, so nothing
+        // here reaches the network or swaps firmware.
+        vesc.setBlockFwSwap(true);
+        vesc.setIgnoreCustomConfigs(true);
+        vesc.setShowFwUpdateAvailable(false);
+        vesc.setIgnoreTestVersion(true);
+
+        if (!vesc.mcConfig()->loadParamsXml(mcPath)
+                || !vesc.appConfig()->loadParamsXml(appPath)) {
+            qCritical() << "Could not parse the parameter XML in" << fwConfPath;
+            return 1;
+        }
+
+        /*
+         * Written into the working directory, which is where the firmware
+         * keeps them -- so the procedure from the firmware tree is
+         *   vesc_tool --genFwConf ../vesc_tool/res/config/7.02
+         * and nothing has to be copied afterwards or cleaned out of the
+         * Tool's resources.
+         */
+        const QString stem = "confgenerator";
+
+        if (!Utility::createParamParserC(&vesc, stem)) {
+            qCritical() << "Could not write" << stem + ".c/.h";
+            return 2;
+        }
+
+        // Printed because they are what the firmware tree has to agree with,
+        // and what the pinned check in tests/ui compares against.
+        qDebug() << "MCCONF_SIGNATURE" << vesc.mcConfig()->getSignature();
+        qDebug() << "APPCONF_SIGNATURE" << vesc.appConfig()->getSignature();
+        qDebug() << "Wrote" << stem + ".c" << "and" << stem + ".h";
+        return 0;
     }
 
     if (!fwPackIn.isEmpty()) {
