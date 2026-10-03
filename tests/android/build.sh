@@ -55,6 +55,17 @@ done
 
 say() { printf '\n=== %s ===\n' "$1"; }
 
+# The output APK is deleted before anything else runs.
+#
+# build.sh only copies an APK into build/android on success, which sounds
+# safe and is not: a failed build leaves the *previous* run's APK sitting
+# there, and tests/android/apk.py checks whatever it finds. A link error
+# would therefore be followed by a clean set of assertions about a package
+# built minutes earlier.
+out_dir="$root/build/android"
+out_apk="$out_dir/escargot-$variant-$(sed -n 's/^VT_VERSION = //p' "$root/app.pri" | tr -d ' ').apk"
+rm -f "$out_apk"
+
 # ----------------------------------------------------------------- Qt
 
 qt_cache="${VT_ANDROID_QT_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/escargot/qt-android}"
@@ -328,8 +339,8 @@ if [ -z "$apk" ]; then
     exit 1
 fi
 
-out="$root/build/android/escargot-$variant-$(sed -n 's/^VT_VERSION = //p' "$root/app.pri" | tr -d ' ').apk"
-mkdir -p "$(dirname "$out")"
+out="$out_apk"
+mkdir -p "$out_dir"
 cp "$apk" "$out" || exit 1
 
 say "built"

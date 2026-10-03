@@ -31,6 +31,12 @@ import android.view.WindowInsets;
 import android.app.Activity;
 import android.view.Window;
 import android.graphics.Rect;
+import android.content.ContentResolver;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.ParcelFileDescriptor;
+import android.provider.DocumentsContract;
 
 public class Utils
 {
@@ -132,6 +138,134 @@ public class Utils
             }
         } catch (Exception e) {
             return 0;
+        }
+    }
+
+    /*
+     * Storage access framework helpers, for the ride log.
+     *
+     * Logs used to be written straight into Documents/logs with
+     * WRITE_EXTERNAL_STORAGE. That has not worked since API 30, where legacy
+     * external storage is ignored; the permission request in
+     * Utility::requestFilePermission was a stub returning true, so the write
+     * simply failed and the comment there said as much.
+     *
+     * Instead the user grants one directory, once, and Android remembers it.
+     * No storage permission is involved at all, the log survives uninstall,
+     * and a file manager can reach it.
+     *
+     * The picker itself is launched from C++ (Utility::pickLogDirectory),
+     * because QtAndroid::startActivity already carries a result callback and
+     * doing it here would need onActivityResult plumbing through QtActivity.
+     */
+
+    /* Makes a granted tree URI survive a reboot. Without this the grant
+     * lasts only as long as the process. */
+    public static boolean takeTreePermission(Context ctx, String treeUri) {
+        try {
+            ContentResolver cr = ctx.getContentResolver();
+            cr.takePersistableUriPermission(
+                    Uri.parse(treeUri),
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /* True while the grant is still held. A user can revoke it in settings,
+     * or the directory can be on a volume that is no longer mounted, and
+     * either way the next log would fail with no explanation. */
+    public static boolean hasTreePermission(Context ctx, String treeUri) {
+        try {
+            Uri uri = Uri.parse(treeUri);
+            for (android.content.UriPermission p :
+                    ctx.getContentResolver().getPersistedUriPermissions()) {
+                if (p.getUri().equals(uri) && p.isWritePermission()) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /* Something to show the user. Falls back to the raw tree id rather than
+     * to an empty string, so the settings page never looks unset when it is
+     * actually set. */
+    public static String treeDisplayName(Context ctx, String treeUri) {
+        try {
+            Uri uri = Uri.parse(treeUri);
+            Uri doc = DocumentsContract.buildDocumentUriUsingTree(
+                    uri, DocumentsContract.getTreeDocumentId(uri));
+
+            Cursor c = ctx.getContentResolver().query(
+                    doc,
+                    new String[] { DocumentsContract.Document.COLUMN_DISPLAY_NAME },
+                    null, null, null);
+
+            if (c != null) {
+                try {
+                    if (c.moveToFirst() && !c.isNull(0)) {
+                        String name = c.getString(0);
+                        if (name != null && name.length() > 0) {
+                            return name;
+                        }
+                    }
+                } finally {
+                    c.close();
+                }
+            }
+
+            return DocumentsContract.getTreeDocumentId(uri);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /*
+     * Creates one CSV in the granted tree and returns a writable file
+     * descriptor, detached so the caller owns it.
+     *
+     * Returns -1 on any failure. The caller cannot usefully distinguish the
+     * reasons -- revoked grant, unmounted volume, no space -- and all of them
+     * mean the same thing to it: do not start logging.
+     *
+     * text/csv rather than a wildcard, so the provider does not append its
+     * own extension to a name that already has one.
+     */
+    public static int createLogFile(Context ctx, String treeUri, String displayName) {
+        ParcelFileDescriptor pfd = null;
+
+        try {
+            Uri tree = Uri.parse(treeUri);
+            Uri parent = DocumentsContract.buildDocumentUriUsingTree(
+                    tree, DocumentsContract.getTreeDocumentId(tree));
+
+            Uri file = DocumentsContract.createDocument(
+                    ctx.getContentResolver(), parent, "text/csv", displayName);
+
+            if (file == null) {
+                return -1;
+            }
+
+            pfd = ctx.getContentResolver().openFileDescriptor(file, "w");
+
+            if (pfd == null) {
+                return -1;
+            }
+
+            return pfd.detachFd();
+        } catch (Exception e) {
+            if (pfd != null) {
+                try {
+                    pfd.close();
+                } catch (Exception ignored) {
+                }
+            }
+            return -1;
         }
     }
 }

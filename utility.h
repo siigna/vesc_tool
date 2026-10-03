@@ -108,6 +108,29 @@ public:
     Q_INVOKABLE static void startGnssForegroundService();
     Q_INVOKABLE static void stopGnssForegroundService();
     Q_INVOKABLE static bool isBleScanEnabled();
+
+    /*
+     * Where the ride log is written, through the storage access framework.
+     *
+     * Not a path. The user grants one directory once and Android remembers
+     * the grant; what is stored is a tree URI, and files inside it are
+     * reached by content URI rather than by name. requestFilePermission
+     * above is the thing this replaces -- it returned true and requested
+     * nothing, because the permission it would have asked for stopped
+     * working at API 30.
+     *
+     * pickLogDirectory is asynchronous: it opens the system picker and
+     * returns immediately. logDirectoryChanged is emitted when the user has
+     * chosen, or not emitted at all if they cancel.
+     *
+     * On anything but Android these are inert: the URI is always empty, and
+     * the plain directory path is used instead.
+     */
+    Q_INVOKABLE void pickLogDirectory();
+    Q_INVOKABLE static QString logDirectoryUri();
+    Q_INVOKABLE static QString logDirectoryName();
+    Q_INVOKABLE static bool hasLogDirectory();
+    static int createLogFileFd(QString fileName);
     Q_INVOKABLE static QString strCrc32(QString str);
     Q_INVOKABLE static QString readInternalImuType(VescInterface *vesc);
 
@@ -169,6 +192,9 @@ public:
     Q_INVOKABLE static QString configPath(QString subPath);
 
 signals:
+    // Emitted after the user picks a log directory. Carries the display name,
+    // not the URI, because that is what anything reacting to it wants to show.
+    void logDirectoryChanged(QString name);
 
 public slots:
 

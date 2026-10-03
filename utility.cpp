@@ -37,6 +37,7 @@
 #include <QNetworkInterface>
 #include <QDirIterator>
 #include <QPixmapCache>
+#include <QSettings>
 
 #include "maddy/parser.h"
 #include "heatshrink/heatshrinkif.h"
@@ -289,7 +290,30 @@ QString Utility::uuid2Str(QByteArray uuid, bool space)
 
 bool Utility::requestFilePermission()
 {
-    // Not working since android 13, can only write files
+    /*
+     * Requests nothing, and says so.
+     *
+     * It used to ask for WRITE_EXTERNAL_STORAGE. That stopped being granted
+     * when the app targets API 30 or later, which is why the previous comment
+     * here read "Not working since android 13, can only write files" -- but it
+     * still returned true, so eleven callers took the success branch and then
+     * failed to write with nothing to explain why.
+     *
+     * The ride log no longer comes through here at all: it goes to a folder
+     * the user grants once, through the storage access framework. See
+     * Utility::pickLogDirectory and VescInterface::openRtLogFileSaf.
+     *
+     * The other callers -- firmware files, configuration backups, Lisp
+     * sources -- still address storage by path. Those work where the path is
+     * app-private, which is where FilePicker starts, and do not where it is
+     * not. Moving them onto the same framework is a separate piece of work
+     * and is recorded in tests/android/README.md rather than pretended away
+     * here.
+     *
+     * Kept returning true so those callers behave as they do today. The point
+     * of this comment is that the return value means "nothing stands in your
+     * way that I can see", not "you have permission".
+     */
     return true;
 }
 
@@ -1625,6 +1649,174 @@ void Utility::stopGnssForegroundService()
                                               "stopVForegroundService",
                                               "(Landroid/content/Context;)V",
                                               QtAndroid::androidActivity().object());
+#endif
+}
+
+/*
+ * The storage access framework path for the ride log.
+ *
+ * The grant is stored as a tree URI in QSettings, which is the only piece of
+ * state involved -- there is no path to keep valid and nothing to create
+ * ahead of time.
+ */
+
+namespace {
+
+// One place for the settings key, since three functions touch it.
+const char *logTreeKey = "log_tree_uri";
+
+QString storedLogTree()
+{
+    QSettings set;
+    return set.value(logTreeKey, QString()).toString();
+}
+
+}
+
+void Utility::pickLogDirectory()
+{
+#ifdef Q_OS_ANDROID
+    QAndroidJniObject action = QAndroidJniObject::fromString(
+                "android.intent.action.OPEN_DOCUMENT_TREE");
+
+    QAndroidJniObject intent("android/content/Intent",
+                             "(Ljava/lang/String;)V", action.object());
+
+    if (!intent.isValid()) {
+        return;
+    }
+
+    /*
+     * The flags are requested here and made persistable in Java afterwards.
+     * Asking for persistence without FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+     * fails silently: takePersistableUriPermission throws, the log works for
+     * this run, and stops working after a reboot.
+     */
+    const jint read = 0x00000001;       // FLAG_GRANT_READ_URI_PERMISSION
+    const jint write = 0x00000002;      // FLAG_GRANT_WRITE_URI_PERMISSION
+    const jint persist = 0x00000040;    // FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+
+    intent.callObjectMethod("addFlags", "(I)Landroid/content/Intent;",
+                            read | write | persist);
+
+    QtAndroid::startActivity(intent, 1801,
+                             [](int, int resultCode, const QAndroidJniObject &data) {
+        // RESULT_OK. A cancel arrives here too, with RESULT_CANCELED and no
+        // data, and must leave any previous choice alone.
+        if (resultCode != -1 || !data.isValid()) {
+            return;
+        }
+
+        QAndroidJniObject uri = data.callObjectMethod(
+                    "getData", "()Landroid/net/Uri;");
+
+        if (!uri.isValid()) {
+            return;
+        }
+
+        QString uriStr = uri.callObjectMethod(
+                    "toString", "()Ljava/lang/String;").toString();
+
+        if (uriStr.isEmpty()) {
+            return;
+        }
+
+        bool took = QAndroidJniObject::callStaticMethod<jboolean>(
+                    "io/github/siigna/escargot/Utils",
+                    "takeTreePermission",
+                    "(Landroid/content/Context;Ljava/lang/String;)Z",
+                    QtAndroid::androidActivity().object(),
+                    QAndroidJniObject::fromString(uriStr).object());
+
+        if (!took) {
+            // Nothing is stored in this case. A grant that does not survive a
+            // reboot would work once and then fail in the middle of a ride,
+            // which is worse than not being set.
+            return;
+        }
+
+        QSettings set;
+        set.setValue(logTreeKey, uriStr);
+        set.sync();
+    });
+#endif
+}
+
+QString Utility::logDirectoryUri()
+{
+#ifdef Q_OS_ANDROID
+    return storedLogTree();
+#else
+    return QString();
+#endif
+}
+
+bool Utility::hasLogDirectory()
+{
+#ifdef Q_OS_ANDROID
+    QString uri = storedLogTree();
+
+    if (uri.isEmpty()) {
+        return false;
+    }
+
+    // Checked rather than assumed: the user can revoke the grant in system
+    // settings, and the directory can sit on a volume that is no longer
+    // mounted. Either way the next log would fail with nothing to explain it.
+    return QAndroidJniObject::callStaticMethod<jboolean>(
+                "io/github/siigna/escargot/Utils",
+                "hasTreePermission",
+                "(Landroid/content/Context;Ljava/lang/String;)Z",
+                QtAndroid::androidActivity().object(),
+                QAndroidJniObject::fromString(uri).object());
+#else
+    return false;
+#endif
+}
+
+QString Utility::logDirectoryName()
+{
+#ifdef Q_OS_ANDROID
+    QString uri = storedLogTree();
+
+    if (uri.isEmpty()) {
+        return QString();
+    }
+
+    // callStaticObjectMethod, not callStaticMethod<QString>: Qt 5.15 has no
+    // QString specialisation of the latter, and the result is a link error
+    // rather than a compile error -- so it builds on the desktop, where this
+    // whole block is compiled out, and fails only when linking for Android.
+    return QAndroidJniObject::callStaticObjectMethod(
+                "io/github/siigna/escargot/Utils",
+                "treeDisplayName",
+                "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;",
+                QtAndroid::androidActivity().object(),
+                QAndroidJniObject::fromString(uri).object()).toString();
+#else
+    return QString();
+#endif
+}
+
+int Utility::createLogFileFd(QString fileName)
+{
+#ifdef Q_OS_ANDROID
+    QString uri = storedLogTree();
+
+    if (uri.isEmpty()) {
+        return -1;
+    }
+
+    return QAndroidJniObject::callStaticMethod<jint>(
+                "io/github/siigna/escargot/Utils",
+                "createLogFile",
+                "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)I",
+                QtAndroid::androidActivity().object(),
+                QAndroidJniObject::fromString(uri).object(),
+                QAndroidJniObject::fromString(fileName).object());
+#else
+    (void)fileName;
+    return -1;
 #endif
 }
 

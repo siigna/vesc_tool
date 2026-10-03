@@ -191,6 +191,39 @@ settings, androiddeployqt turns them into `qtMinSdkVersion` and
 `WRITE_EXTERNAL_STORAGE` injected back, an upstream label, a single ABI, and
 an upstream package id are all caught, each with a message naming the cause.
 
+## Where the ride log goes
+
+Through the storage access framework, not a path. The user grants one
+directory once, Android remembers the grant, and no storage permission is
+involved at all.
+
+| | |
+|---|---|
+| picker | `Utility::pickLogDirectory` launches `ACTION_OPEN_DOCUMENT_TREE` via `QtAndroid::startActivity`, which already carries a result callback |
+| grant | `Utils.takeTreePermission` makes it survive a reboot; if that fails **nothing is stored**, because a grant that works once and then dies mid-ride is worse than being unset |
+| liveness | `Utils.hasTreePermission` — a user can revoke it in settings, and the volume can be unmounted |
+| the file | `Utils.createLogFile` creates a `text/csv` document and returns a detached fd |
+| the write | `VescInterface::openRtLogFileSaf` opens that fd with `AutoCloseHandle`, so `closeRtLogFile` is unchanged and the fd cannot leak on an error path |
+
+The CSV header and the position-source startup are in one `finishRtLogOpen`
+shared by both open paths. A header written in two places drifts, and that
+format is what the desktop log analysis page parses.
+
+`mRtLogName` exists because an fd-backed `QFile` has no file name, so
+`QFileInfo::canonicalFilePath` returns nothing and `rtLogFilePath` had nothing
+to show the user.
+
+### What this did not fix
+
+`Utility::requestFilePermission` still returns `true` and requests nothing.
+The ride log no longer goes through it, but ten other callers do — firmware
+files, configuration backups, Lisp sources — and they still address storage by
+path. Those work where the path is app-private, which is where `FilePicker`
+starts, and do not where it is not. Its comment now says that rather than
+"Not working since android 13" sitting above `return true`.
+
+Moving them onto the same framework is separate work and is not done.
+
 ## What a build still does not prove
 
 No emulator and no device, so nothing here shows that it runs. The things

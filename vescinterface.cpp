@@ -1775,6 +1775,71 @@ bool VescInterface::openRtLogFile(QString outDirectory)
 
     bool res = mRtLogFile.open(QIODevice::WriteOnly | QIODevice::Text);
 
+    mRtLogName = QFileInfo(mRtLogFile.fileName()).fileName();
+
+    return finishRtLogOpen(res);
+}
+
+/*
+ * Opens the ride log through the storage access framework.
+ *
+ * Android only, and the only path that works there: the old one wrote into
+ * Documents/logs with WRITE_EXTERNAL_STORAGE, which API 30 stopped honouring,
+ * and Utility::requestFilePermission was a stub returning true. So log to
+ * file had been silently broken on any recent phone.
+ *
+ * What arrives here is a file descriptor for a document the system created
+ * inside a directory the user granted once. There is no path, which is why
+ * mRtLogName exists: QFileInfo on an fd-backed QFile has nothing to report.
+ *
+ * AutoCloseHandle hands the descriptor to the QFile, so closeRtLogFile keeps
+ * working unchanged and the fd cannot leak on the error paths below.
+ */
+bool VescInterface::openRtLogFileSaf()
+{
+    if (!Utility::hasLogDirectory()) {
+        emitMessageDialog("Log to file",
+                          "No log folder has been chosen, or access to it was "
+                          "withdrawn. Pick one in the logging settings.",
+                          false, false);
+        return false;
+    }
+
+    QDateTime d = QDateTime::currentDateTime();
+    QString name = QString("%1-%2-%3_%4-%5-%6.csv").
+            arg(d.date().year(), 2, 10, QChar('0')).
+            arg(d.date().month(), 2, 10, QChar('0')).
+            arg(d.date().day(), 2, 10, QChar('0')).
+            arg(d.time().hour(), 2, 10, QChar('0')).
+            arg(d.time().minute(), 2, 10, QChar('0')).
+            arg(d.time().second(), 2, 10, QChar('0'));
+
+    int fd = Utility::createLogFileFd(name);
+
+    if (fd < 0) {
+        emitMessageDialog("Log to file",
+                          "Could not create a log file in the chosen folder. "
+                          "It may have been deleted, or be on storage that is "
+                          "no longer available.",
+                          false, false);
+        return false;
+    }
+
+    bool res = mRtLogFile.open(fd, QIODevice::WriteOnly | QIODevice::Text,
+                               QFileDevice::AutoCloseHandle);
+
+    mRtLogName = name;
+
+    return finishRtLogOpen(res);
+}
+
+// The part both open paths share: the CSV header, the failure report, and
+// starting the position source. Extracted rather than duplicated, because a
+// header written in two places drifts and the log format is what the desktop
+// analysis page parses.
+bool VescInterface::finishRtLogOpen(bool res)
+{
+
     if (mRtLogFile.isOpen()) {
         QTextStream os(&mRtLogFile);
         os << "ms_today" << ";";
@@ -1895,8 +1960,17 @@ bool VescInterface::isRtLogOpen()
 
 QString VescInterface::rtLogFilePath()
 {
+    // An fd-backed QFile has no name, so canonicalFilePath returns nothing on
+    // the storage-access-framework path. The display name is kept separately
+    // for exactly that case; on desktop it is the file name of a real path.
     QFileInfo fi(mRtLogFile);
-    return fi.canonicalFilePath();
+    QString path = fi.canonicalFilePath();
+
+    if (!path.isEmpty()) {
+        return path;
+    }
+
+    return mRtLogName;
 }
 
 QVector<LOG_DATA> VescInterface::getRtLogData()

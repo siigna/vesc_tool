@@ -30,6 +30,21 @@ Item {
     implicitHeight: grid.implicitHeight
     property var dialogParent: ApplicationWindow.overlay
 
+    // Android reaches the log file by a different route entirely; see the
+    // Choose folder button below.
+    readonly property bool isAndroid: Qt.platform.os === "android"
+
+    // Display name of the granted folder, kept current by the signal below
+    // rather than re-read on every paint.
+    property string logFolderName: isAndroid ? Utility.logDirectoryName() : ""
+
+    Connections {
+        target: Utility
+        function onLogDirectoryChanged(name) {
+            logFolderName = name
+        }
+    }
+
     GridLayout {
         id: grid
 
@@ -56,13 +71,29 @@ Item {
             }
         }
 
+        /*
+         * On Android the log goes to a folder the user grants once through
+         * the system picker, and there is no path to type or reset: see
+         * Utility::pickLogDirectory. Writing into Documents with
+         * WRITE_EXTERNAL_STORAGE stopped working at API 30, and the
+         * permission request was a stub returning true, so the old controls
+         * offered a choice that could not work.
+         *
+         * Everywhere else the path field and its Reset and Browse buttons
+         * are unchanged.
+         */
         Button {
-            text: "Reset"
+            text: isAndroid ? "Choose folder" : "Reset"
             Layout.fillWidth: true
+            Layout.columnSpan: isAndroid ? 2 : 1
             focusPolicy: Qt.NoFocus
 
             onClicked: {
-                rtLogFileText.text = StandardPaths.writableLocation(StandardPaths.DocumentsLocation) + "/logs"
+                if (isAndroid) {
+                    Utility.pickLogDirectory()
+                } else {
+                    rtLogFileText.text = StandardPaths.writableLocation(StandardPaths.DocumentsLocation) + "/logs"
+                }
             }
         }
 
@@ -70,6 +101,7 @@ Item {
             text: "Browse"
             Layout.fillWidth: true
             focusPolicy: Qt.NoFocus
+            visible: !isAndroid
 
             onClicked: {
                 if (Utility.requestFilePermission()) {
@@ -133,9 +165,31 @@ Item {
                 font.pointSize: 12
                 text: StandardPaths.writableLocation(StandardPaths.DocumentsLocation) + "/logs"
                 clip: true
+
+                // Not editable on Android: the folder is whatever the user
+                // granted, and a typed path cannot be written there.
+                readOnly: isAndroid
+
                 QSettings.Settings {
                     property alias path_rt_log: rtLogFileText.text
                 }
+            }
+
+            // Covers the path field on Android, because what is stored for
+            // that platform is a tree URI and showing one to someone is
+            // useless.
+            Text {
+                anchors.fill: parent
+                anchors.margins: 7
+                font.pointSize: 12
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideMiddle
+                visible: isAndroid
+                color: Utility.getAppHexColor(
+                           logFolderName.length > 0 ? "lightText" : "disabledText")
+                text: logFolderName.length > 0
+                      ? ("Logging to: " + logFolderName)
+                      : "No folder chosen yet"
             }
         }
 
@@ -156,7 +210,9 @@ Item {
                 }
 
                 if (checked) {
-                    if (VescIf.openRtLogFile(rtLogFileText.text)) {
+                    if (isAndroid
+                            ? VescIf.openRtLogFileSaf()
+                            : VescIf.openRtLogFile(rtLogFileText.text)) {
                         VescIf.emitStatusMessage("Logging Started", true)
                         Utility.startGnssForegroundService()
                         VescIf.setWakeLock(true)

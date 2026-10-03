@@ -140,6 +140,9 @@ public:
 
     // Logging
     Q_INVOKABLE bool openRtLogFile(QString outDirectory);
+    // Android: writes into the directory the user granted through the storage
+    // access framework. See Utility::pickLogDirectory.
+    Q_INVOKABLE bool openRtLogFileSaf();
     Q_INVOKABLE void closeRtLogFile();
     Q_INVOKABLE bool isRtLogOpen();
     Q_INVOKABLE QString rtLogFilePath();
@@ -354,6 +357,11 @@ private slots:
     void customConfigRx(int confId, QByteArray data);
 
 private:
+    // Shared tail of both openRtLogFile paths: the CSV header, the failure
+    // report and starting the position source. Takes the result of the open
+    // so the two callers do not each have to decide what to do with it.
+    bool finishRtLogOpen(bool res);
+
     typedef enum {
         CONN_NONE = 0,
         CONN_SERIAL,
@@ -466,6 +474,10 @@ private:
     bool mWakeLockActive;
 
     QFile mRtLogFile;
+    // The log's display name. Needed because the storage-access-framework
+    // path opens a file descriptor, and an fd-backed QFile has no file name
+    // for QFileInfo to report.
+    QString mRtLogName;
     QVector<LOG_DATA> mRtLogData;
     IMU_VALUES mLastImuValues;
     QDateTime mLastImuTime;
