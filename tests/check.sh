@@ -101,6 +101,26 @@ else
     printf '  skipped: tests/ui not present\n'
 fi
 
+stage "rtlog (logging end to end, against the firmware's protocol)"
+if [ -f tests/rtlog/rtlog.pro ]; then
+    (
+        cd tests/rtlog || exit 1
+        qmake rtlog.pro >/dev/null 2>&1 && make -j8 >/dev/null 2>&1 || exit 1
+        # run.sh finds the Qt plugins and pins the environment; the first
+        # version of this stage ran the binary directly and failed with
+        # "Could not find the Qt platform plugin offscreen".
+        ./run.sh > "$raw/rtlog" 2>&1
+        st=$?
+        grep -E "^(FAIL|SKIP|Totals)" "$raw/rtlog"
+        exit $st
+    )
+    st=$?
+    explain $st "$raw/rtlog"
+    report $st
+else
+    printf '  skipped: tests/rtlog not present\n'
+fi
+
 stage "qml (mobile components load, instantiate and warn about nothing)"
 if [ -f tests/qml/qml.pro ]; then
     (

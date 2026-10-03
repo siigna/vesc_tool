@@ -1,0 +1,8 @@
+Makefile
+obj/
+tst_rtlog
+*.o
+moc_*.cpp
+*.moc
+.qmake.stash
+target_wrapper.*

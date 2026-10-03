@@ -143,6 +143,9 @@ public:
     // Android: writes into the directory the user granted through the storage
     // access framework. See Utility::pickLogDirectory.
     Q_INVOKABLE bool openRtLogFileSaf();
+    // Logs to a descriptor someone else opened. The testable half of the
+    // storage-access-framework path; see tests/rtlog.
+    Q_INVOKABLE bool openRtLogFileFd(int fd, QString displayName);
     Q_INVOKABLE void closeRtLogFile();
     Q_INVOKABLE bool isRtLogOpen();
     Q_INVOKABLE QString rtLogFilePath();

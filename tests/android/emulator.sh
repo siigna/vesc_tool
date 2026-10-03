@@ -237,7 +237,16 @@ ok "booted: $(adb -s "$serial" shell getprop ro.build.version.release 2>/dev/nul
 
 say "install"
 
-adb -s "$serial" install -r "$apk" > "$tmp/install.log" 2>&1
+# Uninstalled first, always.
+#
+# Each run signs with a fresh throwaway key, so installing over an existing
+# copy fails with INSTALL_FAILED_UPDATE_INCOMPATIBLE -- and `adb install`
+# prints that above its last line, so a careless check reads the failure as a
+# success. A fresh AVD has nothing installed and this is a no-op; it matters
+# when the emulator is reused with --keep.
+adb -s "$serial" uninstall "$pkg" >/dev/null 2>&1
+
+adb -s "$serial" install "$apk" > "$tmp/install.log" 2>&1
 if ! grep -q Success "$tmp/install.log"; then
     bad "install failed:"
     tail -10 "$tmp/install.log" | sed 's/^/  | /'

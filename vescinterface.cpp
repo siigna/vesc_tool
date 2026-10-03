@@ -1825,10 +1825,31 @@ bool VescInterface::openRtLogFileSaf()
         return false;
     }
 
+    return openRtLogFileFd(fd, name);
+}
+
+/*
+ * Logs to an already-open file descriptor.
+ *
+ * Split out of openRtLogFileSaf so that the part of that path which is not
+ * Android -- taking ownership of a descriptor, writing the header, appending
+ * rows -- can be tested on a host. What stays untestable off a device is the
+ * storage access framework itself: the picker and the document creation. See
+ * tests/rtlog.
+ *
+ * AutoCloseHandle hands the descriptor to the QFile, so closeRtLogFile needs
+ * no special case and the descriptor cannot leak if the header write fails.
+ */
+bool VescInterface::openRtLogFileFd(int fd, QString displayName)
+{
+    if (fd < 0) {
+        return false;
+    }
+
     bool res = mRtLogFile.open(fd, QIODevice::WriteOnly | QIODevice::Text,
                                QFileDevice::AutoCloseHandle);
 
-    mRtLogName = name;
+    mRtLogName = displayName;
 
     return finishRtLogOpen(res);
 }
