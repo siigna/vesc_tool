@@ -83,9 +83,31 @@
             it only ever added a line to the manifest.
     -->
 
-    <!-- Replaced at deployment with the permissions androiddeployqt derives
-         from the linked Qt modules, INTERNET among them. -->
-    <!-- %%INSERT_PERMISSIONS -->
+    <!--
+        The two Qt modules' own needs, declared here rather than left to
+        androiddeployqt's INSERT_PERMISSIONS placeholder (written here
+        without its percent signs, because androiddeployqt replaces the token
+        wherever it appears, including inside a comment about it).
+
+        That placeholder is removed on purpose. It injected seven permissions
+        derived from the linked Qt modules, and among them was
+        WRITE_EXTERNAL_STORAGE: the one this fork deliberately dropped. So
+        removing a permission from this file was not enough to remove it from
+        the APK, and the manifest said one thing while the package did
+        another. It also injected a bare BLUETOOTH with no maxSdkVersion,
+        which collided with the capped one above and failed the merge, and an
+        android.hardware.gamepad feature for a module that is not even built
+        for Android.
+
+        tests/android/manifest.py asserts the placeholder stays gone.
+    -->
+    <uses-permission android:name='"android.permission.INTERNET"'/>
+    <uses-permission android:name='"android.permission.ACCESS_NETWORK_STATE"'/>
+
+    <!-- Needed to start discovery before API 31, where BLUETOOTH_SCAN takes
+         over. Capped for the same reason BLUETOOTH is. -->
+    <uses-permission android:name='"android.permission.BLUETOOTH_ADMIN"'
+                     android:maxSdkVersion='"30"'/>
 
     <!--
         No feature is required, so the app stays installable and degrades
@@ -98,9 +120,9 @@
     <uses-feature android:name='"android.hardware.location.gps"'
                   android:required='"false"'/>
 
-    <!-- Replaced at deployment with the features androiddeployqt derives
-         from the linked Qt modules. -->
-    <!-- %%INSERT_FEATURES -->
+    <!-- The INSERT_FEATURES placeholder is removed for the same reason:
+         it re-declared location.gps, duplicating the one above, and added
+         android.hardware.gamepad for a module Android does not build. -->
 
     <supports-screens android:smallScreens='"true"'
                       android:normalScreens='"true"'

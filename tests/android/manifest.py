@@ -52,6 +52,11 @@ EXPECTED_PERMISSIONS = {
     "android.permission.FOREGROUND_SERVICE_LOCATION",
     "android.permission.POST_NOTIFICATIONS",
     "android.permission.WAKE_LOCK",
+    # Declared explicitly because the %%INSERT_PERMISSIONS placeholder is
+    # gone. Qt derives these from QtNetwork and QtBluetooth.
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.BLUETOOTH_ADMIN",
 }
 
 fail = False
@@ -251,6 +256,22 @@ def java_sources_exist(root, declared_name):
 def main():
     with open(TEMPLATE) as fh:
         src = fh.read()
+
+    # androiddeployqt replaces these with permissions and features it derives
+    # from the linked Qt modules. Among them is WRITE_EXTERNAL_STORAGE, which
+    # this fork drops -- so with the placeholder present, removing a
+    # permission from the template did not remove it from the APK, and the
+    # manifest and the package disagreed. It also injected a bare BLUETOOTH
+    # with no maxSdkVersion, which failed the manifest merge outright.
+    # Matched as the comment androiddeployqt actually looks for, not as a bare
+    # token: prose in the template mentions these by name, and an earlier
+    # version of this check failed on its own documentation.
+    for name in ("INSERT_PERMISSIONS", "INSERT_FEATURES"):
+        if re.search(r"<!--\s*%%" + name + r"\s*-->", src):
+            bad("the %s placeholder is back in the template. It re-injects "
+                "WRITE_EXTERNAL_STORAGE and a BLUETOOTH with no "
+                "maxSdkVersion; declare what is needed explicitly instead"
+                % name)
 
     # A bare double hyphen anywhere inside an XML comment is a parse error,
     # and it is the easiest thing to introduce while writing a comment.
