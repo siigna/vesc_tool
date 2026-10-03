@@ -31,8 +31,10 @@ case "$variant" in
        exit 2 ;;
 esac
 
+# VT_ANDROID_QT_MODULES is deliberately not in this list: it is legitimately
+# empty for Qt 5.15, and an emptiness check would reject the correct value.
 for v in ANDROID_SDK_ROOT ANDROID_NDK_ROOT JAVA_HOME \
-         VT_ANDROID_QT_VERSION VT_ANDROID_QT_ARCH VT_ANDROID_QT_MODULES \
+         VT_ANDROID_QT_VERSION VT_ANDROID_QT_ARCH \
          VT_ANDROID_PLATFORM; do
     if [ -z "${!v:-}" ]; then
         echo "build.sh: $v is not set. Run inside: nix develop .#android" >&2
@@ -58,7 +60,7 @@ if [ ! -x "$qt_root/bin/qmake" ]; then
     # Android target the list is empty, because every module this application
     # uses is in the base install; naming them anyway fails the whole install.
     mods=()
-    if [ -n "${VT_ANDROID_QT_MODULES// /}" ]; then
+    if [ -n "${VT_ANDROID_QT_MODULES:-}" ] && [ -n "${VT_ANDROID_QT_MODULES// /}" ]; then
         # shellcheck disable=SC2086
         mods=(-m $VT_ANDROID_QT_MODULES)
     fi
