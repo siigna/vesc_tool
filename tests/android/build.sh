@@ -7,8 +7,9 @@
 #   nix develop .#android --command tests/android/build.sh mobile arm64-v8a
 #   nix develop .#android --command tests/android/build.sh --reuse mobile
 #
-# --reuse keeps the compiled objects and skips qmake, for iterating on the
-# packaging steps. Do not use it after changing a .pro or .pri.
+# --reuse keeps the compiled objects, for iterating on the packaging steps.
+# qmake still re-runs, because it is what regenerates the deployment settings
+# the SDK and build-tools versions come from.
 #
 # Variant is `mobile` (the QML phone UI) or `full` (the desktop widget UI).
 # They are separate applications with separate ids, so both can be installed
@@ -203,29 +204,33 @@ if [ "$variant" = "mobile" ]; then
     config="$config build_mobile"
 fi
 
+# --reuse keeps the object files; it does NOT skip qmake.
+#
+# Skipping qmake was the first version of this and it was wrong. qmake writes
+# android-vesc_tool-deployment-settings.json, which carries the SDK path, the
+# NDK path and sdkBuildToolsRevision. Changing the build-tools version in
+# pkgs/android therefore has no effect until qmake re-runs -- and the stale
+# json made gradle ask for build-tools 31.0.0, which AGP then part-downloaded
+# into the SDK and reported as "corrupted". The symptom was identical to the
+# bug being fixed, which is the worst possible way to be wrong.
+#
+# qmake takes seconds. Only the rm is worth skipping: compiling two ABIs of
+# this application is about fifteen minutes.
 if [ "$reuse" -eq 1 ] && [ -f "$build/Makefile" ]; then
-    # --reuse keeps the object files and re-runs make incrementally. Compiling
-    # two ABIs of this application takes about fifteen minutes, which is a
-    # long time to re-test a one-line change to the manifest, the gradle
-    # config or the signing step.
-    #
-    # It deliberately does NOT re-run qmake: a change to a .pro or .pri needs
-    # a full pass, and pretending otherwise produces a build from stale
-    # makefiles. Drop --reuse for anything that touches the project files.
-    say "reusing $build (no qmake, incremental make)"
+    say "reusing objects in $build (qmake still re-runs)"
     cd "$build" || exit 1
 else
-    say "qmake ($variant, $abis)"
     rm -rf "$build"
     mkdir -p "$build" || exit 1
     cd "$build" || exit 1
-
-    "$qt_root/bin/qmake" "$root/vesc_tool.pro" \
-        -spec android-clang \
-        -config release \
-        "CONFIG += $config" \
-        ANDROID_ABIS="$abis" || exit 1
 fi
+
+say "qmake ($variant, $abis)"
+"$qt_root/bin/qmake" "$root/vesc_tool.pro" \
+    -spec android-clang \
+    -config release \
+    "CONFIG += $config" \
+    ANDROID_ABIS="$abis" || exit 1
 
 say "make"
 make -j"$(nproc 2>/dev/null || echo 4)" || exit 1
