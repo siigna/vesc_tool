@@ -89,8 +89,11 @@ the reason written down would no longer be true.
 ## What this suite still does not cover
 
 - **No Android build.** Nothing here compiles for Android or runs on a device
-  or emulator; it exercises the same QML on the host. A build-config break
-  specific to the Android target is invisible to it.
+  or emulator; it exercises the same QML on the host. The Android
+  configuration is checked separately and statically -- see
+  `tests/android/README.md`, which also prices up what a real build job would
+  cost -- but a break that only a compile for that target would show is
+  invisible to both.
 - **No rendered output.** `grabImage` works under the software backend, but
   there are no image baselines, so a component that loads cleanly and draws
   nothing passes.

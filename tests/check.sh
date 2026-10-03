@@ -152,6 +152,14 @@ else
     printf '  skipped: tests/cli not present\n'
 fi
 
+stage "android (build configuration, no SDK required)"
+if [ -x tests/android/run.sh ]; then
+    (./tests/android/run.sh > "$raw/android" 2>&1; st=$?; cat "$raw/android"; exit $st)
+    report $?
+else
+    printf '  skipped: tests/android not present\n'
+fi
+
 stage "branding (no upstream product name in display strings)"
 (
     # A widget test cannot see all of these: the welcome heading lives in
