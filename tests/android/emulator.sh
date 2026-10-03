@@ -97,6 +97,52 @@ fi
 
 ok "built $(basename "$apk") ($(du -h "$apk" | cut -f1))"
 
+# --------------------------------------------------------- a throwaway key
+
+# Android refuses an unsigned package outright:
+#
+#     INSTALL_PARSE_FAILED_NO_CERTIFICATES: Failed collecting certificates
+#
+# build.sh produces unsigned packages on purpose, so this signs a copy with a
+# key generated here, used once, and thrown away with the temporary directory.
+#
+# Deliberately NOT the release key from tests/android/keystore.sh. That one
+# signs what goes on a phone, and a test harness should not need it, touch
+# it, or be able to. The password below is a constant precisely because the
+# key is worthless: it exists for the length of this run.
+
+key="$tmp/emulator-test.keystore"
+signed="$tmp/signed.apk"
+
+keytool -genkeypair -keystore "$key" -storetype PKCS12 \
+    -storepass emulator -keypass emulator -alias test \
+    -keyalg RSA -keysize 2048 -validity 1 \
+    -dname "CN=escargot emulator test, OU=throwaway" \
+    > "$tmp/keytool.log" 2>&1 || {
+        bad "could not create the throwaway signing key:"
+        tail -5 "$tmp/keytool.log" | sed 's/^/  | /'
+        exit 1
+    }
+
+apksigner sign --ks "$key" --ks-pass pass:emulator --key-pass pass:emulator \
+    --ks-key-alias test --out "$signed" "$apk" \
+    > "$tmp/apksigner.log" 2>&1 || {
+        bad "apksigner failed:"
+        tail -10 "$tmp/apksigner.log" | sed 's/^/  | /'
+        exit 1
+    }
+
+# Proves the signature is there, rather than assuming apksigner's exit code.
+if apksigner verify --print-certs "$signed" > "$tmp/verify.log" 2>&1; then
+    ok "signed with a throwaway key ($(grep -m1 -oE 'CN=[^,]*' "$tmp/verify.log" || echo 'CN unknown'))"
+else
+    bad "the signed APK does not verify:"
+    tail -5 "$tmp/verify.log" | sed 's/^/  | /'
+    exit 1
+fi
+
+apk="$signed"
+
 # ------------------------------------------------------------------- the AVD
 
 say "emulator"
