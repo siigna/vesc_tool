@@ -5,3 +5,151 @@
 * Please use 'aqt list-qt linux android --modules 5.15.2 <arch>' to show modules available.
 2026-10-03 01:52:43,141 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/Updates.xml.sha256
 2026-10-03 01:52:45,702 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/Updates.xml.sha256
+2026-10-03 01:53:24,657 - aqt.main - INFO - installer 140737352796032 aqtinstall(aqt) v3.3.0 on Python 3.13.15 [CPython GCC 15.2.0]
+2026-10-03 01:53:24,658 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/Updates.xml.sha256
+2026-10-03 01:53:26,830 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtbase-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:26,832 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtandroidextras-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:26,835 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtmultimedia-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:26,859 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtgraphicaleffects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:27,662 - aqt.helper - INFO - helper 140737352796032 Downloading qtmultimedia...
+2026-10-03 01:53:27,662 - aqt.helper - INFO - helper 140737352796032 Downloading qtgraphicaleffects...
+2026-10-03 01:53:27,663 - aqt.helper - INFO - helper 140737352796032 Downloading qtbase...
+2026-10-03 01:53:27,663 - aqt.helper - INFO - helper 140737352796032 Downloading qtandroidextras...
+2026-10-03 01:53:27,663 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtgraphicaleffects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:27,663 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtmultimedia-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:27,665 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtandroidextras-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:27,665 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtbase-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:28,587 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtmultimedia-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:28,587 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtandroidextras-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:28,587 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtgraphicaleffects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:28,588 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:28,588 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:28,588 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtbase-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:28,588 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:28,588 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:29,207 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtandroidextras-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.38427414
+2026-10-03 01:53:29,211 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtgraphicaleffects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.35709654
+2026-10-03 01:53:29,232 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebchannel-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:29,236 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtsvg-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:29,845 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtmultimedia-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 3.01669694
+2026-10-03 01:53:29,870 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qttranslations-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:30,027 - aqt.helper - INFO - helper 140737352796032 Downloading qtwebchannel...
+2026-10-03 01:53:30,028 - aqt.helper - INFO - helper 140737352796032 Downloading qtsvg...
+2026-10-03 01:53:30,028 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebchannel-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:30,029 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtsvg-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:30,737 - aqt.helper - INFO - helper 140737352796032 Downloading qttranslations...
+2026-10-03 01:53:30,737 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qttranslations-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:30,911 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtsvg-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:30,912 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:30,914 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebchannel-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:30,914 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:31,518 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qttranslations-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:31,518 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:31,553 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtwebchannel-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.32618512
+2026-10-03 01:53:31,581 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtdeclarative-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:31,684 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtsvg-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.45336550
+2026-10-03 01:53:31,709 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtimageformats-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:32,387 - aqt.helper - INFO - helper 140737352796032 Downloading qtdeclarative...
+2026-10-03 01:53:32,388 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtdeclarative-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:32,471 - aqt.helper - INFO - helper 140737352796032 Downloading qtimageformats...
+2026-10-03 01:53:32,472 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtimageformats-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:32,688 - aqt.installer - INFO - installer 140737352796032 Finished installation of qttranslations-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.82292384
+2026-10-03 01:53:32,717 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtxmlpatterns-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:33,189 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtdeclarative-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:33,190 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:33,276 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtimageformats-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:33,276 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:33,517 - aqt.helper - INFO - helper 140737352796032 Downloading qtxmlpatterns...
+2026-10-03 01:53:33,518 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtxmlpatterns-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:34,175 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtimageformats-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.47071982
+2026-10-03 01:53:34,200 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qttools-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:34,391 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtxmlpatterns-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:34,391 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:34,846 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtbase-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 8.02508227
+2026-10-03 01:53:34,878 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtconnectivity-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:35,077 - aqt.helper - INFO - helper 140737352796032 Downloading qttools...
+2026-10-03 01:53:35,078 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qttools-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:35,609 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtdeclarative-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 4.03382376
+2026-10-03 01:53:35,634 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebsockets-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:35,702 - aqt.helper - INFO - helper 140737352796032 Downloading qtconnectivity...
+2026-10-03 01:53:35,703 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtconnectivity-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:35,842 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtxmlpatterns-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 3.13033443
+2026-10-03 01:53:35,869 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtsensors-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:35,876 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qttools-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:35,876 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:36,385 - aqt.helper - INFO - helper 140737352796032 Downloading qtwebsockets...
+2026-10-03 01:53:36,386 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebsockets-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:36,483 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtconnectivity-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:36,483 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:36,637 - aqt.helper - INFO - helper 140737352796032 Downloading qtsensors...
+2026-10-03 01:53:36,637 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtsensors-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:37,172 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebsockets-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:37,172 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:37,389 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtsensors-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:37,389 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:37,590 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtconnectivity-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.71531145
+2026-10-03 01:53:37,615 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtserialport-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:38,471 - aqt.helper - INFO - helper 140737352796032 Downloading qtserialport...
+2026-10-03 01:53:38,472 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtserialport-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:38,484 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtwebsockets-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.85300455
+2026-10-03 01:53:38,512 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtquickcontrols-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:38,552 - aqt.installer - INFO - installer 140737352796032 Finished installation of qttools-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 4.35701681
+2026-10-03 01:53:38,584 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qt3d-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:38,761 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtsensors-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.89540257
+2026-10-03 01:53:38,786 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtscxml-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:39,269 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtserialport-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:39,269 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:39,272 - aqt.helper - INFO - helper 140737352796032 Downloading qtquickcontrols...
+2026-10-03 01:53:39,273 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtquickcontrols-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:39,329 - aqt.helper - INFO - helper 140737352796032 Downloading qt3d...
+2026-10-03 01:53:39,329 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qt3d-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:39,553 - aqt.helper - INFO - helper 140737352796032 Downloading qtscxml...
+2026-10-03 01:53:39,553 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtscxml-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:39,847 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtserialport-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.23625057
+2026-10-03 01:53:39,869 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtlocation-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:40,089 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtquickcontrols-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:40,089 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:40,138 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qt3d-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:40,138 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:40,346 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtscxml-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:40,346 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:40,674 - aqt.helper - INFO - helper 140737352796032 Downloading qtlocation...
+2026-10-03 01:53:40,688 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtlocation-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:41,231 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtscxml-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.45011524
+2026-10-03 01:53:41,255 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtgamepad-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:41,335 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtquickcontrols-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.83043441
+2026-10-03 01:53:41,360 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtquickcontrols2-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:41,442 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtlocation-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:41,442 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:42,019 - aqt.helper - INFO - helper 140737352796032 Downloading qtgamepad...
+2026-10-03 01:53:42,020 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtgamepad-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:42,169 - aqt.helper - INFO - helper 140737352796032 Downloading qtquickcontrols2...
+2026-10-03 01:53:42,170 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtquickcontrols2-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:42,861 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtgamepad-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:42,861 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:42,947 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtquickcontrols2-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:42,947 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:42,956 - aqt.installer - INFO - installer 140737352796032 Finished installation of qt3d-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 4.37678449
+2026-10-03 01:53:42,991 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebview-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:43,421 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtlocation-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 3.55645845
+2026-10-03 01:53:43,446 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtspeech-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:43,651 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtgamepad-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.40053802
+2026-10-03 01:53:43,888 - aqt.helper - INFO - helper 140737352796032 Downloading qtwebview...
+2026-10-03 01:53:43,889 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebview-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:44,269 - aqt.helper - INFO - helper 140737352796032 Downloading qtspeech...
+2026-10-03 01:53:44,270 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtspeech-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:44,661 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtwebview-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:44,662 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:44,762 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtquickcontrols2-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 3.40702984
+2026-10-03 01:53:45,087 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtspeech-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:45,088 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:45,381 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtwebview-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.39452702
+2026-10-03 01:53:45,642 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtspeech-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.20085134
+2026-10-03 01:53:45,665 - aqt.helper - DEBUG - helper 140737352796032 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtremoteobjects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z.sha256
+2026-10-03 01:53:46,452 - aqt.helper - INFO - helper 140737352796032 Downloading qtremoteobjects...
+2026-10-03 01:53:46,453 - aqt.installer - DEBUG - installer 140737352796032 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtremoteobjects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:47,223 - aqt.helper - DEBUG - helper 140737352796032 Asked to redirect(302) to: https://qt.mirror.constant.com/online/qtsdkrepository/linux_x64/android/qt5_5152/qt.qt5.5152.android/5.15.2-0-202011130628qtremoteobjects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z
+2026-10-03 01:53:47,223 - aqt.helper - INFO - helper 140737352796032 Redirected: qt.mirror.constant.com
+2026-10-03 01:53:48,516 - aqt.installer - INFO - installer 140737352796032 Finished installation of qtremoteobjects-Linux-RHEL_7_6-Clang-Android-Android_ANY-Multi.7z in 2.85632187
+2026-10-03 01:53:48,677 - aqt.main - INFO - installer 140737352796032 Finished installation
+2026-10-03 01:53:48,677 - aqt.main - INFO - installer 140737352796032 Time elapsed: 24.01985190 second

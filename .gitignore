@@ -44,8 +44,22 @@ CMakeLists.txt.user*
 
 # Other
 android-libvesc_tool.so-deployment-settings.json
-android_release_vesctool.keystore
+
+# Signing keys never belong in the tree. tests/android/keystore.sh puts the
+# real one under XDG_DATA_HOME for that reason; these patterns are the second
+# line of defence, not the mechanism. The first two entries replace
+# upstream's android_release_vesctool.keystore, which named one developer's
+# file rather than the shape of the problem.
+*.keystore
+*.jks
 build_android_signed
+
+# androiddeployqt writes gradle.properties into the package source dir, and
+# it carries the SDK and NDK paths of whoever built it.
+android/gradle.properties
+android/AndroidManifest.xml
+android/.gradle/
+android/build/
 *.DS_Store
 
 res/firmwares/*/

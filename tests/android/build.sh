@@ -77,12 +77,67 @@ if [ ! -x "$qt_root/bin/qmake" ]; then
         }
 fi
 
-if [ ! -x "$qt_root/bin/qmake" ]; then
+if [ ! -f "$qt_root/bin/qmake" ]; then
     echo "build.sh: no qmake at $qt_root/bin/qmake after fetching" >&2
     exit 1
 fi
 
-echo "Qt:   $qt_root"
+# ------------------------------------------------------- patch the host tools
+
+# The kit is built for a generic Linux: its host tools are x86-64 ELF linked
+# against /lib64/ld-linux-x86-64.so.2, which does not exist here. Running one
+# reports "Could not start dynamically linked executable", which reads like a
+# corrupt download and is not. So the interpreter and library path are
+# rewritten once, in place, against the glibc the dev shell pins.
+#
+# Only bin/ is touched. lib/ holds the Android libraries, which are ARM ELF
+# and must not be patched -- they are the build's output, not its tools.
+stamp="$qt_root/.escargot-patched"
+
+if [ ! -f "$stamp" ]; then
+    say "making the Qt host tools runnable"
+
+    if [ -z "${VT_ANDROID_HOST_INTERP:-}" ]; then
+        echo "build.sh: VT_ANDROID_HOST_INTERP is not set" >&2
+        exit 2
+    fi
+
+    patched=0
+    for f in "$qt_root"/bin/*; do
+        [ -f "$f" ] || continue
+
+        # Only x86-64 executables. `file` distinguishes them from the shell
+        # wrappers and qt.conf that also live in bin/.
+        case "$(file -b "$f")" in
+            *"ELF 64-bit"*x86-64*executable*) ;;
+            *) continue ;;
+        esac
+
+        patchelf --set-interpreter "$VT_ANDROID_HOST_INTERP" \
+                 --set-rpath "$VT_ANDROID_HOST_LIBS" "$f" 2>/dev/null \
+            && patched=$((patched + 1))
+    done
+
+    if [ "$patched" -eq 0 ]; then
+        echo "build.sh: patched no host tools; expected qmake at least" >&2
+        exit 1
+    fi
+
+    echo "  rewrote $patched host tool(s)"
+    touch "$stamp"
+fi
+
+# Proves the patching worked, rather than finding out sixty lines later with a
+# message that looks like something else.
+if ! "$qt_root/bin/qmake" -query QT_VERSION >/dev/null 2>&1; then
+    echo "build.sh: $qt_root/bin/qmake still will not run." >&2
+    echo "  Try: rm -rf $qt_root/.escargot-patched and re-run, or" >&2
+    echo "  rm -rf $qt_cache to refetch." >&2
+    "$qt_root/bin/qmake" -query QT_VERSION 2>&1 | sed 's/^/  | /' >&2
+    exit 1
+fi
+
+echo "Qt:   $qt_root ($("$qt_root/bin/qmake" -query QT_VERSION))"
 
 # ----------------------------------------------------------- writable SDK
 

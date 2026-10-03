@@ -102,6 +102,11 @@
             android.jdk
             pkgsAndroid.aqtinstall
             pkgsAndroid.p7zip
+            # The Qt kit aqt downloads is built for a generic Linux, so its
+            # host tools cannot run here at all until their interpreter is
+            # rewritten. See build.sh.
+            pkgsAndroid.patchelf
+            pkgsAndroid.file
             # androiddeployqt shells out to these.
             pkgsAndroid.which
             pkgsAndroid.unzip
@@ -116,6 +121,21 @@
           ANDROID_NDK_ROOT = android.ndkRoot;
           ANDROID_NDK_HOME = android.ndkRoot;
           JAVA_HOME = "${android.jdk}";
+
+          # What build.sh rewrites the fetched Qt host tools to use.
+          #
+          # qmake, moc, rcc, uic and androiddeployqt in the Qt kit are x86-64
+          # ELF executables linked against /lib64/ld-linux-x86-64.so.2, which
+          # does not exist on NixOS. Running one reports "Could not start
+          # dynamically linked executable", which looks like a corrupt
+          # download and is not.
+          VT_ANDROID_HOST_INTERP =
+            "${pkgsAndroid.glibc}/lib/ld-linux-x86-64.so.2";
+          VT_ANDROID_HOST_LIBS = pkgsAndroid.lib.makeLibraryPath [
+            pkgsAndroid.glibc
+            pkgsAndroid.stdenv.cc.cc.lib
+            pkgsAndroid.zlib
+          ];
 
           # Read by tests/android/build.sh, so the shell is the single place
           # these are pinned.
