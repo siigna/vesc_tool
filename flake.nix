@@ -164,6 +164,14 @@
           packages = [
             android.emulatorSdk
             android.jdk
+            # A second JDK, for avdmanager only.
+            #
+            # cmdline-tools 13.0 ships an avdmanager compiled for Java 17
+            # (class file 61), and JDK 11 refuses it: "has been compiled by a
+            # more recent version of the Java Runtime". The build cannot move
+            # to 17 -- Qt 5.15 wants 11, and that is what gradle here runs
+            # with -- so the AVD tool gets its own and the build keeps JDK 11.
+            pkgsAndroid.jdk17_headless
             pkgsAndroid.aqtinstall
             pkgsAndroid.p7zip
             pkgsAndroid.patchelf
@@ -196,6 +204,10 @@
 
           VT_ANDROID_EMULATOR_ABI = android.emulatorAbi;
           VT_ANDROID_EMULATOR_IMAGE = android.emulatorImage;
+
+          # Used for avdmanager and nothing else. JAVA_HOME stays on 11 so
+          # the gradle the build runs is unaffected.
+          VT_ANDROID_AVD_JAVA_HOME = "${pkgsAndroid.jdk17_headless}";
 
           shellHook = ''
             export VT_ANDROID_SDK_RO="${android.emulatorSdkRoot}"

@@ -109,7 +109,11 @@ export ANDROID_AVD_HOME="$tmp/avd"
 export ANDROID_SDK_HOME="$tmp"
 mkdir -p "$ANDROID_AVD_HOME" || exit 1
 
-echo no | avdmanager create avd \
+# avdmanager runs on its own JDK. cmdline-tools 13.0 compiled it for Java 17
+# and JDK 11 will not load it; the build needs JDK 11, because that is what
+# Qt 5.15's gradle wants. So JAVA_HOME is overridden for this one command
+# rather than for the shell.
+echo no | JAVA_HOME="${VT_ANDROID_AVD_JAVA_HOME:-$JAVA_HOME}" avdmanager create avd \
     -n "$avd" -k "$VT_ANDROID_EMULATOR_IMAGE" \
     --abi "$abi" --force > "$tmp/avd.log" 2>&1 || {
         bad "avdmanager failed:"
