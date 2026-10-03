@@ -26,6 +26,19 @@
         pkgs = import nixpkgs {
           inherit system;
         };
+
+        # A second instance, for the Android toolchain only.
+        #
+        # The Android SDK is unfree and nixpkgs refuses to build it without an
+        # explicit acceptance. That acceptance is scoped to this instance
+        # rather than set on the one above, so the desktop build and the test
+        # suites stay on a package set with no licence exceptions at all.
+        pkgsAndroid = import nixpkgs {
+          inherit system;
+          config.android_sdk.accept_license = true;
+        };
+
+        android = import ./pkgs/android { pkgs = pkgsAndroid; };
         treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         selfPkgs = import ./pkgs {
           inherit pkgs;
@@ -64,6 +77,46 @@
             # tests/mutate.py
             python3
           ];
+        };
+
+        # Everything an Android build needs except Qt, which nixpkgs has no
+        # Android cross-compilation for; `qt-android` fetches that.
+        #
+        #   nix develop .#android --command tests/android/build.sh mobile
+        devShells.android = pkgsAndroid.mkShell {
+          packages = [
+            android.sdk
+            android.jdk
+            pkgsAndroid.aqtinstall
+            pkgsAndroid.p7zip
+            # androiddeployqt shells out to these.
+            pkgsAndroid.which
+            pkgsAndroid.unzip
+            pkgsAndroid.git
+          ];
+
+          # androiddeployqt and Qt's mkspecs read these by name. ANDROID_NDK_ROOT
+          # and ANDROID_SDK_ROOT are what Qt 5.15 looks for; ANDROID_HOME is
+          # what gradle looks for, and they are deliberately the same paths.
+          ANDROID_SDK_ROOT = android.sdkRoot;
+          ANDROID_HOME = android.sdkRoot;
+          ANDROID_NDK_ROOT = android.ndkRoot;
+          ANDROID_NDK_HOME = android.ndkRoot;
+          JAVA_HOME = "${android.jdk}";
+
+          # Read by tests/android/build.sh, so the shell is the single place
+          # these are pinned.
+          VT_ANDROID_QT_VERSION = android.qtVersion;
+          VT_ANDROID_QT_ARCH = android.qtArch;
+          VT_ANDROID_QT_MODULES = builtins.concatStringsSep " " android.qtModules;
+          VT_ANDROID_PLATFORM = "android-31";
+
+          shellHook = ''
+            # The SDK in the nix store is read-only, and gradle wants to write
+            # into it. androiddeployqt is pointed at a writable copy instead;
+            # build.sh makes it.
+            export VT_ANDROID_SDK_RO="${android.sdkRoot}"
+          '';
         };
 
         # For `nix fmt`
