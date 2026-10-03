@@ -201,6 +201,37 @@ mismatch for one page and a pass for the rest.
 The GL tier is skipped, not failed, when `xvfb-run` is unavailable — the rest
 of the suite is still worth running.
 
+**Its X server is started by hand, and that is not fussiness.** `xvfb-run -a`
+picks a display number and execs the command immediately, so under load the
+client is handed `DISPLAY=:N` before Xvfb has created the socket — Qt exits
+with `qt.qpa.xcb: could not connect to display :N`, SIGABRT, no summary line.
+Four of eight runs in a container. The chain of wrong answers is worth keeping,
+because each one looked right:
+
+1. It reads as an OpenGL failure. It is not; it is the display.
+2. Xvfb's `-displayfd` is documented to write the number only once the server
+   is ready to accept connections. That does not hold — the number arrives and
+   the display is still unreachable.
+3. Probing with `xdpyinfo` before starting the tests **caused** the failure it
+   was checking for. An X server resets when its last client disconnects, and
+   the probe is the only client: it connects, exits, the server resets, and the
+   test connects into the reset window. Four of eight became four of four. The
+   tell is `xkbcomp` running twice in Xvfb's output, which only happens on a
+   reset — and that output was in a log this suite used to discard.
+
+So: a display chosen from `:71` upward rather than hunted for, Xvfb started on
+exactly that one with **`-noreset`**, and the tests not started until
+`xdpyinfo` has actually connected. Zero of eight in a container, from four of
+eight. A candidate that will not serve is skipped and the next tried, which
+self-heals against a socket left by a killed server. A display that cannot be
+obtained skips loudly rather than failing: an environment we could not set up
+is not a code regression, while a real GL break still fails, because there the
+display is fine and the tests are red.
+
+The `:71` range also keeps the tier behaving the same with or without a
+desktop present. Xvfb searching upward from `:0` walks over a workstation's
+own session and reports `server already running` for `:0` and `:1`.
+
 **It was skipped on every run for the life of this suite.** `nix develop` had
 no `devShells.default`, so it fell back to the package's build environment,
 which carries the Qt modules and nothing else. Every GL row reported `SKIP`,

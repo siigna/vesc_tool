@@ -144,7 +144,15 @@ run_gl() {
     for n in 71 72 73 74 75 76 77 78; do
         gl_display_free "$n" || continue
 
-        Xvfb ":$n" -screen 0 1600x1200x24 >"$tmp/xvfb.out" 2>&1 &
+        # -noreset, or the probe below breaks the thing it is checking. An X
+        # server resets when its last client disconnects, and xdpyinfo is the
+        # only client it has: it connects, exits, the server resets, and the
+        # test connects during the reset window and is refused. Xvfb's output
+        # shows it plainly once you know to look -- xkbcomp runs a second
+        # time. So the probe turned an intermittent startup race into a
+        # near-deterministic failure, four runs out of four, and the evidence
+        # that it was doing so was sitting in a log the stage used to discard.
+        Xvfb ":$n" -screen 0 1600x1200x24 -noreset >"$tmp/xvfb.out" 2>&1 &
         xvfb_pid=$!
 
         local i=0
