@@ -52,7 +52,12 @@
             # tests/ui/run.sh runs the GL tier under a real X server with
             # Mesa's software rasteriser, because the offscreen platform
             # reports no GL capability at all.
-            xvfb-run
+            # Xvfb itself, not just the xvfb-run wrapper: tests/ui/run.sh
+            # starts the server by hand so that it can wait for -displayfd,
+            # which is what makes the GL tier reliable under load.
+            xvfb
+            # The probe that decides when the X server is actually usable.
+            xdpyinfo
             mesa
             libGL
 
